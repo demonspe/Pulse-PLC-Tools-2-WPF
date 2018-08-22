@@ -4,6 +4,10 @@
              xmlns:local="clr-namespace:Pulse_PLC_Tools_2._0"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/CustomizedWindow/VS2012WindowStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

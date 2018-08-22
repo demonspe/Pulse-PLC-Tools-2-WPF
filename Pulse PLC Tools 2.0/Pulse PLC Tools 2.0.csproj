@@ -12,6 +12,21 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -36,14 +51,12 @@
     <ApplicationIcon>logo1.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dragablz, Version=0.0.3.203, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dragablz.0.0.3.203\lib\net45\Dragablz.dll</HintPath>
-    </Reference>
     <Reference Include="MaterialDesignColors, Version=1.1.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MaterialDesignColors.1.1.3\lib\net45\MaterialDesignColors.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -62,8 +75,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CRC16.cs" />
-    <Compile Include="Protocol.cs" />
+    <Compile Include="MyClasses\Command_Buffer.cs" />
+    <Compile Include="MyClasses\CRC16.cs" />
+    <Compile Include="MyClasses\DataGridRow_Log.cs" />
+    <Compile Include="MyClasses\DataGridRow_PLC.cs" />
+    <Compile Include="MyClasses\DeviceConfig.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_E_Data.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormPanel_Buttons.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_Monitor.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainForm_Menu.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_DebugLog.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_Journals.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_TablePLC.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_Link.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_Imps.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_MainParams.cs" />
+    <Compile Include="MyClasses\Protocol.cs" />
+    <Compile Include="MyClasses\MainFormTabs\MainFormTab_Service.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -72,7 +100,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Link.cs" />
+    <Compile Include="MyClasses\Link.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -126,6 +154,52 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Pics\garbage32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pics\down32.png" />
+    <Resource Include="Pics\up32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pics\diskette32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="down32_White.png" />
+    <Resource Include="garbage32_White.png" />
+    <Resource Include="up32_White.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pics\logo_lines.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pics\входы.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Menu_pics\key.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pics\access_Read.png" />
+    <Resource Include="Pics\access_Write.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pics\glasses_50_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Pics\user32_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Menu_pics\link.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Menu_pics\search_link.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

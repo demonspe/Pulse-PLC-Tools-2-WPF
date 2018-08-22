@@ -4,312 +4,668 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pulse_PLC_Tools_2._0"
-        mc:Ignorable="d"
-        Title="Pulse PLC Tools 2.0" Height="598.175" Width="703.568" Loaded="mainForm_Loaded">
+        Icon="Pics/logo_lines.png"
+        Title="Pulse PLC Tools 2.0" Height="800" Width="1400" Loaded="mainForm_Loaded" MinWidth="725" MinHeight="600" KeyDown="mainForm_KeyDown" Closing="mainForm_Closing" >
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="150" MinWidth="130"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition/>
             <RowDefinition Height="22"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*" MinHeight="200"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="180" MinHeight="20"/>
+            <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
-        <TabControl x:Name="tabControl_main" Margin="130,82,-104,0" TabStripPlacement="Right" BorderThickness="0,1,1,1" Background="White">
-            <TabItem x:Name="tab_Link" Header="Связь" Margin="0,0,0,0" Width="100">
-                <Grid Margin="-4">
-                    <Button x:Name ="button_open_com" Content="Открыть канал связи" Margin="10,115,0,0" Click="button_open_com_Click" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="{x:Null}" Padding="1,0,1,1"/>
-                    <GroupBox x:Name="groupBox_link_type" Header="Канал связи" HorizontalAlignment="Left" Height="87" Margin="10,23,0,0" VerticalAlignment="Top" Width="232">
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel Width="70">
-                                <RadioButton x:Name="radioButton_COM" IsChecked="True" Margin="3">COM</RadioButton>
-                                <RadioButton x:Name="radioButton_TCP" Margin="3" IsEnabled="False">TCP</RadioButton>
-                                <RadioButton x:Name="radioButton_GSM" Margin="3" IsEnabled="False">GSM</RadioButton>
-                            </StackPanel>
-                            <StackPanel Width="150">
-                                <ComboBox x:Name="comboBox_COM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" DropDownOpened="comboBox_COM_DropDownOpened" Background="{x:Null}"></ComboBox>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBox TextWrapping="Wrap" Text="192.168.1.59" Width="100" IsEnabled="False"/>
-                                    <TextBox TextWrapping="Wrap" Text="11111" Width="50" IsEnabled="False"/>
+        <GridSplitter Grid.Row="3" Grid.Column ="2" ShowsPreview="True" Height="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#FF293955" />
+        <GridSplitter Grid.Column ="1" Grid.Row ="2" Grid.RowSpan="4" ShowsPreview="True" Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#FF293955"/>
+
+        <!-- Главное меню в шапке -->
+        <Grid Grid.Row ="0" Grid.ColumnSpan="3" Background="Black">
+            <Menu Background="#FFD6DBE9" BorderThickness="0,0,0,1" BorderBrush="#FFB8B8B8" Height="22" VerticalAlignment="Top" >
+                <MenuItem Header="Файл">
+                    <MenuItem Header="Открыть"/>
+                    <Separator/>
+                    <MenuItem Header="Сохранить"/>
+                    <MenuItem Header="Сохранить как..."/>
+                    <Separator/>
+                    <MenuItem Header="Выход" />
+                </MenuItem>
+                <MenuItem Header="Сервисные команды">
+                    <MenuItem Header="-> Перезагрузить" Click="button_Reboot_Click"/>
+                    <MenuItem Header="-> Заводские настройки" Click="button_EEPROM_BURN_Click"/>
+                </MenuItem>
+                <MenuItem Header="Горячие клавиши">
+                    <MenuItem Header="Монитор запрос (Ctrl+M)" Click="menu_hotKey_Monitor"/>
+                    <MenuItem Header="Чтение строк в таблице PLC (Ctrl+R)" Click="menu_hotKey_PLC_Request"/>
+                    <MenuItem Header="Запрос по таблице PLC (Ctrl+P)" Click="menu_hotKey_Read_PLC_Table"/>
+                </MenuItem>
+                <MenuItem Header="Справка">
+                    <MenuItem Header="О флагах ошибок.." Click="menu_Help_Errors_Click" />
+                    <MenuItem Header="О заводских настройках.." Click="menu_Help_Default_Click" />
+                    <Separator/>
+                    <MenuItem Header="О программе..." Click="menu_About_Click" />
+                </MenuItem>
+            </Menu>
+        </Grid>
+
+        <!-- Панель с кнопками в шапке -->
+        <Grid Grid.Row ="1" Grid.ColumnSpan="3" Background="LightCoral">
+            <Grid Height="60" VerticalAlignment="Top" Background="#FFD6DBE9">
+                <Grid x:Name="grid_Access_Input" HorizontalAlignment="Left" Height="60" Margin="0,0,0,0" VerticalAlignment="Top" Width="228">
+                    <Label Content="Серийный №" HorizontalAlignment="Left" Margin="2,4,0,0" VerticalAlignment="Top"/>
+                    <ComboBox x:Name="comboBox_Serial" Height="24" VerticalAlignment="Top" IsEditable="True" HorizontalAlignment="Left" Width="137" Margin="86,4,0,0" Background="{x:Null}"/>
+                    <Label Content="Пароль" HorizontalAlignment="Left" Margin="2,33,0,0" VerticalAlignment="Top" Width="84"/>
+                    <TextBox x:Name="textBox_Pass" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="137" Margin="86,33,0,0" Background="{x:Null}"/>
+                </Grid>
+                <Button ToolTip="Прочитать всю конфигурацию из памяти устройства" HorizontalAlignment="Left" Margin="315,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Read_All_Config_Click">
+                    <StackPanel>
+                        <Image Source="Pics/boxupload32.png" Height="32" Width="32"/>
+                    </StackPanel>
+                </Button>
+                <Button ToolTip="Записать всю конфигурацию в память устройства" HorizontalAlignment="Left" Margin="380,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Write_All_Config_Click">
+                    <StackPanel>
+                        <Image Source="Pics/boxdownload32.png" Height="32" Width="32"/>
+                    </StackPanel>
+                </Button>
+                <Button ToolTip="Сохранить в файл..." HorizontalAlignment="Left" Margin="465,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                    <StackPanel>
+                        <Image Source="Pics/diskette32.png" Height="28" Width="28"/>
+                    </StackPanel>
+                </Button>
+                <Button ToolTip="Открыть файл..." HorizontalAlignment="Left" Margin="530,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                    <StackPanel>
+                        <Image Source="Pics/folder32.png" Height="32" Width="32"/>
+                    </StackPanel>
+                </Button>
+                <Button ToolTip="Поиск устройств в канале связи" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Search_Devices_Click" Margin="228,0,0,0">
+                    <StackPanel>
+                        <Image Source="Menu_pics/search_link.png" Height="32" Width="32"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Grid>
+
+        <!-- TreeView Меню навигации по вкладкам -->
+        <Grid x:Name="grid_Menu" Grid.Row ="2" Grid.RowSpan="3">
+            <Grid.Background>
+                <SolidColorBrush Color="#FF293955"/>
+            </Grid.Background>
+            <TreeView x:Name="treeView_Menu" BorderThickness="0" UseLayoutRounding="False" Background="{x:Null}" Foreground="White">
+                <TreeViewItem x:Name="treeView_Link" Header="Связь" Selected="TreeView_Link_Selected" Foreground="White"></TreeViewItem>
+                <TreeViewItem x:Name="treeView_DateTime" Header="Дата/время" Selected="TreeView_DateTime_Selected" Foreground="White"/>
+                <TreeViewItem x:Name="treeView_Config" Header="Настройки" IsExpanded="True" Foreground="White">
+                    <TreeViewItem x:Name="treeView_Config_Main" Header="Основные" Selected="TreeView_Config_MAIN_Selected" Foreground="White"/>
+                    <TreeViewItem x:Name="treeView_IMP1" Header="Имп. вход 1" Selected="TreeView_Config_IMP1_Selected" Foreground="White"/>
+                    <TreeViewItem x:Name="treeView_IMP2" Header="Имп. вход 2" Selected="TreeView_Config_IMP2_Selected" Foreground="White"/>
+                    <TreeViewItem Header="Маршруты PLC" Selected="TreeView_Config_TablePLC_Selected" Foreground="White"/>
+                </TreeViewItem>
+                <TreeViewItem Header="Журналы событий" Foreground="White">
+                    <TreeViewItem Header="Питание" Selected="TreeView_Log_Power_Selected" Foreground="White"/>
+                    <TreeViewItem Header="Конфигурация"  Selected="TreeView_Log_Config_Selected" Foreground="White"/>
+                    <TreeViewItem Header="Интерфейсы"  Selected="TreeView_Log_Interfaces_Selected" Foreground="White"/>
+                    <TreeViewItem Header="Лог опроса"  Selected="TreeView_Log_Requests_Selected" Foreground="White"/>
+                </TreeViewItem>
+                <TreeViewItem x:Name="treeView_Data" Header="Данные" Selected="TreeView_Data_Selected" Foreground="White"/>
+                <TreeViewItem x:Name="treeView_IMPS_Monitor" Header="Монитор" Selected="TreeView_Config_IMPS_Monitor_Selected" Foreground="White"/>
+                <TreeViewItem x:Name="treeView_About" Header="О программе" Selected="TreeView_About_Selected" Foreground="White"/>
+            </TreeView>
+        </Grid>
+
+        <!-- TabControl рабочая область  -->
+        <Grid Grid.Row="2" Grid.Column ="2">
+            <Grid.Background>
+                <SolidColorBrush Color="White"/>
+            </Grid.Background>
+            <TabControl x:Name="tabControl_main"  TabStripPlacement="Right" Background="{x:Null}" Margin="0,0,-103,0" BorderThickness="0">
+                <TabItem x:Name="tab_Link" Header="Связь" Margin="0,0,0,0" Width="100">
+                    <Grid Margin="-4">
+                        <Button x:Name ="button_open_com" Content="Открыть канал связи" Margin="10,115,0,0" Click="button_open_com_Click" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+                        <GroupBox x:Name="groupBox_link_type" Header="Канал связи" HorizontalAlignment="Left" Height="87" Margin="10,23,0,0" VerticalAlignment="Top" Width="232">
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Width="70">
+                                    <RadioButton x:Name="radioButton_COM" IsChecked="True" Margin="3">COM</RadioButton>
+                                    <RadioButton x:Name="radioButton_TCP" Margin="3" IsEnabled="False">TCP</RadioButton>
+                                    <RadioButton x:Name="radioButton_GSM" Margin="3" IsEnabled="False">GSM</RadioButton>
+                                </StackPanel>
+                                <StackPanel Width="150">
+                                    <ComboBox x:Name="comboBox_COM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Background="{x:Null}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox TextWrapping="Wrap" Text="192.168.1.59" Width="100" IsEnabled="False"/>
+                                        <TextBox TextWrapping="Wrap" Text="11111" Width="50" IsEnabled="False"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </GroupBox>
-                    <Label Content="Выберите канал связи с устройством" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"/>
-                    <GroupBox x:Name="groupBox_dateTime" Header="Дата/Время" Height="162" Margin="10,142,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="470">
-                        <Grid>
-                            <GroupBox Header="На устройстве" HorizontalAlignment="Left" Width="235">
-                                <Grid>
-                                    <TextBox x:Name="textBox_Date_in_device" HorizontalAlignment="Left" Height="23" Margin="83,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
-                                    <Label Content="Дата" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                                    <Label Content="Время" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
-                                    <Label Content="Разница" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
-                                    <TextBox x:Name="textBox_Time_in_device" HorizontalAlignment="Left" Height="23" Margin="83,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
-                                    <TextBox x:Name="textBox_Time_difference" HorizontalAlignment="Left" Height="23" Margin="83,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
-                                    <Button x:Name="button_Read_DateTime" Content="Прочитать дату и время" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" Width="193" Click="button_Read_DateTime_Click" Background="{x:Null}" Padding="1,0,1,1"/>
-                                </Grid>
-                            </GroupBox>
-                            <GroupBox Header="На компьютере" Margin="235,0,0,0">
-                                <Grid>
-                                    <TextBox x:Name="textBox_Date_in_pc" HorizontalAlignment="Left" Height="23" Margin="73,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
-                                    <Label Content="Дата" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                                    <Label Content="Время" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
-                                    <TextBox x:Name="textBox_Time_in_pc" HorizontalAlignment="Left" Height="23" Margin="73,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
-                                    <Button x:Name="button_Synchro_DateTime" Content="↩     Корректировать" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top" Width="183" Click="button_Correction_DateTime_Click" HorizontalContentAlignment="Left" Background="{x:Null}" Padding="1,0,1,1"/>
-                                    <Button x:Name="button_Write_DateTime" Content="↩     Записать дату и время" HorizontalAlignment="Left" Margin="10,93,0,0" VerticalAlignment="Top" Width="183" Click="button_Write_DateTime_Click" HorizontalContentAlignment="Left" Background="{x:Null}" Padding="1,0,1,1"/>
-                                </Grid>
-                            </GroupBox>
-
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox x:Name="groupBox_access" Header="Доступ" HorizontalAlignment="Left" Height="119" Margin="247,23,0,0" VerticalAlignment="Top" Width="233">
-                        <Grid>
-                            <Label Content="Серийный №" HorizontalAlignment="Left" Margin="0,-2,0,0" VerticalAlignment="Top"/>
-                            <ComboBox x:Name="comboBox_Serial" Height="24" VerticalAlignment="Top" IsEditable="True" HorizontalAlignment="Right" Width="137"/>
-                            <Label Content="Пароль" HorizontalAlignment="Left" Margin="0,29,0,0" VerticalAlignment="Top"/>
-                            <TextBox Height="24" VerticalAlignment="Top" HorizontalAlignment="Right" Width="137" Margin="0,29,0,0" Text="000000"></TextBox>
-                            <Button Content="Тест связи" HorizontalAlignment="Left" Margin="0,75,0,0" VerticalAlignment="Top" Width="221" Click="Button_Click" Background="{x:Null}" Padding="1,0,1,1"/>
-                        </Grid>
-                    </GroupBox>
-                </Grid>
-            </TabItem>
-
-
-            <TabItem  x:Name="tab_Config_CNTR" Header="Счетчик" Margin="0">
-                <Grid Margin="-4">
-
-                    <GroupBox x:Name="groupBox_IMP1" Header="                                       " HorizontalAlignment="Left" Height="224" VerticalAlignment="Top" Width="564" Margin="0,4,0,0">
-                        <Grid Background="#00F9F9F9" >
-                            <Label Content="Сетевой адрес" HorizontalAlignment="Left" Margin="7,7,0,0" VerticalAlignment="Top" Width="100"/>
-                            <TextBox HorizontalAlignment="Left" Height="23" Margin="107,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                            <GroupBox Header="Тарифное расписание" HorizontalAlignment="Left" Height="203" Margin="274,1,0,0" VerticalAlignment="Top" Width="274">
-                                <Grid>
-                                    <Label Content="Количество тарифов" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т1 (утро пик)" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т3 (утро полупик)" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т1 (день пик)" HorizontalAlignment="Left" Margin="10,88,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т3 (день полупик)" HorizontalAlignment="Left" Margin="10,114,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т2 (ночь)" HorizontalAlignment="Left" Margin="10,140,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <ComboBox x:Name="comboBox_num_of_tarifs" HorizontalAlignment="Left" Margin="165,14,0,0" VerticalAlignment="Top" Width="92" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7"/>
-                                    <ComboBox x:Name="T1_1_Hours" HorizontalAlignment="Left" Margin="165,40,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T1_1_Minutes" HorizontalAlignment="Left" Margin="217,40,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_1_Hours" HorizontalAlignment="Left" Margin="165,66,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_1_Minutes" HorizontalAlignment="Left" Margin="217,66,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T1_2_Hours" HorizontalAlignment="Left" Margin="165,92,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T1_2_Minutes" HorizontalAlignment="Left" Margin="217,92,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_2_Hours" HorizontalAlignment="Left" Margin="165,118,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_2_Minutes" HorizontalAlignment="Left" Margin="217,118,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T2_Hours" HorizontalAlignment="Left" Margin="165,144,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T2_Minutes" HorizontalAlignment="Left" Margin="217,144,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <Grid HorizontalAlignment="Left" Width="262" Height="10" VerticalAlignment="Bottom" Background="White">
-                                        <Label Content="00:00" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center"/>
-                                        <Label Content="23:59" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center" Margin="242,0,0,0"/>
+                        </GroupBox>
+                        <Label Content="Выберите канал связи с устройством" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tab_DateTime" Header="Дата/Время" Margin="0,0,0,0" Width="100">
+                    <Grid Margin="-4">
+                        <GroupBox x:Name="groupBox_dateTime" Header="Дата/Время" Height="162" VerticalAlignment="Top" HorizontalAlignment="Left" Width="470" Margin="10,10,0,0">
+                            <Grid>
+                                <GroupBox Header="На устройстве" HorizontalAlignment="Left" Width="235">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_Date_in_device" HorizontalAlignment="Left" Height="23" Margin="83,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+                                        <Label Content="Дата" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                                        <Label Content="Время" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
+                                        <Label Content="Разница" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
+                                        <TextBox x:Name="textBox_Time_in_device" HorizontalAlignment="Left" Height="23" Margin="83,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+                                        <TextBox x:Name="textBox_Time_difference" HorizontalAlignment="Left" Height="23" Margin="83,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+                                        <Button x:Name="button_Read_DateTime" Content="Прочитать дату и время" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" Width="193" Click="button_Read_DateTime_Click" Background="White" Padding="1,0,1,1"/>
                                     </Grid>
-                                </Grid>
-                            </GroupBox>
-                            <GroupBox Header="Показания текущие" HorizontalAlignment="Left" Height="108" Margin="0,94,0,0" VerticalAlignment="Top" Width="269">
-                                <Grid>
-                                    <Label Content="Е+ тариф 1" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Width="70"/>
-                                    <Label Content="Е+ тариф 2" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Width="70"/>
-                                    <Label Content="Е+ тариф 3" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" Width="70"/>
-                                    <TextBox x:Name="textBox_E_T1" HorizontalAlignment="Left" Height="24" Margin="85,8,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                                    <TextBox x:Name="textBox_E_T3" HorizontalAlignment="Left" Height="24" Margin="85,60,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                                    <TextBox x:Name="textBox_E_T2" HorizontalAlignment="Left" Height="24" Margin="85,34,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                                    <Label Content="Вт*ч" HorizontalAlignment="Left" Margin="205,6,0,0" VerticalAlignment="Top" Width="42"/>
-                                    <Label Content="Вт*ч" HorizontalAlignment="Left" Margin="205,58,0,0" VerticalAlignment="Top" Width="42"/>
-                                    <Label Content="Вт*ч" HorizontalAlignment="Left" Margin="205,32,0,0" VerticalAlignment="Top" Width="42"/>
-
-                                </Grid>
-                            </GroupBox>
-                            <TextBox HorizontalAlignment="Left" Height="23" Margin="107,36,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="80"/>
-                            <Label Content="A" HorizontalAlignment="Left" Margin="7,33,0,0" VerticalAlignment="Top" Width="84"/>
-                            <Label Content="имп/кВт*ч" HorizontalAlignment="Left" Margin="192,33,0,0" VerticalAlignment="Top" Width="66" />
-                            <Label Content="Разрядность" HorizontalAlignment="Left" Margin="7,59,0,0" VerticalAlignment="Top" Width="84"/>
-                            <ComboBox x:Name="comboBox_num_of_tarifs_Copy" HorizontalAlignment="Left" Margin="107,63,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7">
-                                <ComboBoxItem Content=" 99 999,99"/>
-                                <ComboBoxItem Content="999 999,99"/>
-                            </ComboBox>
-                        </Grid>
-                    </GroupBox>
-                    <CheckBox x:Name="checkBox_IMP1_On" Content="Импульсный вход 1" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" Click="checkBox_IMP1_On_Checked"/>
-                    <GroupBox x:Name="groupBox_IMP2" Header="                                       " HorizontalAlignment="Left" Height="225" VerticalAlignment="Top" Width="564" Margin="0,233,0,0" Background="#00E8E8E8">
-                        <Grid >
-                            <Label Content="Сетевой адрес" HorizontalAlignment="Left" Margin="7,7,0,0" VerticalAlignment="Top" Width="100"/>
-                            <TextBox HorizontalAlignment="Left" Height="23" Margin="107,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                            <GroupBox Header="Тарифное расписание" HorizontalAlignment="Left" Height="203" Margin="274,1,0,0" VerticalAlignment="Top" Width="274">
-                                <Grid>
-                                    <Label Content="Количество тарифов" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т1 (утро пик)" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т3 (утро полупик)" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т1 (день пик)" HorizontalAlignment="Left" Margin="10,88,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т3 (день полупик)" HorizontalAlignment="Left" Margin="10,114,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <Label Content="Начало Т2 (ночь)" HorizontalAlignment="Left" Margin="10,140,0,0" VerticalAlignment="Top" Width="155"/>
-                                    <ComboBox x:Name="comboBox_num_of_tarifs1" HorizontalAlignment="Left" Margin="165,14,0,0" VerticalAlignment="Top" Width="92" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00EEEEEE"/>
-                                    <ComboBox x:Name="T1_1_Hours1" HorizontalAlignment="Left" Margin="165,40,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T1_1_Minutes1" HorizontalAlignment="Left" Margin="217,40,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_1_Hours1" HorizontalAlignment="Left" Margin="165,66,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_1_Minutes1" HorizontalAlignment="Left" Margin="217,66,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T1_2_Hours1" HorizontalAlignment="Left" Margin="165,92,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T1_2_Minutes1" HorizontalAlignment="Left" Margin="217,92,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_2_Hours1" HorizontalAlignment="Left" Margin="165,118,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T3_2_Minutes1" HorizontalAlignment="Left" Margin="217,118,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T2_Hours1" HorizontalAlignment="Left" Margin="165,144,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <ComboBox x:Name="T2_Minutes1" HorizontalAlignment="Left" Margin="217,144,0,0" VerticalAlignment="Top" Width="40" IsEditable="True" IsReadOnly="True"/>
-                                    <Grid HorizontalAlignment="Left" Width="262" Height="10" VerticalAlignment="Bottom" Background="White">
-                                        <Label Content="00:00" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center"/>
-                                        <Label Content="23:59" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center" Margin="242,0,0,0"/>
+                                </GroupBox>
+                                <GroupBox Header="На компьютере" Margin="235,0,0,0">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_Date_in_pc" HorizontalAlignment="Left" Height="23" Margin="73,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+                                        <Label Content="Дата" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                                        <Label Content="Время" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
+                                        <TextBox x:Name="textBox_Time_in_pc" HorizontalAlignment="Left" Height="23" Margin="73,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+                                        <Button x:Name="button_Synchro_DateTime" Content="↩     Корректировать" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top" Width="183" Click="button_Correction_DateTime_Click" HorizontalContentAlignment="Left" Background="White" Padding="1,0,1,1"/>
+                                        <Button x:Name="button_Write_DateTime" Content="↩     Записать дату и время" HorizontalAlignment="Left" Margin="10,93,0,0" VerticalAlignment="Top" Width="183" Click="button_Write_DateTime_Click" HorizontalContentAlignment="Left" Background="White" Padding="1,0,1,1"/>
                                     </Grid>
-                                </Grid>
-                            </GroupBox>
-                            <GroupBox Header="Показания текущие" HorizontalAlignment="Left" Height="108" Margin="0,94,0,0" VerticalAlignment="Top" Width="269">
-                                <Grid>
-                                    <Label Content="Е+ тариф 1" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Width="70"/>
-                                    <Label Content="Е+ тариф 2" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Width="70"/>
-                                    <Label Content="Е+ тариф 3" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" Width="70"/>
-                                    <TextBox x:Name="textBox_E_T4" HorizontalAlignment="Left" Height="24" Margin="85,8,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                                    <TextBox x:Name="textBox_E_T5" HorizontalAlignment="Left" Height="24" Margin="85,60,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                                    <TextBox x:Name="textBox_E_T6" HorizontalAlignment="Left" Height="24" Margin="85,34,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                                    <Label Content="Вт*ч" HorizontalAlignment="Left" Margin="205,6,0,0" VerticalAlignment="Top" Width="42"/>
-                                    <Label Content="Вт*ч" HorizontalAlignment="Left" Margin="205,58,0,0" VerticalAlignment="Top" Width="42"/>
-                                    <Label Content="Вт*ч" HorizontalAlignment="Left" Margin="205,32,0,0" VerticalAlignment="Top" Width="42"/>
+                                </GroupBox>
+                            </Grid>
+                        </GroupBox>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tab_Main_Params" Header="Основные параметры" Margin="0,0,0,0" Width="100">
+                    <Grid Margin="-4">
+                        <GroupBox Header="Сменить пароли" HorizontalAlignment="Left" Height="106" Margin="465,10,0,0" VerticalAlignment="Top" Width="249">
+                            <Grid Height="84" VerticalAlignment="Top">
+                                <CheckBox x:Name="checkBox_Read_Pass" Content="Пароль на чтение" Margin="0,34,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" />
+                                <CheckBox x:Name="checkBox_Write_Pass" Content="Пароль на запись" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" />
+                                <TextBox x:Name="textBox_Write_Pass" Margin="127,0,0,0" VerticalAlignment="Top" Background="{x:Null}" HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="textBox_Read_Pass" Margin="127,30,0,0" VerticalAlignment="Top" Background="{x:Null}" HorizontalContentAlignment="Center"/>
+                                <Button x:Name="button_Write_Pass" Content="Записать новые пароли" Margin="0,61,0,0" Click="button_Pass_Write_Click" Height="22" VerticalAlignment="Top"/>
 
-                                </Grid>
-                            </GroupBox>
-                            <TextBox HorizontalAlignment="Left" Height="23" Margin="107,36,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="80"/>
-                            <Label Content="A" HorizontalAlignment="Left" Margin="7,33,0,0" VerticalAlignment="Top" Width="84"/>
-                            <Label Content="имп/кВт*ч" HorizontalAlignment="Left" Margin="192,33,0,0" VerticalAlignment="Top" Width="66" />
-                            <Label Content="Разрядность" HorizontalAlignment="Left" Margin="7,59,0,0" VerticalAlignment="Top" Width="84"/>
-                            <ComboBox x:Name="comboBox_num_of_tarifs_Copy1" HorizontalAlignment="Left" Margin="107,63,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7">
-                                <ComboBoxItem Content=" 99 999,99"/>
-                                <ComboBoxItem Content="999 999,99"/>
-                            </ComboBox>
-                        </Grid>
-                    </GroupBox>
-                    <CheckBox x:Name="checkBox_IMP2_On" Content="Импульсный вход 2" HorizontalAlignment="Left" Margin="10,234,0,0" VerticalAlignment="Top" Click="checkBox_IMP2_On_Checked"/>
-                </Grid>
-            </TabItem>
-            <TabItem  x:Name="tab_Config_USPD" Header="Концентратор" Margin="0">
-                <Grid Margin="-4">
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Ошибки" HorizontalAlignment="Left" Height="171" Margin="265,10,0,0" VerticalAlignment="Top" Width="194">
+                            <Grid>
+                                <ListView x:Name="listErrors" Margin="0,0,0,23"/>
+                                <Button x:Name="button_EEPROM_BURN_Copy" Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top" Click="button_Clear_Errors_Click"/>
+                            </Grid>
+                        </GroupBox>
+                        <Label x:Name="label_versions" Content="Версия ПО: " HorizontalAlignment="Left" Margin="265,192,0,0" VerticalAlignment="Top"/>
+                        <GroupBox Header="Режим работы" HorizontalAlignment="Left" Height="84" Margin="10,10,0,0" VerticalAlignment="Top" Width="250">
+                            <Grid>
+                                <Label Content="Режим работы" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>
+                                <ComboBox x:Name ="comboBox_work_mode"  HorizontalAlignment="Left" Margin="96,9,0,0" VerticalAlignment="Top" Width="137" Background="#00000000"/>
+                                <Label Content="Батарея" HorizontalAlignment="Left" Margin="0,32,0,0" VerticalAlignment="Top"/>
+                                <ComboBox x:Name ="comboBox_battery_mode"  HorizontalAlignment="Left" Margin="58,36,0,0" VerticalAlignment="Top" Width="175" Background="#00000000"/>
+                                <Label Content="Батарея" HorizontalAlignment="Left" Margin="0,32,0,0" VerticalAlignment="Top"/>
 
-                </Grid>
-            </TabItem>
-            <TabItem x:Name="tab_Log_Power" Header="Журнал1" Margin="0">
-                <Grid Margin="-4">
-                    <Button Content="Прочитать журнал включений/отключений устройства" VerticalAlignment="Top" Height="25" Click="Button_Read_Log_Power_Click" Background="{x:Null}"/>
-                    <DataGrid x:Name="dataGrid_Log_Power" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White" Background="{x:Null}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Дата" Width="60*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Time}" ClipboardContentBinding="{x:Null}" Header="Время" Width="60*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Name}" ClipboardContentBinding="{x:Null}" Header="Событие" Width="300*" IsReadOnly="True"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
-            <TabItem x:Name="tab_Log_Config" Header="Журнал2" Margin="0">
-                <Grid Background="#FFE5E5E5" Margin="-4">
-                    <Button Content="Прочитать журнал конфигурации устройства" VerticalAlignment="Top" Height="25" Click="Button_Read_Log_Config_Click"/>
-                    <DataGrid x:Name="dataGrid_Log_Config" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Дата" Width="60*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Time}" ClipboardContentBinding="{x:Null}" Header="Время" Width="60*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Name}" ClipboardContentBinding="{x:Null}" Header="Событие" Width="300*" IsReadOnly="True"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
-            <TabItem x:Name="tab_Log_Interfaces" Header="Журнал3" Margin="0">
-                <Grid Background="#FFE5E5E5" Margin="-4">
-                    <Button Content="Прочитать журнал работы интерфейсов устройства" VerticalAlignment="Top" Height="25" Click="Button_Read_Log_Interfaces_Click"/>
-                    <DataGrid x:Name="dataGrid_Log_Interfaces" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Дата" Width="60*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Time}" ClipboardContentBinding="{x:Null}" Header="Время" Width="60*" IsReadOnly="True"/>
-                            <DataGridTextColumn Binding="{Binding Path=Name}" ClipboardContentBinding="{x:Null}" Header="Событие" Width="300*" IsReadOnly="True"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
-            <TabItem x:Name="tab_Debug_Logs" Header="Логи обмена" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="100">
-                <Grid Margin="-4">
-                    <TextBlock x:Name="textBlock_Log_Debug" Margin="0,40,0,0" TextWrapping="Wrap" >
-                    </TextBlock>
-                    <Button ToolTip="Очистить" x:Name="debug_Log_Clear" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Background="{x:Null}" Padding="1,0,1,1" Height="40" Click="debug_Log_Clear_Click">
-                        <StackPanel>
-                            <Image Source="Pics/garbage32.png" Height="32" Width="32"/>
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </TabItem>
-        </TabControl>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Интерфейсы" HorizontalAlignment="Left" Height="87" Margin="10,94,0,0" VerticalAlignment="Top" Width="250">
+                            <Grid>
+                                <Label Content="RS485" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>
+                                <ComboBox x:Name ="comboBox_RS485_Is_Enable"  HorizontalAlignment="Left" Margin="96,9,0,0" VerticalAlignment="Top" Width="137" Background="#00000000"/>
+                                <Label Content="Bluetooth" HorizontalAlignment="Left" Margin="0,32,0,-6" VerticalAlignment="Top"/>
+                                <ComboBox x:Name ="comboBox_Bluetooth_Is_Enable"  HorizontalAlignment="Left" Margin="96,36,0,-6" VerticalAlignment="Top" Width="137" Background="#00000000"/>
 
-        <StatusBar Height="22" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Grid.Row="1" Background="White">
-            <StatusBarItem Height="22" VerticalAlignment="Bottom">
-                <TextBlock x:Name="status_msg" Width="300" />
-            </StatusBarItem>
+                            </Grid>
+                        </GroupBox>
+                        <Button x:Name="button_Main_Params_Read" Content="Прочитать" HorizontalAlignment="Left" Margin="10,194,0,0" VerticalAlignment="Top" Width="110" Click="button_Main_Params_Read_Click"/>
+                        <Button x:Name="button_Main_Params_Write" Content="Записать" HorizontalAlignment="Left" Margin="123,194,0,0" Width="120" Click="button_Main_Params_Write_Click" Height="22" VerticalAlignment="Top"/>
+                    </Grid>
+                </TabItem>
+                <TabItem  x:Name="tab_Config_IMP1" Header="IMP1" Margin="0">
+                    <Grid Margin="-4">
+                        <Image HorizontalAlignment="Left" Width="259" Source="Pics/входы.png" Margin="-14,0,0,0" Height="395" VerticalAlignment="Top"/>
+                        <GroupBox x:Name="groupBox_IMP1" Header="                                       " HorizontalAlignment="Left" Height="350" VerticalAlignment="Top" Width="569" Margin="201,0,0,0">
+                            <Grid Background="#00F9F9F9" >
+                                <Label Content="Aдрес PLC" HorizontalAlignment="Left" Margin="13,7,0,0" VerticalAlignment="Top" Width="87"/>
+                                <TextBox x:Name="textBox_adrsPLC_imp1" HorizontalAlignment="Left" Height="23" Margin="107,10,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="80"/>
+                                <GroupBox Header="Тарифное расписание" Height="203" Margin="279,120,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="274">
+                                    <Grid>
+                                        <Label Content="Количество тарифов" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т1 (утро пик)" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т3 (утро полупик)" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т1 (день пик)" HorizontalAlignment="Left" Margin="10,88,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т3 (день полупик)" HorizontalAlignment="Left" Margin="10,114,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т2 (ночь)" HorizontalAlignment="Left" Margin="10,140,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <ComboBox x:Name="comboBox_Tqty_imp1" HorizontalAlignment="Left" Margin="165,14,0,0" VerticalAlignment="Top" Width="92" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7"/>
+                                        <TextBox x:Name="textBox_T1_1_imp1" HorizontalAlignment="Left" Margin="165,40,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T3_1_imp1" HorizontalAlignment="Left" Margin="165,66,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T1_2_imp1" HorizontalAlignment="Left" Margin="165,92,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T3_2_imp1" HorizontalAlignment="Left" Margin="165,118,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T2_imp1" HorizontalAlignment="Left" Margin="165,144,0,0" VerticalAlignment="Top" Width="92" />
+                                        <Grid HorizontalAlignment="Left" Width="262" Height="10" VerticalAlignment="Bottom" Background="White">
+                                            <Label Content="00:00" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center"/>
+                                            <Label Content="23:59" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center" Margin="242,0,0,0"/>
+                                        </Grid>
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Показания текущие" HorizontalAlignment="Left" Height="113" Margin="279,7,0,0" VerticalAlignment="Top" Width="274">
+                                    <Grid>
+                                        <Label Content="Е+ тариф 1" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Width="70"/>
+                                        <Label Content="Е+ тариф 2" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Width="70"/>
+                                        <Label Content="Е+ тариф 3" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" Width="70"/>
+                                        <TextBox x:Name="textBox_E_T1_imp1" HorizontalAlignment="Left" Height="24" Margin="85,8,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                                        <TextBox x:Name="textBox_E_T3_imp1" HorizontalAlignment="Left" Height="24" Margin="85,60,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                                        <TextBox x:Name="textBox_E_T2_imp1" HorizontalAlignment="Left" Height="24" Margin="85,34,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                                        <Label Content="кВт*ч" HorizontalAlignment="Left" Margin="205,6,0,0" VerticalAlignment="Top" Width="42"/>
+                                        <Label Content="кВт*ч" HorizontalAlignment="Left" Margin="205,58,0,0" VerticalAlignment="Top" Width="42"/>
+                                        <Label Content="кВт*ч" HorizontalAlignment="Left" Margin="205,32,0,0" VerticalAlignment="Top" Width="42"/>
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Протокол (на верхний уровень) RS485" HorizontalAlignment="Left" Height="110" Margin="5,120,0,0" VerticalAlignment="Top" Width="269">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_adrsAscue_imp1" ToolTip="Адрес устройства для протокола обмена (от 1 до 65535)" HorizontalAlignment="Left" Height="23" Margin="95,9,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="100"/>
+                                        <Label Content="Сетевой адрес" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="90"/>
+                                        <TextBox x:Name="textBox_passAscue_imp1" ToolTip="Пароль доступа для протокола обмена (6 символов)" HorizontalAlignment="Left" Height="23" Margin="95,35,0,0" TextWrapping="Wrap" Text="111111" VerticalAlignment="Top" Width="100"/>
+                                        <Label Content="Пароль" HorizontalAlignment="Left" Margin="0,33,0,0" VerticalAlignment="Top" Width="90"/>
+                                        <Label Content="Тип" HorizontalAlignment="Left" Margin="0,59,0,0" VerticalAlignment="Top" Width="90"/>
+                                        <ComboBox x:Name="comboBox_protocol_imp1" ToolTip="Протокол, по которому будет происходить опрос с верхнего уровня через RS485" HorizontalAlignment="Left" VerticalAlignment="Top" Width="144" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7" Margin="51,61,0,0"/>
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Контроль нагрузки" HorizontalAlignment="Left" Height="93" Margin="5,230,0,0" VerticalAlignment="Top" Width="269">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_Max_Power_imp1" ToolTip="Макс. мощность от 0 до 65535 Вт (в течение 30 секунд)" HorizontalAlignment="Left" Height="23" Margin="106,9,0,0" TextWrapping="Wrap" Text="22000" VerticalAlignment="Top" Width="90"/>
+                                        <Label Content="Макс. мощность" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="128"/>
+                                        <Label Content=" Вт" HorizontalAlignment="Left" Margin="201,7,0,0" VerticalAlignment="Top" Width="46" />
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Измерения" HorizontalAlignment="Left" Height="82" Margin="10,38,0,0" VerticalAlignment="Top" Width="264">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_A_imp1" HorizontalAlignment="Left" Height="23" Margin="93,7,0,0" TextWrapping="Wrap" Text="500" VerticalAlignment="Top" Width="80"/>
+                                        <Label Content="A" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="84"/>
+                                        <Label Content="имп/кВт*ч" HorizontalAlignment="Left" Margin="178,4,0,0" VerticalAlignment="Top" Width="66" />
+                                        <Label Content="Разрядность" HorizontalAlignment="Left" Margin="4,30,0,0" VerticalAlignment="Top" Width="84"/>
+                                        <ComboBox x:Name="comboBox_perepoln_imp1" HorizontalAlignment="Left" Margin="93,34,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7">
+                                        </ComboBox>
 
-            <StatusBarItem Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock x:Name="connect_status_txt" Width="100" HorizontalAlignment="Left" TextAlignment="Right" Padding="0,0,4,0"/>
-                    <Image x:Name="connect_status_img" Height="16" Width="16" HorizontalAlignment="Right" Source="Pics/red.png"/>
-                </StackPanel>
-            </StatusBarItem>
-        </StatusBar>
-        <TreeView Margin="0,82,0,0" BorderThickness="1" HorizontalAlignment="Left" Width="130" UseLayoutRounding="False" Background="White">
-            <TreeView.BorderBrush>
-                <SolidColorBrush Color="Black"/>
-            </TreeView.BorderBrush>
-            <TreeViewItem x:Name="treeView_Link" Header="Связь" Selected="TreeView_Link_Selected"></TreeViewItem>
+                                    </Grid>
+                                </GroupBox>
+                                <Label Content="от 1 до 250" HorizontalAlignment="Left" Margin="192,7,0,0" VerticalAlignment="Top" Width="82" />
+                            </Grid>
+                        </GroupBox>
+                        <CheckBox x:Name="checkBox_IMP1_On" Content="Импульсный вход 1" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top" Click="checkBox_IMP1_On_Checked"/>
+                        <Rectangle x:Name="draw_Imp2_double" HorizontalAlignment="Left" Height="34" Stroke="Black" VerticalAlignment="Top" Width="62" Margin="113,108,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="0">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="#B2808080"/>
+                            </Rectangle.Fill>
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform AngleX="-30"/>
+                                    <RotateTransform Angle="24.802"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Rectangle x:Name="draw_Imp1_line1" Fill="#B2808080" HorizontalAlignment="Left" Height="124" Margin="87,9,0,0" VerticalAlignment="Top" Width="2"/>
+                        <Rectangle x:Name="draw_Imp1_line2" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="87,7,0,0" VerticalAlignment="Top" Width="122"/>
+                        <Rectangle x:Name="draw_Imp1_line3" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="97,182,0,0" VerticalAlignment="Top" Width="110"/>
+                        <Rectangle x:Name="draw_Imp1_line4" Fill="#B2808080" HorizontalAlignment="Left" Height="100" Margin="207,145,0,0" VerticalAlignment="Top" Width="2"/>
+                        <Rectangle x:Name="draw_Imp1" Fill="#B2808080" HorizontalAlignment="Left" Height="36" Width="62" Stroke="Black" VerticalAlignment="Top" Margin="81,130,0,0" RenderTransformOrigin="0.5,0.5" MouseDown="draw_Imp1_MouseDown" StrokeThickness="2">
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform AngleX="-29"/>
+                                    <RotateTransform Angle="25"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Button x:Name="button_Read_Imp1" Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" Click="button_Read_Imp1_Click_1"/>
+                        <Button x:Name="button_Write_Imp1" Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75" Click="button_Write_Imp1_Click_1"/>
+                    </Grid>
+                </TabItem>
+                <TabItem  x:Name="tab_Config_IMP2" Header="IMP2" Margin="0">
+                    <Grid Margin="-4">
+                        <Image HorizontalAlignment="Left" Width="259" Source="Pics/входы.png" Margin="-14,0,0,0" Height="395" VerticalAlignment="Top"/>
+                        <GroupBox x:Name="groupBox_IMP2" Header="                                       " HorizontalAlignment="Left" Height="350" VerticalAlignment="Top" Width="569" Margin="201,0,0,0">
+                            <Grid Background="#00F9F9F9" >
+                                <Label Content="Aдрес PLC" HorizontalAlignment="Left" Margin="13,7,0,0" VerticalAlignment="Top" Width="87"/>
+                                <TextBox x:Name="textBox_adrsPLC_imp2" HorizontalAlignment="Left" Height="23" Margin="107,10,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="80"/>
+                                <GroupBox Header="Тарифное расписание" Height="203" Margin="279,120,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="274">
+                                    <Grid>
+                                        <Label Content="Количество тарифов" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т1 (утро пик)" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т3 (утро полупик)" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т1 (день пик)" HorizontalAlignment="Left" Margin="10,88,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т3 (день полупик)" HorizontalAlignment="Left" Margin="10,114,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <Label Content="Начало Т2 (ночь)" HorizontalAlignment="Left" Margin="10,140,0,0" VerticalAlignment="Top" Width="155"/>
+                                        <ComboBox x:Name="comboBox_Tqty_imp2" HorizontalAlignment="Left" Margin="165,14,0,0" VerticalAlignment="Top" Width="92" SelectionChanged="comboBox_num_of_tarifs_IMP2_SelectionChanged" Background="#00E8E7E7"/>
+                                        <TextBox x:Name="textBox_T1_1_imp2" HorizontalAlignment="Left" Margin="165,40,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T3_1_imp2" HorizontalAlignment="Left" Margin="165,66,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T1_2_imp2" HorizontalAlignment="Left" Margin="165,92,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T3_2_imp2" HorizontalAlignment="Left" Margin="165,118,0,0" VerticalAlignment="Top" Width="92" />
+                                        <TextBox x:Name="textBox_T2_imp2" HorizontalAlignment="Left" Margin="165,144,0,0" VerticalAlignment="Top" Width="92" />
+                                        <Grid HorizontalAlignment="Left" Width="262" Height="10" VerticalAlignment="Bottom" Background="White">
+                                            <Label Content="00:00" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center"/>
+                                            <Label Content="23:59" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="7" Width="20" Height="10" BorderThickness="0,0,0,0" Padding="0" HorizontalContentAlignment="Center" Margin="242,0,0,0"/>
+                                        </Grid>
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Показания текущие" HorizontalAlignment="Left" Height="113" Margin="279,7,0,0" VerticalAlignment="Top" Width="274">
+                                    <Grid>
+                                        <Label Content="Е+ тариф 1" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Width="70"/>
+                                        <Label Content="Е+ тариф 2" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Width="70"/>
+                                        <Label Content="Е+ тариф 3" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" Width="70"/>
+                                        <TextBox x:Name="textBox_E_T1_imp2" HorizontalAlignment="Left" Height="24" Margin="85,8,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                                        <TextBox x:Name="textBox_E_T3_imp2" HorizontalAlignment="Left" Height="24" Margin="85,60,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                                        <TextBox x:Name="textBox_E_T2_imp2" HorizontalAlignment="Left" Height="24" Margin="85,34,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                                        <Label Content="кВт*ч" HorizontalAlignment="Left" Margin="205,6,0,0" VerticalAlignment="Top" Width="42"/>
+                                        <Label Content="кВт*ч" HorizontalAlignment="Left" Margin="205,58,0,0" VerticalAlignment="Top" Width="42"/>
+                                        <Label Content="кВт*ч" HorizontalAlignment="Left" Margin="205,32,0,0" VerticalAlignment="Top" Width="42"/>
 
-            <TreeViewItem x:Name="treeView_Config" Header="Конфигурация">
-                <TreeViewItem x:Name="treeView_CNTR" Header="Счетчик" Selected="TreeView_Config_CNTR_Selected"/>
-                <TreeViewItem x:Name="treeView_USPD" Header="Концентратор" Selected="TreeView_Config_USPD_Selected"/>
-            </TreeViewItem>
-            <TreeViewItem Header="Журналы событий">
-                <TreeViewItem Header="Питание" Selected="TreeView_Log_Power_Selected"/>
-                <TreeViewItem Header="Конфигурация"  Selected="TreeView_Log_Config_Selected"/>
-                <TreeViewItem Header="Интерфейсы"  Selected="TreeView_Log_Interfaces_Selected"/>
-            </TreeViewItem>
-            <TreeViewItem x:Name="treeView_Debug_Logs" Header="Анализ обмена" Selected="TreeView_Debug_Log_Selected"/>
-        </TreeView>
-        <Menu Background="White" BorderThickness="0,0,0,1" BorderBrush="#FFB8B8B8" Height="22" VerticalAlignment="Top" >
-            <MenuItem Header="Файл">
-                <MenuItem Header="Открыть"/>
-            </MenuItem>
-            <MenuItem Header="Справка">
-                <MenuItem Header="О программе..."/>
-            </MenuItem>
-        </Menu>
-        <Grid Height="60" Margin="0,22,0,0" VerticalAlignment="Top" Background="White">
-            <Button ToolTip="Прочитать конфигурацию из памяти устройства" HorizontalAlignment="Left" Margin="135,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Протокол (на верхний уровень) RS485" HorizontalAlignment="Left" Height="110" Margin="5,120,0,0" VerticalAlignment="Top" Width="269">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_adrsAscue_imp2" ToolTip="Адрес устройства для протокола обмена (от 1 до 65535)" HorizontalAlignment="Left" Height="23" Margin="95,9,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="100"/>
+                                        <Label Content="Сетевой адрес" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="90"/>
+                                        <TextBox x:Name="textBox_passAscue_imp2" ToolTip="Пароль доступа к данным устройства (6 символов)" HorizontalAlignment="Left" Height="23" Margin="95,35,0,0" TextWrapping="Wrap" Text="111111" VerticalAlignment="Top" Width="100"/>
+                                        <Label Content="Пароль" HorizontalAlignment="Left" Margin="0,33,0,0" VerticalAlignment="Top" Width="90"/>
+                                        <Label Content="Тип" HorizontalAlignment="Left" Margin="0,59,0,0" VerticalAlignment="Top" Width="90"/>
+                                        <ComboBox x:Name="comboBox_protocol_imp2" ToolTip="Протокол, по которому будет происходить опрос с верхнего уровня через RS485" HorizontalAlignment="Left" VerticalAlignment="Top" Width="144" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7" Margin="51,61,0,0"/>
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Контроль нагрузки" HorizontalAlignment="Left" Height="93" Margin="5,230,0,0" VerticalAlignment="Top" Width="269">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_Max_Power_imp2" ToolTip="Макс. мощность от 0 до 65535 Вт (в течение 30 секунд)" HorizontalAlignment="Left" Height="23" Margin="106,9,0,0" TextWrapping="Wrap" Text="22000" VerticalAlignment="Top" Width="90"/>
+                                        <Label Content="Макс. мощность" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="128"/>
+                                        <Label Content=" Вт" HorizontalAlignment="Left" Margin="201,7,0,0" VerticalAlignment="Top" Width="46" />
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Измерения" HorizontalAlignment="Left" Height="82" Margin="10,38,0,0" VerticalAlignment="Top" Width="264">
+                                    <Grid>
+                                        <TextBox x:Name="textBox_A_imp2" HorizontalAlignment="Left" Height="23" Margin="93,7,0,0" TextWrapping="Wrap" Text="500" VerticalAlignment="Top" Width="80"/>
+                                        <Label Content="A" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="84"/>
+                                        <Label Content="имп/кВт*ч" HorizontalAlignment="Left" Margin="178,4,0,0" VerticalAlignment="Top" Width="66" />
+                                        <Label Content="Разрядность" HorizontalAlignment="Left" Margin="4,30,0,0" VerticalAlignment="Top" Width="84"/>
+                                        <ComboBox x:Name="comboBox_perepoln_imp2" HorizontalAlignment="Left" Margin="93,34,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="comboBox_num_of_tarifs_SelectionChanged" Background="#00E8E7E7">
+                                        </ComboBox>
+
+                                    </Grid>
+                                </GroupBox>
+                                <Label Content="от 1 до 250" HorizontalAlignment="Left" Margin="192,7,0,0" VerticalAlignment="Top" Width="82" />
+                            </Grid>
+                        </GroupBox>
+                        <CheckBox x:Name="checkBox_IMP2_On" Content="Импульсный вход 2" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top" Click="checkBox_IMP2_On_Checked"/>
+                        <Rectangle x:Name="draw_Imp2" HorizontalAlignment="Left" Height="34" Stroke="Black" VerticalAlignment="Top" Width="62" Margin="113,108,0,0" RenderTransformOrigin="0.5,0.5" MouseDown="draw_Imp2_MouseDown" StrokeThickness="2.2">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="#B2808080"/>
+                            </Rectangle.Fill>
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform AngleX="-30"/>
+                                    <RotateTransform Angle="24.802"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Rectangle x:Name="draw_Imp2_line1" Fill="#B2808080" HorizontalAlignment="Left" Height="101" Margin="120,9,0,0" VerticalAlignment="Top" Width="2"/>
+                        <Rectangle x:Name="draw_Imp2_line2" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="120,7,0,0" VerticalAlignment="Top" Width="89"/>
+                        <Rectangle x:Name="draw_Imp2_line3" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="97,182,0,0" VerticalAlignment="Top" Width="110"/>
+                        <Rectangle x:Name="draw_Imp2_line4" Fill="#B2808080" HorizontalAlignment="Left" Height="100" Margin="207,145,0,0" VerticalAlignment="Top" Width="2"/>
+                        <Rectangle x:Name="draw_Imp1_double" Fill="#B2808080" HorizontalAlignment="Left" Height="36" Width="62" Stroke="Black" VerticalAlignment="Top" Margin="81,130,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="0">
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform AngleX="-29"/>
+                                    <RotateTransform Angle="25"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Button x:Name="button_Read_Imp2" Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" Click="button_Read_Imp2_Click_1"/>
+                        <Button x:Name="button_Write_Imp2" Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75" Click="button_Write_Imp2_Click_1"/>
+                    </Grid>
+                </TabItem>
+                <TabItem  x:Name="tab_Config_USPD" Header="PLC Таблица" Margin="0">
+                    <Grid Margin="-4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <GroupBox Header="Отображение" Grid.Row ="0" x:Name="groupBox_PLC_table" HorizontalAlignment="Left" Width="216">
+                            <Grid Margin="-4">
+                                <CheckBox x:Name="checkBox_Show_PLC" Grid.Row ="0" Content="PLC" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="67" Margin="10,10,0,0" Click="checkBox_TablePLC_Checked" IsChecked="True"/>
+                                <CheckBox x:Name="checkBox_Show_ASCUE" Grid.Row ="0" Content="АСУ" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="67" Margin="77,10,0,0" Click="checkBox_TablePLC_Checked" IsChecked="True"/>
+                                <CheckBox x:Name="checkBox_Show_Status" Grid.Row ="0" Content="Статус" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="67" Margin="145,10,0,0" Click="checkBox_TablePLC_Checked" IsChecked="True"/>
+                            </Grid>
+                        </GroupBox>
+                        <DataGrid Grid.Row ="1" x:Name="dataGrid_PLC_Table" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Прочитать (Ctrl+R)" Click="menuItem_Read_Selected" />
+                                    <MenuItem Header="Записать" Click="menuItem_Write_Selected" />
+                                    <Separator/>
+                                    <MenuItem Header="Включить" Click="menuItem_Set_Enable_Selected" />
+                                    <MenuItem Header="Отключить" Click="menuItem_Set_Disable_Selected" />
+                                    <Separator/>
+                                    <MenuItem Header="Запрос по PLC">
+                                        <MenuItem Header="Проверка связи (Ctrl+P)" Click="menuItem_PLC_Request_PLCv1"/>
+                                        <MenuItem Header="Синхронизация времени" Click="menuItem_PLC_Request_Time"/>
+                                        <MenuItem Header="Серийный номер" Click="menuItem_PLC_Request_Serial"/>
+                                        <MenuItem Header="Показания - Текущие" Click="menuItem_PLC_Request_E_Current"/>
+                                        <MenuItem Header="Показания - На начало суток" Click="menuItem_PLC_Request_E_Start_Day"/>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Очистить таблицу" Click="menuItem_PLC_Table_Clear" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Enable}" Value="False">
+                                            <Setter Property="Foreground" Value="LightGray"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn x:Name="adrs_PLCColumn" Binding="{Binding Adrs_PLC}" Header="Адрес PLC" Width="9*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridCheckBoxColumn x:Name="enableColumn" Binding="{Binding Enable}"  Header="Включен" Width="8*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="serialColumn" Binding="{Binding Serial}"  Header="Серийный номер" Width="14*" MinWidth="100" MaxWidth="200" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="nColumn" Binding="{Binding N}"  Header="Число ступеней ретрансляции" Width="24*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="s1Column" Binding="{Binding S1}"  Header="Ст. 1" Width="5*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="s2Column" Binding="{Binding S2}"  Header="Ст. 2" Width="5*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="s3Column" Binding="{Binding S3}"  Header="Ст. 3" Width="5*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="s4Column" Binding="{Binding S4}"  Header="Ст. 4" Width="5*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="s5Column" Binding="{Binding S5}"  Header="Ст. 5" Width="5*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="protocolColumn" Binding="{Binding Protocol_ASCUE}"  Header="Протокол АСУЭ" Width="13*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="adrs_ascueColumn" Binding="{Binding Adrs_ASCUE}"  Header="Адрес АСУЭ" Width="11*" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="pass_ascueColumn" Binding="{Binding Pass_ASCUE}"  Header="Пароль АСУЭ" Width="12*" CanUserSort="False"/>
+                                <DataGridCheckBoxColumn x:Name="linkColumn" Binding="{Binding Link}"  Header="Связь" Width="6*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="dateLinkColumn" Binding="{Binding Date_Link}"  Header="Успешная связь" Width="14*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="qualityColumn" Binding="{Binding Quality}"  Header="Качество" Width="8*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="versionColumn" Binding="{Binding Type}"  Header="Тип" Width="6*" IsReadOnly="False" CanUserSort="False"/>
+                                <DataGridTextColumn x:Name="err_byteColumn" Binding="{Binding Errors}"  Header="Флаги ошибок" Width="16*" IsReadOnly="True" CanUserSort="False"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Button Content="Прочитать все" HorizontalAlignment="Left" Margin="428,10,0,0" VerticalAlignment="Top" Width="110" Click="button_PLC_Table_Read_All" Height="30"/>
+                        <Button Content="Записать все" HorizontalAlignment="Left" Margin="543,10,0,0" VerticalAlignment="Top" Width="110" Click="button_PLC_Table_Write_All" Height="30"/>
+                        <Button Content="Прочитать включенные" HorizontalAlignment="Left" Margin="221,10,0,0" VerticalAlignment="Top" Width="156" Click="button_PLC_Table_Read_En" Height="30"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tab_Log_Power" Header="Журнал1" Margin="0">
+                    <Grid Margin="-4">
+                        <Button Content="Прочитать журнал включений/отключений устройства" VerticalAlignment="Top" Height="25" Click="Button_Read_Log_Power_Click" Background="{x:Null}"/>
+                        <DataGrid x:Name="dataGrid_Log_Power" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White" Background="{x:Null}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Дата" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Time}" ClipboardContentBinding="{x:Null}" Header="Время" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Name}" ClipboardContentBinding="{x:Null}" Header="Событие" Width="300*" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tab_Log_Config" Header="Журнал2" Margin="0">
+                    <Grid Background="White" Margin="-4">
+                        <Button Content="Прочитать журнал конфигурации устройства" VerticalAlignment="Top" Height="25" Click="Button_Read_Log_Config_Click" Background="{x:Null}"/>
+                        <DataGrid x:Name="dataGrid_Log_Config" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White" Background="{x:Null}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Дата" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Time}" ClipboardContentBinding="{x:Null}" Header="Время" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Name}" ClipboardContentBinding="{x:Null}" Header="Событие" Width="300*" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tab_Log_Interfaces" Header="Журнал3" Margin="0">
+                    <Grid Background="White" Margin="-4">
+                        <Button Content="Прочитать журнал работы интерфейсов устройства" VerticalAlignment="Top" Height="25" Click="Button_Read_Log_Interfaces_Click" Background="{x:Null}"/>
+                        <DataGrid x:Name="dataGrid_Log_Interfaces" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White" Background="{x:Null}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Дата" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Time}" ClipboardContentBinding="{x:Null}" Header="Время" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Name}" ClipboardContentBinding="{x:Null}" Header="Событие" Width="300*" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tab_Log_Requests" Header="Журнал4" Margin="0">
+                    <Grid Background="White" Margin="-4">
+                        <Button Content="Прочитать журнал опроса PLC" VerticalAlignment="Top" Height="25" Click="Button_Read_Log_Requests_Click" Background="{x:Null}"/>
+                        <DataGrid x:Name="dataGrid_Log_Requests" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White" Background="{x:Null}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Адрес - Статус запроса" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Time}" ClipboardContentBinding="{x:Null}" Header="Время" Width="60*" IsReadOnly="True"/>
+                                <DataGridTextColumn Binding="{Binding Path=Name}" ClipboardContentBinding="{x:Null}" Header="Событие" Width="300*" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem  x:Name="tab_E_Data" Header="Данные" Margin="0">
+                    <Grid Margin="-4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <GroupBox Header="Отображение" Grid.Row ="0" x:Name="groupBox_E_Data" HorizontalAlignment="Left" Width="319">
+                            <Grid Margin="-4">
+                                <CheckBox x:Name="checkBox_E_Current" Grid.Row ="0" Content="Текущие" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="67" Margin="10,10,0,0" Click="checkBox_TablePLC_Checked" IsChecked="True"/>
+                                <CheckBox x:Name="checkBox_E_Start_Day" Grid.Row ="0" Content="Начало суток" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="98" Margin="93,10,0,0" Click="checkBox_TablePLC_Checked" IsChecked="True"/>
+                                <CheckBox x:Name="checkBox_E_Month" Grid.Row ="0" Content="Начало месяца" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="109" Margin="196,10,0,0" Click="checkBox_TablePLC_Checked" IsChecked="True"/>
+                            </Grid>
+                        </GroupBox>
+                        <DataGrid Grid.Row ="1" x:Name="dataGrid_E_Data" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Прочитать выделенное" Click="menuItem_Read_Selected_E"/>
+                                    <MenuItem Header="Очистить таблицу" Click="menuItem_PLC_Table_Clear_E"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Enable}" Value="False">
+                                            <Setter Property="Foreground" Value="LightGray"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Adrs_PLC}" Header="Адрес PLC" Width="6*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridCheckBoxColumn Binding="{Binding Enable}" Header="Включен" Width="6*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_Current_T1}" Header="Текущие (Т1)" Width="10*" IsReadOnly="True" MinWidth="100" MaxWidth="200" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_Current_T2}" Header="Текущие (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_Current_T3}" Header="Текущие (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_Current_Summ}" Header="Текущие (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_StartDay_T1}" Header="Нач. суток (Т1)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_StartDay_T2}" Header="Нач. суток (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_StartDay_T3}" Header="Нач. суток (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTextColumn Binding="{Binding E_StartDay_Summ}" Header="Нач. суток (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Button Content="Прочитать все" HorizontalAlignment="Left" Margin="528,10,0,0" VerticalAlignment="Top" Width="110" Click="button_E_Data_Read_All" Height="30"/>
+                        <Button Content="Прочитать включенные" HorizontalAlignment="Left" Margin="324,10,0,0" VerticalAlignment="Top" Width="153" Click="button_E_Data_Read_Enable" Height="30"/>
+                    </Grid>
+                </TabItem>
+                <TabItem  x:Name="tab_IMPS_Monitor" Header="IMPS_Monitor" Margin="0">
+                    <Grid Margin="-4">
+                        <Button x:Name="button_Read_Imp1_Extra" Content="Прочитать IMP1" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="177" Click="button_Read_Imp1_Extra_Click_1"/>
+                        <Label x:Name="label_Imp1_Extra" Content="Текущие значения:" Height="100" Margin="10,39,729,346"/>
+                        <Button x:Name="button_Read_Imp1_Extra_Copy" Content="Прочитать IMP2" HorizontalAlignment="Left" Margin="219,12,0,0" VerticalAlignment="Top" Width="177" Click="button_Read_Imp2_Extra_Click_1"/>
+                        <Label x:Name="label_Imp2_Extra" Content="Текущие значения:" Height="100" Margin="219,39,520,346"/>
+                        <Button x:Name="button_Read_EEPROM" Content="Прочитать байт EEPROM" HorizontalAlignment="Left" Margin="10,196,0,0" VerticalAlignment="Top" Width="177" Click="button_EEPROM_Read_Byte_Click"/>
+                        <TextBox x:Name="textBox_Adrs_EEPROM" Text="Адрес" HorizontalAlignment="Left" Margin="200,196,0,0" VerticalAlignment="Top" Width="100"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tab_About" Header="О программе" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="100">
+                    <Grid Background="White" Margin="-4">
+                        <Label Content="Конфигуратор Pulse PLC v2" Margin="0, 0, 0, 0"/>
+                        <Label Content="Разработал: Владимир Султанов" Margin="0, 16, 0, 0"/>
+                        <Label Content="e-mail: vladimir@kursufa.ru" Margin="0, 32, 0, 0"/>
+                        <Label Content="Контроль нагрузки" Margin="0, 60, 0, 0" FontWeight="Bold"/>
+                        <Label Content="Функция осуществляет мониторинг текущей активной нагрузки (Вт) " Margin="0, 76, 0, 0"/>
+                        <Label Content="и делает запись в журнале, если текущая мощность, в течение 30 секунд" Margin="0, 92, 0, 0"/>
+                        <Label Content="превышает максимально установленную мощность." Margin="0, 108, 0, 0"/>
+                        <Label Content="Для отключения функции - просто запишите макс. мощность 0." Margin="0, 124, 0, 0"/>
+                    </Grid>
+                </TabItem>
+
+            </TabControl>
+        </Grid>
+
+        <!-- Debug Log журнал обмена -->
+        <Grid Grid.Row="4" Grid.Column ="2" Background="#FF4D6082">
+            <Button ToolTip="Простой лог" x:Name="debug_Log_Mode_Simple" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Mode_Simple_Click" HorizontalAlignment="Left" Width="40" BorderBrush="#FF707070" BorderThickness="0">
                 <StackPanel>
-                    <Image Source="Pics/boxupload32.png" Height="32" Width="32"/>
+                    <Image Source="Pics/user32_white.png" Height="12" Width="12"/>
                 </StackPanel>
             </Button>
-            <Button ToolTip="Записать конфигурацию в память устройства" HorizontalAlignment="Left" Margin="210,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+            <Button ToolTip="Расширеный лог" x:Name="debug_Log_Mode_Extra" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Mode_Extra_Click" HorizontalAlignment="Left" Width="40" BorderBrush="#FF707070" BorderThickness="0" Margin="45,0,0,0">
                 <StackPanel>
-                    <Image Source="Pics/boxdownload32.png" Height="32" Width="32"/>
+                    <Image Source="Pics/glasses_50_white.png" Height="16" Width="16"/>
                 </StackPanel>
             </Button>
-            <Button ToolTip="Сохранить в файл..." HorizontalAlignment="Left" Margin="285,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+            <Button ToolTip="Очистить" x:Name="debug_Log_Clear" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Clear_Click" Margin="0,0,87,0" HorizontalAlignment="Right" Width="40" BorderBrush="#FF707070" BorderThickness="0">
                 <StackPanel>
-                    <Image Source="Pics/linedpaperpencil32.png" Height="32" Width="32"/>
+                    <Image Source="garbage32_White.png" Height="16" Width="16"/>
                 </StackPanel>
+            </Button>
+            <Button ToolTip="Перейти к концу лога" x:Name="debug_Log_down" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Down_Click" Margin="0,0,2,0" HorizontalAlignment="Right" Width="40">
+                <StackPanel>
+                    <Image Source="down32_White.png" Height="15" Width="15"/>
+                </StackPanel>
+            </Button>
+            <Button ToolTip="Перейти в начало лога" x:Name="debug_Log_up" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Up_Click" Margin="0,0,42,0" HorizontalAlignment="Right" Width="40">
+                <StackPanel>
+                    <Image Source="up32_White.png" Height="15" Width="16"/>
+                </StackPanel>
+            </Button>
+            <RichTextBox x:Name="textBox_Log_Debug" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True">
+                <FlowDocument>
+                    <Paragraph x:Name="paragraph_log"/>
+                </FlowDocument>
+            </RichTextBox>
+            <RichTextBox x:Name="textBox_Log_Debug_ex" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True">
+                <FlowDocument>
+                    <Paragraph x:Name="paragraph_log_ex"/>
+                </FlowDocument>
+            </RichTextBox>
+        </Grid>
 
-            </Button>
-            <Button ToolTip="Открыть файл..." HorizontalAlignment="Left" Margin="360,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
-                <StackPanel>
-                    <Image Source="Pics/folder32.png" Height="32" Width="32"/>
-                </StackPanel>
-            </Button>
-            <TextBox HorizontalAlignment="Left" Height="20" TextWrapping="Wrap" VerticalAlignment="Top" Width="130" HorizontalContentAlignment="Center" Padding="0" FontSize="11" Margin="0,10,0,0"/>
-            <ComboBox x:Name ="comboBox_mode"  HorizontalAlignment="Left" Margin="0,35,0,0" VerticalAlignment="Top" Width="130" Background="#00000000"/>
-            <Button ToolTip="Перейти в логи обмена" HorizontalAlignment="Left" Margin="435,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="TreeView_Debug_Log_Selected">
-                <StackPanel>
-                    <Image Source="Pics/linedpaperpencil32.png" Height="32" Width="32"/>
-                </StackPanel>
-            </Button>
+        <!-- StatusBar статусные сообщения внизу -->
+        <Grid Grid.Row="5" Grid.ColumnSpan ="3" Background="#FFEAEAEA">
+            <StatusBar Height="22" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Grid.Row="1" Background="#FF007ACC">
+                <StatusBarItem Height="22" VerticalAlignment="Bottom">
+                    <TextBlock x:Name="status_msg" Width="300" Foreground="White" />
+                </StatusBarItem>
+                <StatusBarItem Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="connect_Access_timeout" Width="130" HorizontalAlignment="Left" TextAlignment="Right" Padding="0,0,4,0" Foreground="White"/>
+                        <TextBlock x:Name="connect_status_timeout" Width="100" HorizontalAlignment="Left" TextAlignment="Right" Padding="0,0,4,0" Foreground="White"/>
+                        <TextBlock x:Name="connect_status_txt" Width="100" HorizontalAlignment="Left" TextAlignment="Right" Padding="0,0,4,0" Foreground="White"/>
+                        <Image x:Name="connect_status_img" Height="16" Width="16" HorizontalAlignment="Right" Source="Pics/red.png"/>
+                    </StackPanel>
+                </StatusBarItem>
+            </StatusBar>
         </Grid>
     </Grid>
 </Window>
