@@ -10,9 +10,7 @@ namespace Pulse_PLC_Tools_2._0
 {
     public partial class MainWindow : Window
     {
-        //********************************************************************************************************* - Конфигурация-> Маршруты PLC
         //Вкладка "Конфигурация-> Маршруты PLC" обработка событий контролов
-        //___________________________________________
         //
 
         //Очистить данные в таблице PLC Table
@@ -31,7 +29,6 @@ namespace Pulse_PLC_Tools_2._0
 
             }));
         }
-
         //Обновить данные после изменения PLC Table
         public void PLC_Table_Refresh()
         {
@@ -101,6 +98,7 @@ namespace Pulse_PLC_Tools_2._0
             }
 
         }
+
         //Кнопка "Прочитать активные"
         private void button_PLC_Table_Read_En(object sender, RoutedEventArgs e)
         {
@@ -125,6 +123,7 @@ namespace Pulse_PLC_Tools_2._0
             PLC_Table_Send_Data_Request(Command_type.Write_PLC_Table, PLC_Table_Get_Selected_Items());
             CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
         }
+
         //Контекстное меню "Запрос по PLC -> Проверка связи"
         private void menuItem_PLC_Request_PLCv1(object sender, RoutedEventArgs e)
         {
@@ -150,6 +149,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             PLC_Request_Send_Selected(PLC_Request.E_Start_Day);
         }
+        //
         private void PLC_Request_Send_Selected(PLC_Request plc_request_type)
         {
             PLC_Table_Refresh();

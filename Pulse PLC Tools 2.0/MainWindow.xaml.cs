@@ -35,8 +35,6 @@ namespace Pulse_PLC_Tools_2._0
         public DeviceConfig deviceConfig;
         //Таблица PLC
         public List<DataGridRow_PLC> plc_table;
-        //Таблица с показаниями
-        //public List<DataGridRow_E_Data> e_data_table;
 
         //Значки для статуса соединения
         BitmapImage bitmap_red;
@@ -144,6 +142,7 @@ namespace Pulse_PLC_Tools_2._0
             deviceConfig.Show_On_Form();
 
             PLC_Table_Clear();
+            
         }
 
         //Форма закрывается
@@ -163,9 +162,25 @@ namespace Pulse_PLC_Tools_2._0
                 e.Cancel = true;
             }
         }
-        //************************************************************************************************************ - ОБЩИЕ функции
-        //_______________________________________________________________________________________
+
+        //Обновить список COM портов
+        public void Update_COM_List()
+        {
+            try
+            {
+                //Мониторим com порты
+                string[] myPort; //создаем массив строк
+                myPort = System.IO.Ports.SerialPort.GetPortNames(); // в массив помещаем доступные порты
+                comboBox_COM.Items.Clear();
+                myPort.ToList().ForEach(item => comboBox_COM.Items.Add(item)); //Массив помещаем в comboBox_COM
+                if (comboBox_COM.Items.Count > 0) comboBox_COM.SelectedIndex = 0;
+            }
+            catch { }
+        }
+
         //
+        // Отображение сообщений и статусов
+        //______________________________________________________________________________________
         //Показать сообщение в статус баре
         public void msg(string message)
         {
@@ -197,26 +212,10 @@ namespace Pulse_PLC_Tools_2._0
                 connect_status_txt.Text = link_name_;
             }));
         }
-        //Обновить список COM портов
-        public void Update_COM_List()
-        {
-            try
-            {
-                //Мониторим com порты
-                string[] myPort; //создаем массив строк
-                myPort = System.IO.Ports.SerialPort.GetPortNames(); // в массив помещаем доступные порты
-                comboBox_COM.Items.Clear();
-                myPort.ToList().ForEach(item => comboBox_COM.Items.Add(item)); //Массив помещаем в comboBox_COM
-                if (comboBox_COM.Items.Count > 0) comboBox_COM.SelectedIndex = 0;
-            }
-            catch { }
 
-        }
-
-        //____________________________
         //
         // Горячие клавиши
-        //____________________________
+        //______________________________________________________________________________________
         public void hotKey_Ctrl_P_Request_PLC()
         {
             PLC_Table_Refresh();

@@ -12,7 +12,7 @@ namespace Pulse_PLC_Tools_2._0
 {
     public partial class MainWindow : Window
     {
-        //********************************************************
+        //************************************************
         // TreeView меню для навигации по вкладкам
         //________________________________________________
 
@@ -27,32 +27,31 @@ namespace Pulse_PLC_Tools_2._0
             treeView_item.Foreground = color;
         }
 
-        //Переход на вкладку связь
+        //Переход на вкладку "Связь"
         private void TreeView_Link_Selected(object sender, RoutedEventArgs e)
         {
             tab_Link.IsSelected = true;
             TreeView_Selected_Color((TreeViewItem)sender, Brushes.Black);
         }
 
-        //Переход на вкладку Дата/Время
+        //Переход на вкладку "Дата/Время"
         private void TreeView_DateTime_Selected(object sender, RoutedEventArgs e)
         {
             tab_DateTime.IsSelected = true;
             TreeView_Selected_Color((TreeViewItem)sender, Brushes.Black);
         }
 
-        //Переход на вкладку Основные настройки
+        //Переход на вкладку "Основные настройки"
         private void TreeView_Config_MAIN_Selected(object sender, RoutedEventArgs e)
         {
             tab_Main_Params.IsSelected = true;
             TreeView_Selected_Color((TreeViewItem)sender, Brushes.Black);
         }
 
-        //Переход на вкладку о программе
+        //Переход на вкладку "О программе"
         private void TreeView_About_Selected(object sender, RoutedEventArgs e)
         {
             tab_About.IsSelected = true;
-            //Clipboard.SetText(sender.GetType().ToString());
             if (sender.GetType().ToString() == "System.Windows.Controls.TreeViewItem")
                 TreeView_Selected_Color((TreeViewItem)sender, Brushes.Black);
         }
@@ -124,7 +123,51 @@ namespace Pulse_PLC_Tools_2._0
         //-----------------------------
         // Главное меню (контекстное)
         //-----------------------------
-        //Справка -> "О флагах ошибок.."
+
+        //*** Файл ->
+        //
+
+
+        //*** Сервисные комманды ->
+
+        //Пункт "Перезагрузить"
+        private void button_Reboot_Click(object sender, RoutedEventArgs e)
+        {
+            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.Reboot, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+        }
+        //Пункт "Очистить память"
+        private void button_EEPROM_BURN_Click(object sender, RoutedEventArgs e)
+        {
+            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.EEPROM_Burn, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+        }
+        
+
+        //*** Горячие клавиши ->
+
+        //Пункт "Монитор запрос"
+        private void menu_hotKey_Monitor(object sender, RoutedEventArgs e)
+        {
+            hotKey_Ctrl_M_Monitor_Request();
+        }
+        //Пункт "Запрос по таблице PLC"
+        private void menu_hotKey_PLC_Request(object sender, RoutedEventArgs e)
+        {
+            hotKey_Ctrl_P_Request_PLC();
+        }
+        //Пункт "Чтение строк в таблице PLC"
+        private void menu_hotKey_Read_PLC_Table(object sender, RoutedEventArgs e)
+        {
+            hotKey_Ctrl_R_Read_PLC_Table();
+        }
+
+
+        //*** Справка ->
+
+        //Пункт "О флагах ошибок.."
         private void menu_Help_Errors_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Расшифровка сокращений флагов ошибок: \n" +
@@ -135,7 +178,7 @@ namespace Pulse_PLC_Tools_2._0
                 "5. ОП - Ошибка памяти\n" +
                 "6. ОВ - Ошибка времени", "Справка");
         }
-        //Справка -> "О заводских настройках.."
+        //Пункт "О заводских настройках.."
         private void menu_Help_Default_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Заводские настройки: \n" +
@@ -145,21 +188,6 @@ namespace Pulse_PLC_Tools_2._0
                 "RS458 - только чтение, Bluetooth - только чтение \n" +
                 "Импульсный вход 1 [Вкл., адреса PLC и Сетевой - 1] \n" +
                 "Импульсный вход 2 [Вкл., адреса PLC и Сетевой - 2] \n", "Справка");
-        }
-        //
-        private void menu_hotKey_Monitor(object sender, RoutedEventArgs e)
-        {
-            hotKey_Ctrl_M_Monitor_Request();
-        }
-
-        private void menu_hotKey_PLC_Request(object sender, RoutedEventArgs e)
-        {
-            hotKey_Ctrl_P_Request_PLC();
-        }
-
-        private void menu_hotKey_Read_PLC_Table(object sender, RoutedEventArgs e)
-        {
-            hotKey_Ctrl_R_Read_PLC_Table();
         }
         //Перейти на владку "О программе"
         private void menu_About_Click(object sender, RoutedEventArgs e)

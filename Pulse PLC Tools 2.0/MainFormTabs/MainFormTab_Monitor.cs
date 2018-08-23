@@ -9,11 +9,9 @@ namespace Pulse_PLC_Tools_2._0
 {
     public partial class MainWindow : Window
     {
-        //___________________________________________
-        //
         //Вкладка "Монитор" обработка событий контролов
-        //___________________________________________
         //
+
         private void button_Read_Imp1_Extra_Click_1(object sender, RoutedEventArgs e)
         {
             CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);

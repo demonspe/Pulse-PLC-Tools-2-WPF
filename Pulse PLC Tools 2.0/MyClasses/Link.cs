@@ -327,16 +327,18 @@ namespace Pulse_PLC_Tools_2._0
             command_ = cmd_;
             mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
                 mainForm.tabControl_main.IsEnabled = false;
-                timer_timeout.Stop();
-                timeout_request_ms = timeout_ms;
-                ping_ms = 0;
-                timer_timeout.Start();
             }));
+
+            timer_timeout.Stop();
+            timeout_request_ms = timeout_ms;
+            ping_ms = 0;
+            timer_timeout.Start();
         }
 
         //Сбросить флаги ожидания ответа на запрос
         public void Request_Reset(bool cmd_Is_Complete, bool clear_CMD_Buffer)
         {
+            //Разблокируем все вкладки
             mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
                 mainForm.tabControl_main.IsEnabled = true; }));
             

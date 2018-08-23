@@ -12,10 +12,15 @@ namespace Pulse_PLC_Tools_2._0
 {
     public partial class MainWindow : Window
     {
-        //********************************************************************************************************* - Конфигурация-> IMP 1
+        //Кисти для покраски
+        Brush br_imp_on = new SolidColorBrush(Color.FromArgb(0x7F, 0x00, 0xA2, 0xFF));
+        Brush br_off = new SolidColorBrush(Color.FromArgb(0xB2, 0x80, 0x80, 0x80));
+        Brush br_RS485_on = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0xB9, 0x80));
+
+        
         //Вкладка "Конфигурация-> IMP 1" обработка событий контролов
-        //___________________________________________
         //
+
         //Выбор количества тарифов
         private void comboBox_num_of_tarifs_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -54,10 +59,7 @@ namespace Pulse_PLC_Tools_2._0
                     break;
             }
         }
-        //Отрисовка фигур
-        Brush br_imp_on = new SolidColorBrush(Color.FromArgb(0x7F, 0x00, 0xA2, 0xFF));
-        Brush br_off = new SolidColorBrush(Color.FromArgb(0xB2, 0x80, 0x80, 0x80));
-        Brush br_RS485_on = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0xB9, 0x80));
+        //Отрисовка линий
         public void imp1_draw()
         {
             groupBox_IMP1.IsEnabled = (bool)(checkBox_IMP1_On.IsChecked);
@@ -72,29 +74,32 @@ namespace Pulse_PLC_Tools_2._0
         private void checkBox_IMP1_On_Checked(object sender, RoutedEventArgs e)
         {
             imp1_draw();
-
         }
+        //Нажатие на рисунок
         private void draw_Imp1_MouseDown(object sender, MouseButtonEventArgs e)
         {
             checkBox_IMP1_On.IsChecked = (bool)(checkBox_IMP1_On.IsChecked) ? false : true;
             imp1_draw();
         }
+        //Кнопка "Прочитать"
         private void button_Read_Imp1_Click_1(object sender, RoutedEventArgs e)
         {
             CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
             CMD_Buffer.Add_CMD(Command_type.Read_IMP, link, IMP_type.IMP1, 0);
             CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
         }
+        //Кнопка "Записать"
         private void button_Write_Imp1_Click_1(object sender, RoutedEventArgs e)
         {
             CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
             CMD_Buffer.Add_CMD(Command_type.Write_IMP, link, IMP_type.IMP1, 0);
             CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
         }
-        //********************************************************************************************************* - Конфигурация-> IMP 2
+
+        
         //Вкладка "Конфигурация-> IMP 2" обработка событий контролов
-        //___________________________________________
         //
+
         //Выбор количества тарифов
         private void comboBox_num_of_tarifs_IMP2_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -143,23 +148,25 @@ namespace Pulse_PLC_Tools_2._0
             draw_Imp2_line3.Fill = (bool)(checkBox_IMP2_On.IsChecked) ? br_RS485_on : br_off;
             draw_Imp2_line4.Fill = (bool)(checkBox_IMP2_On.IsChecked) ? br_RS485_on : br_off;
         }
-        //Включить/отключить импульсный вход 1
+        //Включить/отключить импульсный вход 1 (Чекбокс)
         private void checkBox_IMP2_On_Checked(object sender, RoutedEventArgs e)
         {
             imp2_draw();
-
         }
+        //Нажатие на изображение входа
         private void draw_Imp2_MouseDown(object sender, MouseButtonEventArgs e)
         {
             checkBox_IMP2_On.IsChecked = (bool)(checkBox_IMP2_On.IsChecked) ? false : true;
             imp2_draw();
         }
+        //Кнопка "Прочитать"
         private void button_Read_Imp2_Click_1(object sender, RoutedEventArgs e)
         {
             CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
             CMD_Buffer.Add_CMD(Command_type.Read_IMP, link, IMP_type.IMP2, 0);
             CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
         }
+        //Кнопка "Записать"
         private void button_Write_Imp2_Click_1(object sender, RoutedEventArgs e)
         {
             CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);

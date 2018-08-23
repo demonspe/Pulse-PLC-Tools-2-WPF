@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pulse_PLC_Tools_2._0"
-        Icon="Pics/logo_lines.png"
+        Icon="Pics/logo1.ico"
         Title="Pulse PLC Tools 2.0" Height="800" Width="1400" Loaded="mainForm_Loaded" MinWidth="725" MinHeight="600" KeyDown="mainForm_KeyDown" Closing="mainForm_Closing" >
     <Grid>
         <Grid.ColumnDefinitions>
@@ -56,10 +56,10 @@
         <Grid Grid.Row ="1" Grid.ColumnSpan="3" Background="LightCoral">
             <Grid Height="60" VerticalAlignment="Top" Background="#FFD6DBE9">
                 <Grid x:Name="grid_Access_Input" HorizontalAlignment="Left" Height="60" Margin="0,0,0,0" VerticalAlignment="Top" Width="228">
-                    <Label Content="Серийный №" HorizontalAlignment="Left" Margin="2,4,0,0" VerticalAlignment="Top"/>
-                    <ComboBox x:Name="comboBox_Serial" Height="24" VerticalAlignment="Top" IsEditable="True" HorizontalAlignment="Left" Width="137" Margin="86,4,0,0" Background="{x:Null}"/>
-                    <Label Content="Пароль" HorizontalAlignment="Left" Margin="2,33,0,0" VerticalAlignment="Top" Width="84"/>
-                    <TextBox x:Name="textBox_Pass" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="137" Margin="86,33,0,0" Background="{x:Null}"/>
+                    <Label Content="Серийный №" HorizontalAlignment="Left" Margin="2,3,0,0" VerticalAlignment="Top"/>
+                    <ComboBox x:Name="comboBox_Serial" Height="24" VerticalAlignment="Top" IsEditable="True" HorizontalAlignment="Left" Width="137" Margin="86,3,0,0" Background="{x:Null}"/>
+                    <Label Content="Пароль" HorizontalAlignment="Left" Margin="2,32,0,0" VerticalAlignment="Top" Width="84"/>
+                    <TextBox x:Name="textBox_Pass" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="137" Margin="86,32,0,0" Background="{x:Null}"/>
                 </Grid>
                 <Button ToolTip="Прочитать всю конфигурацию из памяти устройства" HorizontalAlignment="Left" Margin="315,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Read_All_Config_Click">
                     <StackPanel>
@@ -83,7 +83,7 @@
                 </Button>
                 <Button ToolTip="Поиск устройств в канале связи" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Search_Devices_Click" Margin="228,0,0,0">
                     <StackPanel>
-                        <Image Source="Menu_pics/search_link.png" Height="32" Width="32"/>
+                        <Image Source="Pics/search_link.png" Height="32" Width="32"/>
                     </StackPanel>
                 </Button>
             </Grid>
@@ -626,17 +626,17 @@
             </Button>
             <Button ToolTip="Очистить" x:Name="debug_Log_Clear" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Clear_Click" Margin="0,0,87,0" HorizontalAlignment="Right" Width="40" BorderBrush="#FF707070" BorderThickness="0">
                 <StackPanel>
-                    <Image Source="garbage32_White.png" Height="16" Width="16"/>
+                    <Image Source="Pics/garbage32_White.png" Height="16" Width="16"/>
                 </StackPanel>
             </Button>
             <Button ToolTip="Перейти к концу лога" x:Name="debug_Log_down" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Down_Click" Margin="0,0,2,0" HorizontalAlignment="Right" Width="40">
                 <StackPanel>
-                    <Image Source="down32_White.png" Height="15" Width="15"/>
+                    <Image Source="Pics/down32_White.png" Height="15" Width="15"/>
                 </StackPanel>
             </Button>
             <Button ToolTip="Перейти в начало лога" x:Name="debug_Log_up" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Click="debug_Log_Up_Click" Margin="0,0,42,0" HorizontalAlignment="Right" Width="40">
                 <StackPanel>
-                    <Image Source="up32_White.png" Height="15" Width="16"/>
+                    <Image Source="Pics/up32_White.png" Height="15" Width="16"/>
                 </StackPanel>
             </Button>
             <RichTextBox x:Name="textBox_Log_Debug" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True">

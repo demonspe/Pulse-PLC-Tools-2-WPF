@@ -9,10 +9,9 @@ namespace Pulse_PLC_Tools_2._0
 {
     public partial class MainWindow : Window
     {
-        //**********************************************
-        //Вкладка "Настройки-> Основные" обработка событий контролов
-        //___________________________________________
+        // Вкладка "Настройки-> Основные" обработка событий контролов
         //
+
         //Прочитать основные параметры
         private void button_Main_Params_Read_Click(object sender, RoutedEventArgs e)
         {
@@ -20,6 +19,7 @@ namespace Pulse_PLC_Tools_2._0
             CMD_Buffer.Add_CMD(Command_type.Read_Main_Params, link, null, 0);
             CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
         }
+
         //Записать основные параметры
         private void button_Main_Params_Write_Click(object sender, RoutedEventArgs e)
         {
@@ -29,6 +29,15 @@ namespace Pulse_PLC_Tools_2._0
             CMD_Buffer.Add_CMD(Command_type.Write_Main_Params, link, null, 0);
             CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
         }
+        
+        //Кнопка "Очистить ошибки"
+        private void button_Clear_Errors_Click(object sender, RoutedEventArgs e)
+        {
+            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.Clear_Errors, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+        }
+
         //Записать Пароли
         private void button_Pass_Write_Click(object sender, RoutedEventArgs e)
         {
@@ -48,38 +57,6 @@ namespace Pulse_PLC_Tools_2._0
                 CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
             }
         }
-        //Кнопка "Перезагрузить"
-        private void button_Reboot_Click(object sender, RoutedEventArgs e)
-        {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Reboot, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
-        }
-        //Кнопка "Очистить память"
-        private void button_EEPROM_BURN_Click(object sender, RoutedEventArgs e)
-        {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.EEPROM_Burn, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
-        }
-        //Кнопка "Прочитать байт"
-        private void button_EEPROM_Read_Byte_Click(object sender, RoutedEventArgs e)
-        {
-            UInt16 adrs_eep;
-            if (UInt16.TryParse(textBox_Adrs_EEPROM.Text, out adrs_eep))
-            {
-                CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-                CMD_Buffer.Add_CMD(Command_type.EEPROM_Read_Byte, link, adrs_eep, 0);
-                CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
-            }
-            else MessageBox.Show("Введите корректный адрес в пределах от 0 до 65535");
-        }
-        //Кнопка "Очистить ошибки"
-        private void button_Clear_Errors_Click(object sender, RoutedEventArgs e)
-        {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Clear_Errors, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
-        }
+
     }
 }
