@@ -160,7 +160,7 @@ namespace Pulse_PLC_Tools_2._0
                         {
                             mainForm.Update_COM_List();
                             mainForm.groupBox_link_type.IsEnabled = true;
-                            mainForm.grid_Access_Input.IsEnabled = false;
+                            //mainForm.grid_Access_Input.IsEnabled = false;
                             mainForm.groupBox_dateTime.IsEnabled = false;
                             mainForm.button_open_com.Content = "Открыть канал связи";
                         }));
@@ -173,7 +173,7 @@ namespace Pulse_PLC_Tools_2._0
                         mainForm.button_open_com.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
                         {
                             mainForm.groupBox_link_type.IsEnabled = false;
-                            mainForm.grid_Access_Input.IsEnabled = true;
+                            //mainForm.grid_Access_Input.IsEnabled = true;
                             mainForm.groupBox_dateTime.IsEnabled = true;
                             mainForm.button_open_com.Content = "Разорвать соединение";
                         }));
@@ -327,12 +327,13 @@ namespace Pulse_PLC_Tools_2._0
             command_ = cmd_;
             mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
                 mainForm.tabControl_main.IsEnabled = false;
+                timer_timeout.Stop();
+                timeout_request_ms = timeout_ms;
+                ping_ms = 0;
+                timer_timeout.Start();
             }));
 
-            timer_timeout.Stop();
-            timeout_request_ms = timeout_ms;
-            ping_ms = 0;
-            timer_timeout.Start();
+            
         }
 
         //Сбросить флаги ожидания ответа на запрос

@@ -37,6 +37,7 @@
                 <MenuItem Header="Сервисные команды">
                     <MenuItem Header="-> Перезагрузить" Click="button_Reboot_Click"/>
                     <MenuItem Header="-> Заводские настройки" Click="button_EEPROM_BURN_Click"/>
+                    <MenuItem Header="-> Включить режим обновления ПО" Click="button_BOOTLOADER_On_Click"/>
                 </MenuItem>
                 <MenuItem Header="Горячие клавиши">
                     <MenuItem Header="Монитор запрос (Ctrl+M)" Click="menu_hotKey_Monitor"/>
@@ -112,6 +113,7 @@
                 <TreeViewItem x:Name="treeView_Data" Header="Данные" Selected="TreeView_Data_Selected" Foreground="White"/>
                 <TreeViewItem x:Name="treeView_IMPS_Monitor" Header="Монитор" Selected="TreeView_Config_IMPS_Monitor_Selected" Foreground="White"/>
                 <TreeViewItem x:Name="treeView_About" Header="О программе" Selected="TreeView_About_Selected" Foreground="White"/>
+                <TreeViewItem Header="Сервис/Настройка" Selected="TreeView_Service_Selected" Foreground="White" FontWeight="Bold"/>
             </TreeView>
         </Grid>
 
@@ -592,8 +594,6 @@
                         <Label x:Name="label_Imp1_Extra" Content="Текущие значения:" Height="100" Margin="10,39,729,346"/>
                         <Button x:Name="button_Read_Imp1_Extra_Copy" Content="Прочитать IMP2" HorizontalAlignment="Left" Margin="219,12,0,0" VerticalAlignment="Top" Width="177" Click="button_Read_Imp2_Extra_Click_1"/>
                         <Label x:Name="label_Imp2_Extra" Content="Текущие значения:" Height="100" Margin="219,39,520,346"/>
-                        <Button x:Name="button_Read_EEPROM" Content="Прочитать байт EEPROM" HorizontalAlignment="Left" Margin="10,196,0,0" VerticalAlignment="Top" Width="177" Click="button_EEPROM_Read_Byte_Click"/>
-                        <TextBox x:Name="textBox_Adrs_EEPROM" Text="Адрес" HorizontalAlignment="Left" Margin="200,196,0,0" VerticalAlignment="Top" Width="100"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="tab_About" Header="О программе" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="100">
@@ -608,7 +608,14 @@
                         <Label Content="Для отключения функции - просто запишите макс. мощность 0." Margin="0, 124, 0, 0"/>
                     </Grid>
                 </TabItem>
-
+                <TabItem x:Name="tab_Service" Header="Сервис" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="100">
+                    <Grid Background="White" Margin="-4">
+                        <Button x:Name="button_Read_EEPROM" Content="Прочитать байт EEPROM" HorizontalAlignment="Left" Margin="10,208,0,0" VerticalAlignment="Top" Width="177" Click="button_EEPROM_Read_Byte_Click"/>
+                        <TextBox x:Name="textBox_Adrs_EEPROM" Text="Адрес" HorizontalAlignment="Left" Margin="10,235,0,0" VerticalAlignment="Top" Width="177"/>
+                        <TextBox x:Name="textBox_Serial_New" Text="12345678" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="325" Height="82" FontSize="48" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="Bold" PreviewTextInput="textBox_Serial_New_PreviewTextInput"/>
+                        <Button x:Name="button_WriteSerial" Content="Записать серийный номер" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Width="325" Click="button_SerialWrite_Click" Height="48" FontSize="24"/>
+                    </Grid>
+                </TabItem>
             </TabControl>
         </Grid>
 

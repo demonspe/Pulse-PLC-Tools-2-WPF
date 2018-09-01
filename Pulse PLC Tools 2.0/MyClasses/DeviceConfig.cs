@@ -9,14 +9,18 @@ namespace Pulse_PLC_Tools_2._0
 {
     public class ImpsData
     {
-        public byte Is_Enable;     //Включен/отключен
-        public byte adrs_PLC;      //Сетевой адрес
-        public UInt16 A;           //A передаточное число
-        public UInt32 E_T1;        //Энергия ПО ТАРИФУ 1
-        public UInt32 E_T2;        //Энергия ПО ТАРИФУ 2
-        public UInt32 E_T3;        //Энергия ПО ТАРИФУ 3
-        public UInt32 E_Tsum;      //Энергия СУММА
-        public byte perepoln;      //число разрядов после которых происходит переполнение 0, 5 или 6
+        public byte Is_Enable;      //Включен/отключен
+        public byte adrs_PLC;       //Сетевой адрес
+        public UInt16 A;            //A передаточное число
+        public UInt32 E_T1;         //Энергия ПО ТАРИФУ 1
+        public UInt32 E_T2;         //Энергия ПО ТАРИФУ 2
+        public UInt32 E_T3;         //Энергия ПО ТАРИФУ 3
+        public UInt32 E_Tsum;       //Энергия СУММА
+        public UInt32 E_T1_Start;   //Энергия На начало суток ПО ТАРИФУ 1
+        public UInt32 E_T2_Start;   //Энергия На начало суток ПО ТАРИФУ 2
+        public UInt32 E_T3_Start;   //Энергия На начало суток ПО ТАРИФУ 3
+        public UInt32 E_Tsum_Start; //Энергия На начало суток СУММА
+        public byte perepoln;       //число разрядов после которых происходит переполнение 0, 5 или 6
         public byte T_qty;         //Количество тарифов
         public UInt16 T1_Time_1;   //Начало первой пиковой зоны в минутах
         public UInt16 T3_Time_1;   //Начало первой полупиковой зоны в минутах
@@ -232,7 +236,7 @@ namespace Pulse_PLC_Tools_2._0
                     else
                         Device.Pass_Read[i] = Convert.ToChar(0xFF);
                 }
-                //Пароль
+                //Пароль на запись
                 length_ = mainForm.textBox_Write_Pass.Text.Length <= 6 ? mainForm.textBox_Write_Pass.Text.Length : 6;
                 for (int i = 0; i < 6; i++)
                 {

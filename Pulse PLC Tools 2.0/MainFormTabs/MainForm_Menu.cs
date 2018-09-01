@@ -119,6 +119,12 @@ namespace Pulse_PLC_Tools_2._0
             TreeView_Selected_Color((TreeViewItem)sender, Brushes.Black);
         }
 
+        //Переход на вкладку "Сервис/Настройка"
+        private void TreeView_Service_Selected(object sender, RoutedEventArgs e)
+        {
+            tab_Service.IsSelected = true;
+            TreeView_Selected_Color((TreeViewItem)sender, Brushes.Black);
+        }
 
         //-----------------------------
         // Главное меню (контекстное)
@@ -144,7 +150,13 @@ namespace Pulse_PLC_Tools_2._0
             CMD_Buffer.Add_CMD(Command_type.EEPROM_Burn, link, null, 0);
             CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
         }
-        
+        //Пункт "Включить режим обновления ПО"
+        private void button_BOOTLOADER_On_Click(object sender, RoutedEventArgs e)
+        {
+            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.Bootloader, link, null, 0);
+            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+        }
 
         //*** Горячие клавиши ->
 
