@@ -34,6 +34,7 @@ namespace Pulse_PLC_Tools_2._0
             get { return serial_bytes[0].ToString("00") + serial_bytes[1].ToString("00") + serial_bytes[2].ToString("00") + serial_bytes[3].ToString("00"); }
             set
             {
+                if (value == "0") serial_bytes = new byte[4] { 0, 0, 0, 0 };
                 if (value.Length == 8)
                 {
                     serial_bytes = new byte[4] { Convert.ToByte(value.Substring(0, 2)), Convert.ToByte(value.Substring(2, 2)), Convert.ToByte(value.Substring(4, 2)), Convert.ToByte(value.Substring(6, 2)) };
