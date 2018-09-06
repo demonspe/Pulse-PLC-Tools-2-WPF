@@ -5,26 +5,43 @@ using System.Text;
 
 namespace Pulse_PLC_Tools_2._0
 {
-    public class CRC16
+    public static class CRC16
     {
-        const ushort polynomial = 0xA001;
-        ushort[] table = new ushort[256];
-        public ushort ComputeChecksum(byte[] bytes, int length)
+        const ushort polynom_default = 0xA001;
+        static ushort[] table = new ushort[256];
+
+        public static ushort ComputeChecksum(byte[] bytes, int length, ushort polynom)
         {
+            GatTable(polynom);
+
             ushort crc = 0xFFFF;
             for (int i = 0; i < length; ++i)
             {
                 byte index = (byte)(crc ^ bytes[i]);
                 crc = (ushort)((crc >> 8) ^ table[index]);
             }
+
             return crc;
         }
-        public byte[] ComputeChecksumBytes(byte[] bytes, int length)
+
+        public static ushort ComputeChecksum(byte[] bytes, int length)
+        {
+            return ComputeChecksum(bytes, length, polynom_default);
+        }
+
+        public static byte[] ComputeChecksumBytes(byte[] bytes, int length, ushort polynom)
+        {
+            ushort crc = ComputeChecksum(bytes, length, polynom);
+            return BitConverter.GetBytes(crc);
+        }
+
+        public static byte[] ComputeChecksumBytes(byte[] bytes, int length)
         {
             ushort crc = ComputeChecksum(bytes, length);
             return BitConverter.GetBytes(crc);
         }
-        public CRC16()
+
+        static void GatTable(ushort polynom)
         {
             ushort value;
             ushort temp;
@@ -36,7 +53,7 @@ namespace Pulse_PLC_Tools_2._0
                 {
                     if (((value ^ temp) & 0x0001) != 0)
                     {
-                        value = (ushort)((value >> 1) ^ polynomial);
+                        value = (ushort)((value >> 1) ^ polynom);
                     }
                     else
                     {

@@ -46,7 +46,6 @@ namespace Pulse_PLC_Tools_2._0
         public Link_type connection;
 
         //Общее
-        CRC16 crc16_o;
         public bool wait_data = false;
         public Command_type command_ = Command_type.None;
 
@@ -74,7 +73,6 @@ namespace Pulse_PLC_Tools_2._0
             serialPort = new SerialPort(" ", 9600, Parity.None, 8, StopBits.One);
             serialPort.ReadBufferSize = 1024;
             serialPort.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(serialPort_DataReceived);
-            crc16_o = new CRC16();
         }
 
         public void Access_Timer_Start()
@@ -99,7 +97,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             access_time_ms -= timer_Access.Interval;
             
-            mainForm.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() => //Зависает при перемещении окна ДОДЕЛАТЬ
+            mainForm.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() => 
             {
                 string access_str = "";
                 if (access_Type == Access_Type.Read) access_str = "Чтение";
@@ -368,7 +366,7 @@ namespace Pulse_PLC_Tools_2._0
 
             //Добавим контрольную сумму
             int len = count;
-            UInt16 crc_ = crc16_o.ComputeChecksum(data, count);
+            UInt16 crc_ = CRC16.ComputeChecksum(data, count);
             data[len++] = (byte)(crc_);
             data[len++] = (byte)(crc_ >> 8);
 
@@ -440,7 +438,7 @@ namespace Pulse_PLC_Tools_2._0
                     //Получаем байт из буффера
                     bytes_buff[i++] = (byte)serialPort.ReadByte();
                     //Посчитаем контрольную сумму сообщения
-                    if (crc16_o.ComputeChecksum(bytes_buff, i) == 0)
+                    if (CRC16.ComputeChecksum(bytes_buff, i) == 0)
                     {
                         crc_ = true;
 
