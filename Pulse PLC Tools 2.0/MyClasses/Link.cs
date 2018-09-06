@@ -19,7 +19,7 @@ namespace Pulse_PLC_Tools_2._0
     public enum Link_type : int { Not_connected, COM_port, TCP }
     public enum Access_Type : int { No_Access, Read, Write }
 
-    public class Link
+    public class MyLink
     {
         //Таймеры
         System.Windows.Forms.Timer timer_timeout;
@@ -52,7 +52,7 @@ namespace Pulse_PLC_Tools_2._0
 
         
 
-        public Link(MainWindow mainForm_)
+        public MyLink(MainWindow mainForm_)
         {
             mainForm = mainForm_;
 
@@ -115,8 +115,8 @@ namespace Pulse_PLC_Tools_2._0
                     mainForm.connect_Access_timeout.Text = "Не авторизован";
                 }));
             }
-            
         }
+
         //Таймер ожидания ответа
         private void timer_Link_Timeout_Tick(object sender, EventArgs e)
         {

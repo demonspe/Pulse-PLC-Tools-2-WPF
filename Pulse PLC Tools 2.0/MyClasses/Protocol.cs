@@ -57,7 +57,7 @@ namespace Pulse_PLC_Tools_2._0
             mainForm = mainForm_;
         }
 
-        public bool Send_CMD(Command_type cmd, Link link, object param)
+        public bool Send_CMD(Command_type cmd, MyLink link, object param)
         {
             if (link.wait_data) return false;
             if (link.connection == Link_type.Not_connected) {
@@ -170,7 +170,7 @@ namespace Pulse_PLC_Tools_2._0
         
         #region КАНАЛ
         //Запрос ПОИСК УСТРОЙСТВ в канале (и режима работы)
-        bool CMD_Search_Devices(Link link)
+        bool CMD_Search_Devices(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -210,7 +210,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос ПРОВЕРКА ПАРОЛЯ
-        bool CMD_Check_Pass(Link link)
+        bool CMD_Check_Pass(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -253,7 +253,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос ЗАКРЫТИЕ СЕССИИ (закрывает доступ к данным)
-        bool CMD_Close_Session(Link link)
+        bool CMD_Close_Session(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -273,7 +273,7 @@ namespace Pulse_PLC_Tools_2._0
         #region СЕРВИСНЫЕ КОМАНДЫ
 
         //Запрос BOOTLOADER (стирает сектор флеш памяти чтобы устройство загружалось в режиме bootloader)
-        bool CMD_BOOTLOADER(Link link)
+        bool CMD_BOOTLOADER(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -295,7 +295,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос - Запись серийного номера
-        bool CMD_SerialWrite(Link link, byte[] params_)
+        bool CMD_SerialWrite(MyLink link, byte[] params_)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -324,7 +324,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос EEPROM BURN (сброс к заводским настройкам)
-        bool CMD_EEPROM_BURN(Link link)
+        bool CMD_EEPROM_BURN(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -346,7 +346,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос EEPROM READ BYTE (чтение байта из памяти)
-        bool CMD_EEPROM_Read_Byte(Link link, UInt16 eep_adrs)
+        bool CMD_EEPROM_Read_Byte(MyLink link, UInt16 eep_adrs)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -371,7 +371,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос ПЕРЕЗАГРУЗКА
-        bool CMD_Reboot(Link link)
+        bool CMD_Reboot(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -395,7 +395,7 @@ namespace Pulse_PLC_Tools_2._0
 
         #region ОСНОВНЫЕ ПАРАМЕТРЫ (режимы работы, ошибки, пароли)
         //Запрос - ЧТЕНИЕ ОСНОВНЫХ ПАРАМЕТРОВ 
-        bool CMD_Read_Main_Params(Link link)
+        bool CMD_Read_Main_Params(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -446,7 +446,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос - ЗАПИСЬ ОСНОВНЫХ ПАРАМЕТРОВ 
-        bool CMD_Write_Main_Params(Link link)
+        bool CMD_Write_Main_Params(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -475,7 +475,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос - ОЧИСТИТЬ ФЛАГИ ОШИБОК
-        bool CMD_Clear_Errors(Link link)
+        bool CMD_Clear_Errors(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -497,7 +497,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос - Запись паролей
-        bool CMD_Pass_Write(Link link, bool[] params_)
+        bool CMD_Pass_Write(MyLink link, bool[] params_)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -536,7 +536,7 @@ namespace Pulse_PLC_Tools_2._0
 
         #region ПАРАМЕТРЫ ИМПУЛЬСНЫХ ВХОДОВ
         //Запрос ЧТЕНИЕ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
-        bool CMD_Read_Imp_Params(Link link, int imp_num)
+        bool CMD_Read_Imp_Params(MyLink link, int imp_num)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -640,7 +640,7 @@ namespace Pulse_PLC_Tools_2._0
                 mainForm.debug_Log_Add_Line("Параметры имп. входа " + Convert.ToChar(bytes_buff[6]) + " успешно прочитаны", DebugLog_Msg_Type.Good);
             }
         //Запрос ЧТЕНИЕ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
-        bool CMD_Read_Imp_Extra_Params(Link link, int imp_num)
+        bool CMD_Read_Imp_Extra_Params(MyLink link, int imp_num)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -691,7 +691,7 @@ namespace Pulse_PLC_Tools_2._0
             mainForm.debug_Log_Add_Line("Мгновенные значения считаны", DebugLog_Msg_Type.Good);
         }
         //Запрос ЗАПИСЬ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
-        bool CMD_Write_Imp_Params(Link link, int imp_num)
+        bool CMD_Write_Imp_Params(MyLink link, int imp_num)
         {
             ImpsData Imp_;
             if (imp_num == 1) Imp_ = mainForm.deviceConfig.Imp1;
@@ -779,7 +779,7 @@ namespace Pulse_PLC_Tools_2._0
 
         #region ЧТЕНИЕ ЖУРНАЛА СОБЫТИЙ
         //Запрос ЧТЕНИЕ ЖУРНАЛА СОБЫТИЙ
-        bool CMD_Read_Journal(Link link, Journal_type journal)
+        bool CMD_Read_Journal(MyLink link, Journal_type journal)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -885,7 +885,7 @@ namespace Pulse_PLC_Tools_2._0
 
         #region ВРЕМЯ И ДАТА
         //Запрос ЧТЕНИЕ ВРЕМЕНИ И ДАТЫ
-        bool CMD_Read_DateTime(Link link)
+        bool CMD_Read_DateTime(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -925,7 +925,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Запрос ЗАПИСЬ ВРЕМЕНИ И ДАТЫ
-        bool CMD_Write_DateTime(Link link)
+        bool CMD_Write_DateTime(MyLink link)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -959,7 +959,7 @@ namespace Pulse_PLC_Tools_2._0
 
         #region Таблица PLC
         //Запрос ЧТЕНИЕ Таблицы PLC - Активные адреса
-        bool CMD_Read_PLC_Table(Command_type cmd ,Link link, byte[] adrs_massiv)
+        bool CMD_Read_PLC_Table(Command_type cmd ,MyLink link, byte[] adrs_massiv)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -1097,7 +1097,7 @@ namespace Pulse_PLC_Tools_2._0
             
         }
         //Запрос ЗАПИСЬ в Таблицу PLC
-        bool CMD_Write_PLC_Table(Link link, byte[] adrs_massiv)
+        bool CMD_Write_PLC_Table(MyLink link, byte[] adrs_massiv)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -1165,7 +1165,7 @@ namespace Pulse_PLC_Tools_2._0
 
         #region E показания
         //Запрос Чтение Текущих показаний
-        private bool CMD_Read_E_Current(Link link, byte adrs_dev)
+        private bool CMD_Read_E_Current(MyLink link, byte adrs_dev)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -1185,7 +1185,7 @@ namespace Pulse_PLC_Tools_2._0
             return link.Send_Data(tx_buf, len, Command_type.Read_E_Current);
         }
         //Запрос Чтение показаний на Начало суток
-        private bool CMD_Read_E_Start_Day(Link link, byte adrs_dev)
+        private bool CMD_Read_E_Start_Day(MyLink link, byte adrs_dev)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации
@@ -1259,7 +1259,7 @@ namespace Pulse_PLC_Tools_2._0
 
         #region PLC запросы
         //Команда Отправка запроса PLC
-        private bool CMD_Request_PLC(Link link, byte[] param)
+        private bool CMD_Request_PLC(MyLink link, byte[] param)
         {
             int len = 0;
             //Первые байты по протоколу конфигурации

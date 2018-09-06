@@ -28,7 +28,7 @@ namespace Pulse_PLC_Tools_2._0
 
     public partial class MainWindow : Window
     {
-        public Link link;
+        public MyLink link;
         public Protocol protocol;
         public Command_Buffer CMD_Buffer;
         //Конфигурация
@@ -86,7 +86,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             //Связь
             protocol = new Protocol(this);
-            link = new Link(this);
+            link = new MyLink(this);
             CMD_Buffer = new Command_Buffer(this);
             //Конфигурация
             deviceConfig = new DeviceConfig(this);

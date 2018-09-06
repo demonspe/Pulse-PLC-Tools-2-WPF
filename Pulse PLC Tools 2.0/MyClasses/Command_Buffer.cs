@@ -27,7 +27,7 @@ namespace Pulse_PLC_Tools_2._0
 
         //Буфферы данных для выполнения команд
         Command_type[] buffer_commands;
-        Link[] buffer_links;
+        MyLink[] buffer_links;
         object[] buffer_params;
         int[] buffer_pauseAfter_ms;
 
@@ -38,7 +38,7 @@ namespace Pulse_PLC_Tools_2._0
             BUF_MASK = BUF_SIZE - 1;
 
             buffer_commands = new Command_type[BUF_SIZE];
-            buffer_links = new Link[BUF_SIZE];
+            buffer_links = new MyLink[BUF_SIZE];
             buffer_params = new object[BUF_SIZE];
             buffer_pauseAfter_ms = new int[BUF_SIZE];
 
@@ -52,7 +52,7 @@ namespace Pulse_PLC_Tools_2._0
             return (idx_OUT == idx_IN);
         }
 
-        public void Add_CMD(Command_type cmd, Link link, object param, int pause_After_ms)
+        public void Add_CMD(Command_type cmd, MyLink link, object param, int pause_After_ms)
         {
             //Добавляем команды
             buffer_commands[idx_IN] = cmd;
