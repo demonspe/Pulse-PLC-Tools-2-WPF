@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Data;
+using System.Threading;
 
 namespace Pulse_PLC_Tools_2._0
 {
@@ -29,6 +30,7 @@ namespace Pulse_PLC_Tools_2._0
     public partial class MainWindow : Window
     {
         public MyLink link;
+        public ILink link_;
         public Protocol protocol;
         public Command_Buffer CMD_Buffer;
         //Конфигурация
@@ -79,6 +81,11 @@ namespace Pulse_PLC_Tools_2._0
             bitmap_Access_Write.BeginInit();
             bitmap_Access_Write.UriSource = new Uri("Pics/access_Write.png", UriKind.Relative);
             bitmap_Access_Write.EndInit();
+
+            //Проерка соединения и отображение значком и текста на контролах
+            Thread check_connection = new Thread(Reading_COM_List_Handler);
+            check_connection.IsBackground = true;
+            check_connection.Start();
         }
 
         //Форма загружена
@@ -163,20 +170,7 @@ namespace Pulse_PLC_Tools_2._0
             }
         }
 
-        //Обновить список COM портов
-        public void Update_COM_List()
-        {
-            try
-            {
-                //Мониторим com порты
-                string[] myPort; //создаем массив строк
-                myPort = System.IO.Ports.SerialPort.GetPortNames(); // в массив помещаем доступные порты
-                comboBox_COM.Items.Clear();
-                myPort.ToList().ForEach(item => comboBox_COM.Items.Add(item)); //Массив помещаем в comboBox_COM
-                if (comboBox_COM.Items.Count > 0) comboBox_COM.SelectedIndex = 0;
-            }
-            catch { }
-        }
+        
 
         //
         // Отображение сообщений и статусов

@@ -91,6 +91,8 @@
     <Compile Include="MainFormTabs\MainFormTab_Link.cs" />
     <Compile Include="MainFormTabs\MainFormTab_Imps.cs" />
     <Compile Include="MainFormTabs\MainFormTab_MainParams.cs" />
+    <Compile Include="MyClasses\ILink.cs" />
+    <Compile Include="MyClasses\LinkCOM.cs" />
     <Compile Include="MyClasses\Protocol.cs" />
     <Compile Include="MainFormTabs\MainFormTab_Service.cs" />
     <Page Include="MainWindow.xaml">
