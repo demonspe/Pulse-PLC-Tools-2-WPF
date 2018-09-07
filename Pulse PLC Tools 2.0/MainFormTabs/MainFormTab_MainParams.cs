@@ -15,9 +15,9 @@ namespace Pulse_PLC_Tools_2._0
         //Прочитать основные параметры
         private void button_Main_Params_Read_Click(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Read_Main_Params, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Read_Main_Params, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
 
         //Записать основные параметры
@@ -25,17 +25,17 @@ namespace Pulse_PLC_Tools_2._0
         {
             if (comboBox_work_mode.SelectedIndex == -1) { MessageBox.Show("Не выбран режим работы"); return; }
             if (comboBox_battery_mode.SelectedIndex == -1) { MessageBox.Show("Не выбран режим работы"); return; }
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Write_Main_Params, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Write_Main_Params, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
         
         //Кнопка "Очистить ошибки"
         private void button_Clear_Errors_Click(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Clear_Errors, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Clear_Errors, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
 
         //Записать Пароли
@@ -52,9 +52,9 @@ namespace Pulse_PLC_Tools_2._0
             if (MessageBox.Show("Записать новые пароли?\n\nПароль на запись: " + p_w + "" + p_w_hex +
                 "\n\nПароль на чтение: " + p_r + p_r_hex, "Запись новых паролей", (MessageBoxButton)System.Windows.Forms.MessageBoxButtons.YesNo) == MessageBoxResult.Yes)
             {
-                CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-                CMD_Buffer.Add_CMD(Command_type.Pass_Write, link, new bool[] { (bool)checkBox_Write_Pass.IsChecked, (bool)checkBox_Read_Pass.IsChecked }, 0);
-                CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+                CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+                CMD_Buffer.Add_CMD(Command.Pass_Write, link, new bool[] { (bool)checkBox_Write_Pass.IsChecked, (bool)checkBox_Read_Pass.IsChecked }, 0);
+                CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
             }
         }
 

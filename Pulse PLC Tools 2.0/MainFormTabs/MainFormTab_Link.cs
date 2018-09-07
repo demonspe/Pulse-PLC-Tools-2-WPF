@@ -20,15 +20,16 @@ namespace Pulse_PLC_Tools_2._0
             Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { treeView_Link.IsSelected = true; }));
         }
 
-        //Чтение списка COM портов в система
+        //Чтение списка COM портов в системe
         void Reading_COM_List_Handler(object mainForm_)
         {
             while (true)
             {
-                Update_COM_List(); 
+                Update_COM_List();
                 Thread.Sleep(500);  //Проверка каналов каждые 500 мс
             }
         }
+
         //Обновить список COM портов
         public void Update_COM_List()
         {
@@ -46,27 +47,29 @@ namespace Pulse_PLC_Tools_2._0
                 catch { }
             }));
         }
+
         //Кнопка "Открыть/Закрыть канал связи"
         private void button_Open_Link_Click(object sender, RoutedEventArgs e)
         {
             //Если выбран COM порт в качестве канала связи
             if ((bool)radioButton_COM.IsChecked)
             {
-                if (comboBox_COM.Text == "") { debug_Log_Add_Line("Порт не выбран", DebugLog_Msg_Type.Warning); return; }
-                link_ = new LinkCOM(comboBox_COM.Text);
+                if (comboBox_COM.Text == "") { Log_Add_Line("Порт не выбран", Msg_Type.Warning); return; }
+                link = new LinkCOM(comboBox_COM.Text);
                 //Обработчики событий
-                link_.Connected += Link_Opened;
-                link_.Disconnected += Link_Closed;
-                if (!link_.Connect()) debug_Log_Add_Line("Порт занят", DebugLog_Msg_Type.Warning);
+                link.Connected += Link_Opened;
+                link.Disconnected += Link_Closed;
+                link.DataRecieved += protocol.DateRecieved;
+
+                if (!link.Connect()) Log_Add_Line("Порт занят", Msg_Type.Warning);
                 return;
             }
         }
 
         private void button_Close_Link_Click(object sender, RoutedEventArgs e)
         {
-            link_.Disconnect();
+            link.Disconnect();
         }
-
 
         private void Link_Opened(object sender, EventArgs e)
         {
@@ -78,10 +81,10 @@ namespace Pulse_PLC_Tools_2._0
             button_open_com.IsEnabled = false;
             button_close_com.IsEnabled = true;
 
-            Set_Connection_StatusBar(Status_Img.Connected, mainForm.link.serialPort.PortName);
+            Set_Connection_StatusBar(Status_Img.Connected, link.ConnectionString);
             //Отправим сообщение в статус бар
-            msg("Открыт последовательный порт [" + link_.ConnectionString + "]");
-            debug_Log_Add_Line("Открыт последовательный порт [" + link_.ConnectionString + "]", DebugLog_Msg_Type.Normal);
+            msg("Открыт канал связи [" + link.ConnectionString + "]");
+            Log_Add_Line("Открыт канал связи [" + link.ConnectionString + "]", Msg_Type.Normal);
 
             //CMD_Buffer.Add_CMD(Command_type.Search_Devices, link, null, 0);
             //CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
@@ -98,7 +101,17 @@ namespace Pulse_PLC_Tools_2._0
             mainForm.Set_Connection_StatusBar(Status_Img.Disconnected, "");
             //Сообщение о закрытии
             mainForm.msg("Порт закрыт");
-            mainForm.debug_Log_Add_Line("Канал связи закрыт", DebugLog_Msg_Type.Normal);
+            mainForm.Log_Add_Line("Канал связи закрыт", Msg_Type.Normal);
+        }
+
+        private void CommandSended(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke((Action)(() => tabControl_main.IsEnabled = false));
+        }
+
+        private void CommandBufferCleared(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke((Action)(() => tabControl_main.IsEnabled = true ));
         }
     }
 }

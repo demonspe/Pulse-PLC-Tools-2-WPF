@@ -17,17 +17,17 @@ namespace Pulse_PLC_Tools_2._0
         //Кнопка "Прочитать Дату и Время"
         private void button_Read_DateTime_Click(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Read_DateTime, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Read_DateTime, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
 
         //Кнопка "Записать Дату и Время"
         private void button_Write_DateTime_Click(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Write_DateTime, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Write_DateTime, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
 
         //Кнопка "Синхронизировать"

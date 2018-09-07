@@ -10,7 +10,11 @@ namespace Pulse_PLC_Tools_2._0
 {
     public class Command_Buffer
     {
-        MainWindow main_Form;
+        public event EventHandler<StringMessageEventArgs> StringMessage = delegate { };
+        public event EventHandler<EventArgs> CommandSended = delegate { };
+        public event EventHandler<EventArgs> BufferCleared = delegate { };
+
+        Thread handle_Thread; 
 
         int BUF_SIZE = 1024; //Кратный степени двойки
         int BUF_MASK;       //= BUF_SIZE - 1;
@@ -26,25 +30,28 @@ namespace Pulse_PLC_Tools_2._0
         int repeat_Counter;         //Счетчик повторных запросов
 
         //Буфферы данных для выполнения команд
-        Command_type[] buffer_commands;
-        MyLink[] buffer_links;
+        Command[] buffer_commands;
+        ILink[] buffer_links;
         object[] buffer_params;
         int[] buffer_pauseAfter_ms;
 
-        public Command_Buffer(MainWindow mainForm_)
+        public Command_Buffer(Protocol protocol)
         {
-            main_Form = mainForm_;
+            //Обработчик события ответа на команду
+            protocol.CommandAnswer += End_Command;
 
+
+            //Переделать в очередь
             BUF_MASK = BUF_SIZE - 1;
 
-            buffer_commands = new Command_type[BUF_SIZE];
-            buffer_links = new MyLink[BUF_SIZE];
+            buffer_commands = new Command[BUF_SIZE];
+            buffer_links = new ILink[BUF_SIZE];
             buffer_params = new object[BUF_SIZE];
             buffer_pauseAfter_ms = new int[BUF_SIZE];
 
-            Thread handle_Thread = new Thread(Handle_CMD);
+            handle_Thread = new Thread(Handle_CMD);
             handle_Thread.IsBackground = true;
-            handle_Thread.Start(mainForm_.protocol);
+            handle_Thread.Start(protocol);
         }
 
         public bool Buffer_Is_Emty()
@@ -52,8 +59,9 @@ namespace Pulse_PLC_Tools_2._0
             return (idx_OUT == idx_IN);
         }
 
-        public void Add_CMD(Command_type cmd, MyLink link, object param, int pause_After_ms)
+        public void Add_CMD(Command cmd, ILink link, object param, int pause_After_ms)
         {
+            if (Buffer_Is_Emty()) handle_Thread.Resume();
             //Добавляем команды
             buffer_commands[idx_IN] = cmd;
             buffer_links[idx_IN] = link;
@@ -66,12 +74,6 @@ namespace Pulse_PLC_Tools_2._0
             cmd_counter_sum++;
         }
 
-        public void End_Command(bool complete_Status)
-        {
-            Is_Command_Complete = complete_Status;
-            busy_flag = false;
-        }
-
         public void Clear_Buffer()
         {
             //Очищаем буффер
@@ -81,7 +83,9 @@ namespace Pulse_PLC_Tools_2._0
             repeat_Counter = 0;
             cmd_counter_sum = 0;
             cmd_counter = 0;
-            main_Form.msg("Отправка запросов завершена");
+            StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.ToolBarInfo, MessageString = "Отправка запросов завершена" });
+            //Событие
+            CommandSended(this, new EventArgs());
         }
 
         //Поток отправляющий команды в фоне
@@ -98,7 +102,12 @@ namespace Pulse_PLC_Tools_2._0
                         if (Is_Command_Complete)
                         {
                             cmd_counter--;//Считаем количество команд в буфере
-                            main_Form.msg("Запросы " + cmd_counter + " из " + cmd_counter_sum +". Нажми Esc для отмены..");
+                            //Сообщение на форму
+                            StringMessage(this, new StringMessageEventArgs() {
+                                MessageType = Msg_Type.ToolBarInfo,
+                                MessageString = "Запросы " + cmd_counter + " из " + cmd_counter_sum + ". Нажми Esc для отмены.."
+                            });
+
                             //Делаем заданную паузу после успешного выполнения
                             Thread.Sleep(buffer_pauseAfter_ms[idx_OUT]);
                             //Двигаемся дальше ->
@@ -111,8 +120,8 @@ namespace Pulse_PLC_Tools_2._0
                         {
                             if (repeat_Counter == REPEATS) //Устройство не отвечает
                             {
+                                StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Error, MessageString = "Устройство не отвечает" });
                                 Clear_Buffer();
-                                MessageBox.Show("Устройство не отвечает");
                             }
                             else
                             {
@@ -122,11 +131,10 @@ namespace Pulse_PLC_Tools_2._0
                                     busy_flag = true;
                                     haveCommandForCheck = true;
                                 }
-                                else
+                                else //Спорный момент !!! Доделать
                                 {
                                     Clear_Buffer();
                                 }
-                                    
                             }
                         }
                     }
@@ -148,13 +156,22 @@ namespace Pulse_PLC_Tools_2._0
                     else
                     {//Буффер пуст
                         cmd_counter_sum = 0;
-                        main_Form.msg("Отправка запросов завершена");
-                        Thread.Sleep(100);
+                        StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.ToolBarInfo, MessageString = "Отправка запросов завершена" });
+                        //Событие
+                        BufferCleared(this, new EventArgs());
+                        handle_Thread.Suspend();
                     }
                 }
                 Thread.Sleep(100);
             }
             
         }
+
+        public void End_Command(object sender, ProtocolEventArgs e)
+        {
+            Is_Command_Complete = e.IsHaveAnswer;
+            busy_flag = false;
+        }
     }
+
 }

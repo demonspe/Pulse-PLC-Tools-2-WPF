@@ -23,14 +23,13 @@ namespace Pulse_PLC_Tools_2._0
     /// </summary>
     /// 
 
-    public enum DebugLog_Msg_Type : int { Error, Warning, Normal, Good }
-    public enum DebugLog_Msg_Direction : int { Send, Receive }
+    public enum Msg_Direction : int { Send, Receive }
     public enum Status_Img : int { Connected, Disconnected, Access_Read, Access_Write }
 
     public partial class MainWindow : Window
     {
-        public MyLink link;
-        public ILink link_;
+        //public MyLink link;
+        public ILink link;
         public Protocol protocol;
         public Command_Buffer CMD_Buffer;
         //Конфигурация
@@ -58,6 +57,7 @@ namespace Pulse_PLC_Tools_2._0
         public MainWindow()
         {
             InitializeComponent();
+            
 
             CenterWindowOnScreen();
 
@@ -91,10 +91,18 @@ namespace Pulse_PLC_Tools_2._0
         //Форма загружена
         private void mainForm_Loaded(object sender, RoutedEventArgs e)
         {
-            //Связь
+            //Протокол обмена
             protocol = new Protocol(this);
-            link = new MyLink(this);
-            CMD_Buffer = new Command_Buffer(this);
+            protocol.LinkMessage += LinkMessageInput;
+            protocol.StringMessage += MessageInput;
+
+            //Канал связи
+            //link = new MyLink(this);
+            CMD_Buffer = new Command_Buffer(protocol);
+            //Обработчик сообщений из буффера команд
+            CMD_Buffer.StringMessage += MessageInput;
+            CMD_Buffer.CommandSended += CommandSended;
+            CMD_Buffer.BufferCleared += CommandBufferCleared;
             //Конфигурация
             deviceConfig = new DeviceConfig(this);
 
@@ -159,7 +167,8 @@ namespace Pulse_PLC_Tools_2._0
             //спрашивает стоит ли завершиться
             if (MessageBox.Show("Вы уверены что хотите закрыть программу? \nВсе несохраненные данные исчезнут", "Закрыть программу", (MessageBoxButton)System.Windows.Forms.MessageBoxButtons.YesNo) == MessageBoxResult.Yes)
             {
-                link.Close_connections();
+                //link.Close_connections();
+                if(link != null) link.Disconnect();
                 //и после этого только завершается работа приложения
                 System.Windows.Application.Current.Shutdown();
             }
@@ -192,14 +201,13 @@ namespace Pulse_PLC_Tools_2._0
         public void Set_Connection_StatusBar(Status_Img img, string link_name_)
         {
             if (link == null) return;
-            link.link_name = link_name_;
+            //link.link_name = link_name_;
             connect_status_img.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
             {
                 if (img == Status_Img.Connected) connect_status_img.Source = bitmap_green;
                 if (img == Status_Img.Disconnected) connect_status_img.Source = bitmap_red;
                 if (img == Status_Img.Access_Read) connect_status_img.Source = bitmap_Access_Read;
                 if (img == Status_Img.Access_Write) connect_status_img.Source = bitmap_Access_Write;
-
             }));
             connect_status_txt.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
             {
@@ -215,7 +223,7 @@ namespace Pulse_PLC_Tools_2._0
             PLC_Table_Refresh();
             byte[] selected_ = PLC_Table_Get_Selected_Items();
             if (selected_[0] == 0) return;
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
             for (int i = 0; i < selected_[0]; i++)
             {
                 byte n_st = plc_table[selected_[i + 1] - 1].N;
@@ -224,27 +232,27 @@ namespace Pulse_PLC_Tools_2._0
                 byte st3 = plc_table[selected_[i + 1] - 1].S3;
                 byte st4 = plc_table[selected_[i + 1] - 1].S4;
                 byte st5 = plc_table[selected_[i + 1] - 1].S5;
-                CMD_Buffer.Add_CMD(Command_type.Request_PLC, link, new byte[] { selected_[i + 1], n_st, st1, st2, st3, st4, st5 }, 0);
-                PLC_Table_Send_Data_Request(Command_type.Read_PLC_Table, new byte[] { 1, selected_[i + 1] });
+                CMD_Buffer.Add_CMD(Command.Request_PLC, link, new byte[] { selected_[i + 1], n_st, st1, st2, st3, st4, st5 }, 0);
+                PLC_Table_Send_Data_Request(Command.Read_PLC_Table, new byte[] { 1, selected_[i + 1] });
             }
             //PLC_Table_Send_Data_Request(Command_type.Read_PLC_Table, selected_);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
         public void hotKey_Ctrl_M_Monitor_Request()
         {
             treeView_IMPS_Monitor.IsSelected = true;
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Read_IMP_extra, link, IMP_type.IMP1, 0);
-            CMD_Buffer.Add_CMD(Command_type.Read_IMP_extra, link, IMP_type.IMP2, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Read_IMP_extra, link, IMP_type.IMP1, 0);
+            CMD_Buffer.Add_CMD(Command.Read_IMP_extra, link, IMP_type.IMP2, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
         public void hotKey_Ctrl_R_Read_PLC_Table()
         {
             byte[] selected_ = PLC_Table_Get_Selected_Items();
             if (selected_[0] == 0) return;
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            PLC_Table_Send_Data_Request(Command_type.Read_PLC_Table, selected_);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            PLC_Table_Send_Data_Request(Command.Read_PLC_Table, selected_);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
         //Обработка нажатия клавиш главной формы
         private void mainForm_KeyDown(object sender, KeyEventArgs e)

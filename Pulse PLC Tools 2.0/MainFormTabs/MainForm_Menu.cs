@@ -139,23 +139,23 @@ namespace Pulse_PLC_Tools_2._0
         //Пункт "Перезагрузить"
         private void button_Reboot_Click(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Reboot, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Reboot, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
         //Пункт "Очистить память"
         private void button_EEPROM_BURN_Click(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.EEPROM_Burn, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.EEPROM_Burn, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
         //Пункт "Включить режим обновления ПО"
         private void button_BOOTLOADER_On_Click(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command_type.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Bootloader, link, null, 0);
-            CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Bootloader, link, null, 0);
+            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
         }
 
         //*** Горячие клавиши ->

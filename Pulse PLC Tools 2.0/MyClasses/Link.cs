@@ -17,7 +17,7 @@ using System.Windows.Threading;
 namespace Pulse_PLC_Tools_2._0
 {
     public enum Link_type : int { Not_connected, COM_port, TCP }
-    public enum Access_Type : int { No_Access, Read, Write }
+    
 
     public class MyLink
     {
@@ -47,7 +47,7 @@ namespace Pulse_PLC_Tools_2._0
 
         //Общее
         public bool wait_data = false;
-        public Command_type command_ = Command_type.None;
+        public Command command_ = Command.None;
 
         
 
@@ -133,9 +133,9 @@ namespace Pulse_PLC_Tools_2._0
                 //Если ожидали данных но не дождались
                 if (wait_data)
                 {
-                    if (command_ == Command_type.Close_Session) { Request_Reset(true, false); return; }
-                    if (command_ == Command_type.Search_Devices) { Request_Reset(true, false); return; }
-                    mainForm.debug_Log_Add_Line("Истекло время ожидания ответа", DebugLog_Msg_Type.Error);
+                    if (command_ == Command.Close_Session) { Request_Reset(true, false); return; }
+                    if (command_ == Command.Search_Devices) { Request_Reset(true, false); return; }
+                    mainForm.Log_Add_Line("Истекло время ожидания ответа", Msg_Type.Error);
                     mainForm.msg("Истекло время ожидания ответа");
                     //Комманда не выполнилась
                     Request_Reset(false, false);
@@ -148,6 +148,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             while(true)
             {
+                return;
                 Status_Img img_ = Status_Img.Connected;
                 switch (connection)
                 {
@@ -167,7 +168,7 @@ namespace Pulse_PLC_Tools_2._0
                     case Link_type.COM_port:
                         if (access_Type == Access_Type.Read) img_ = Status_Img.Access_Read;
                         if (access_Type == Access_Type.Write) img_ = Status_Img.Access_Write;
-                        mainForm.Set_Connection_StatusBar(img_, mainForm.link.serialPort.PortName);
+                       // mainForm.Set_Connection_StatusBar(img_, mainForm.link.serialPort.PortName);
                         mainForm.button_open_com.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
                         {
                             mainForm.groupBox_link_type.IsEnabled = false;
@@ -219,21 +220,21 @@ namespace Pulse_PLC_Tools_2._0
                         if (!serialPort.IsOpen) serialPort.Open();
                         connection = Link_type.COM_port;
                         //Установим значок и имя порта в статус баре
-                        mainForm.Set_Connection_StatusBar(Status_Img.Connected, mainForm.link.serialPort.PortName);
+                        //mainForm.Set_Connection_StatusBar(Status_Img.Connected, mainForm.link.serialPort.PortName);
                         //Отправим сообщение в статус бар
                         mainForm.msg("Открыт последовательный порт [" + serialPort.PortName + "]");
-                        mainForm.debug_Log_Add_Line("Открыт последовательный порт [" + serialPort.PortName + "]", DebugLog_Msg_Type.Normal);
+                        mainForm.Log_Add_Line("Открыт последовательный порт [" + serialPort.PortName + "]", Msg_Type.Normal);
                         
                         return true;
                     }
                     catch
                     {
-                        mainForm.debug_Log_Add_Line("Порт занят", DebugLog_Msg_Type.Warning);
+                        mainForm.Log_Add_Line("Порт занят", Msg_Type.Warning);
                     }
                 }
                 else
                 {
-                    mainForm.debug_Log_Add_Line("Порт не выбран", DebugLog_Msg_Type.Warning);
+                    mainForm.Log_Add_Line("Порт не выбран", Msg_Type.Warning);
                 }
             }
             return false;
@@ -312,14 +313,14 @@ namespace Pulse_PLC_Tools_2._0
                 mainForm.Set_Connection_StatusBar(Status_Img.Disconnected, "");
                 //Сообщение о закрытии
                 mainForm.msg("Порт закрыт");
-                mainForm.debug_Log_Add_Line("Канал связи закрыт", DebugLog_Msg_Type.Normal);
+                mainForm.Log_Add_Line("Канал связи закрыт", Msg_Type.Normal);
                 return true;
             }
             return false;
         }
 
         //Выставить флаги о том что запрос отправлен
-        void Request_Start(Command_type cmd_, int timeout_ms)
+        void Request_Start(Command cmd_, int timeout_ms)
         {
             wait_data = true;
             command_ = cmd_;
@@ -343,7 +344,7 @@ namespace Pulse_PLC_Tools_2._0
             
             timer_timeout.Stop();
             wait_data = false;              //Выключаем ожидание данных
-            command_ = Command_type.None;   //обнулить команду
+            command_ = Command.None;   //обнулить команду
 
             if (connection == Link_type.TCP)
             {
@@ -355,12 +356,12 @@ namespace Pulse_PLC_Tools_2._0
                 if (serialPort.IsOpen) serialPort.DiscardInBuffer();  //Очистим входной буффер
             }
             //Комманды выполнена успешно
-            mainForm.CMD_Buffer.End_Command(cmd_Is_Complete);
+            //mainForm.CMD_Buffer.End_Command(cmd_Is_Complete);
             if (clear_CMD_Buffer) mainForm.CMD_Buffer.Clear_Buffer();
         }
 
         //Отправить данные по каналу связи
-        public bool Send_Data(byte[] data, int count, Command_type cmd)
+        public bool Send_Data(byte[] data, int count, Command cmd)
         {
             if (connection == Link_type.Not_connected || wait_data) return false;
 
@@ -371,7 +372,7 @@ namespace Pulse_PLC_Tools_2._0
             data[len++] = (byte)(crc_ >> 8);
 
             //Добавим сообщение в Log окно
-            mainForm.debug_Log_Add_Line(data, len, DebugLog_Msg_Direction.Send);
+            mainForm.debug_Log_Add_Line(data, len, Msg_Direction.Send);
 
             //Соединений через последовательный порт
             if (connection == Link_type.COM_port)
@@ -381,9 +382,9 @@ namespace Pulse_PLC_Tools_2._0
                     try
                     {
                         int timeout = 1000;
-                        if (cmd == Command_type.Close_Session) timeout = 200;
-                        if (cmd == Command_type.Write_PLC_Table) { timeout = 50*len; }
-                        if (cmd == Command_type.Request_PLC) { timeout = (data[7]+1)*3000; }
+                        if (cmd == Command.Close_Session) timeout = 200;
+                        if (cmd == Command.Write_PLC_Table) { timeout = 50*len; }
+                        if (cmd == Command.Request_PLC) { timeout = (data[7]+1)*3000; }
                         Request_Start(cmd, timeout);
                         serialPort.Write(data, 0, len);
                         return true;
@@ -446,7 +447,7 @@ namespace Pulse_PLC_Tools_2._0
                         //Если сообщение получится обработать то выходим
                         if (handle_code == 0)
                         {
-                            mainForm.debug_Log_Add_Line(bytes_buff, i, DebugLog_Msg_Direction.Receive);
+                            mainForm.debug_Log_Add_Line(bytes_buff, i, Msg_Direction.Receive);
                             //Комманда выполнена успешно
                             Request_Reset(true, false);
                             //Обновляем таймер доступа (в устройстве он обновляется при получении команды по интерфейсу)
@@ -458,7 +459,7 @@ namespace Pulse_PLC_Tools_2._0
                         //Получилось обработать и ждем следующую часть сообщения
                         if (handle_code == 1)
                         {
-                            mainForm.debug_Log_Add_Line(bytes_buff, i, DebugLog_Msg_Direction.Receive);
+                            mainForm.debug_Log_Add_Line(bytes_buff, i, Msg_Direction.Receive);
                             if (serialPort.BytesToRead == 0) return;
                             ping_ms = 0;
                             i = 0;
@@ -473,21 +474,21 @@ namespace Pulse_PLC_Tools_2._0
                 // Code to handle the exception goes here.
             }
             //Отправим в Log окно 
-            mainForm.debug_Log_Add_Line(bytes_buff, i, DebugLog_Msg_Direction.Receive);
+            mainForm.debug_Log_Add_Line(bytes_buff, i, Msg_Direction.Receive);
 
             //Обработаем ошибку (если сообщение не прошло в протоколах)
             if (crc_)
             {
                 //Если сошлось crc16, но не получилось обработать сообщение
                 Request_Reset(false, false);
-                mainForm.debug_Log_Add_Line("Неверный формат ответа", DebugLog_Msg_Type.Error);
+                mainForm.Log_Add_Line("Неверный формат ответа", Msg_Type.Error);
                 mainForm.msg("Неверный формат ответа. Попробуйте еще раз.");
             }
             else
             {
                 Request_Reset(false, false);
                 //не сошлось crc16
-                mainForm.debug_Log_Add_Line("Неверная контрольная сумма", DebugLog_Msg_Type.Error);
+                mainForm.Log_Add_Line("Неверная контрольная сумма", Msg_Type.Error);
                 mainForm.msg("Неверная контрольная сумма. Попробуйте еще раз.");
             }
         }

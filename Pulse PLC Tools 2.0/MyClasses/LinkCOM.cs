@@ -111,18 +111,19 @@ namespace Pulse_PLC_Tools_2._0
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] bytes_buff = new byte[2048];
-            int i = 0;
+            byte[] bytes_buff = new byte[0];
             try
             {
                 do
                 {
                     //Получаем байт из буффера
-                    bytes_buff[i++] = (byte)serialPort.ReadByte();
-                    //Вызываем собитие приема данных
-                    DataRecieved(this, new LinkRxEventArgs() { Buffer = bytes_buff });
+                    Array.Resize<byte>(ref bytes_buff, bytes_buff.Length + 1);
+                    bytes_buff[bytes_buff.Length - 1] = (byte)serialPort.ReadByte();
+
                     if (serialPort.BytesToRead == 0) Thread.Sleep(50);     //Время ожидания байта-------------------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 } while (serialPort.BytesToRead != 0);
+                //Вызываем собитие приема данных
+                DataRecieved(this, new LinkRxEventArgs() { Buffer = bytes_buff });
             }
             catch (IOException)
             {

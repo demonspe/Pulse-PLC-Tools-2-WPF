@@ -10,14 +10,47 @@ using System.Windows.Threading;
 
 namespace Pulse_PLC_Tools_2._0
 {
+    public enum Msg_Type : int { Error, Warning, Normal, Good, ToolBarInfo }
+
+    public class StringMessageEventArgs : EventArgs
+    {
+        public Msg_Type MessageType { get; set; }
+        public string MessageString { get; set; }
+    }
+
+    public class LinkMessageEventArgs : EventArgs
+    {
+        public byte[] Data { get; set; }
+        public int Length { get; set; }
+        public Msg_Direction Direction { get; set; }
+    }
+
     public partial class MainWindow : Window
     {
+
+        private void MessageInput(object sender, StringMessageEventArgs e)
+        {
+            if(e.MessageType == Msg_Type.ToolBarInfo)
+            {
+                msg(e.MessageString);
+            }
+            else
+            {
+                Log_Add_Line(e.MessageString, e.MessageType);
+            }
+        }
+        private void LinkMessageInput(object sender, LinkMessageEventArgs e)
+        {
+            debug_Log_Add_Line(e.Data, e.Length, e.Direction);
+        }
+
+
         //**********************************************
         //Вкладка "Анализ обмена" обработка событий контролов
         //___________________________________________
         //
         //Метод для добавления строк в текстовый блок
-        public void debug_Log_Add_Line(byte[] msg, int count, DebugLog_Msg_Direction msg_Dir)
+        public void debug_Log_Add_Line(byte[] msg, int count, Msg_Direction msg_Dir)
         {
             //Цвет зависит от направления данных
             Brush br;
@@ -26,13 +59,13 @@ namespace Pulse_PLC_Tools_2._0
 
             switch (msg_Dir)
             {
-                case DebugLog_Msg_Direction.Send:
+                case Msg_Direction.Send:
                     br = Brushes.Orange;
-                    msgIcon = "->" + link.link_name;
+                    msgIcon = "->" + link.ConnectionString;
                     break;
-                case DebugLog_Msg_Direction.Receive:
+                case Msg_Direction.Receive:
                     br = Brushes.Blue;
-                    msgIcon = "<-" + link.link_name;
+                    msgIcon = "<-" + link.ConnectionString;
                     break;
                 default:
                     br = Brushes.Black;
@@ -68,7 +101,7 @@ namespace Pulse_PLC_Tools_2._0
                 textBox_Log_Debug.ScrollToEnd();
             }));
         }
-        public void debug_Log_Add_Line(string msg, DebugLog_Msg_Type msg_Type)
+        public void Log_Add_Line(string msg, Msg_Type msg_Type)
         {
             //Цвет зависит от направления данных
             Brush br;
@@ -77,26 +110,25 @@ namespace Pulse_PLC_Tools_2._0
 
             switch (msg_Type)
             {
-                case DebugLog_Msg_Type.Error:
+                case Msg_Type.Error:
                     br = Brushes.Red;
                     msgMain = (string)msg;
                     msgIcon = "[err]";
                     break;
-                case DebugLog_Msg_Type.Warning:
+                case Msg_Type.Warning:
                     br = Brushes.DarkOrange;
                     msgMain = (string)msg;
                     msgIcon = "(!)";
                     break;
-                case DebugLog_Msg_Type.Normal:
+                case Msg_Type.Normal:
                     br = Brushes.Black;
                     msgMain = (string)msg;
                     msgIcon = "--";
                     break;
-                case DebugLog_Msg_Type.Good:
+                case Msg_Type.Good:
                     br = Brushes.Green;
                     msgMain = (string)msg;
                     msgIcon = "[OK]";
-                    msgMain += " (Ping " + link.ping_ms + " ms)";
                     break;
                 default:
                     br = Brushes.Black;
