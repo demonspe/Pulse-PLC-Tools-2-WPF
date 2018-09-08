@@ -49,7 +49,7 @@ namespace Pulse_PLC_Tools_2._0
         }
 
         //Кнопка "Открыть/Закрыть канал связи"
-        private void button_Open_Link_Click(object sender, RoutedEventArgs e)
+        private void Button_Open_Link_Click(object sender, RoutedEventArgs e)
         {
             //Если выбран COM порт в качестве канала связи
             if ((bool)radioButton_COM.IsChecked)
@@ -66,7 +66,7 @@ namespace Pulse_PLC_Tools_2._0
             }
         }
 
-        private void button_Close_Link_Click(object sender, RoutedEventArgs e)
+        private void Button_Close_Link_Click(object sender, RoutedEventArgs e)
         {
             link.Disconnect();
         }
@@ -106,12 +106,18 @@ namespace Pulse_PLC_Tools_2._0
 
         private void CommandSended(object sender, EventArgs e)
         {
-            Dispatcher.BeginInvoke((Action)(() => tabControl_main.IsEnabled = false));
+            Dispatcher.BeginInvoke((Action)(() => {
+                tabControl_main.IsEnabled = false;
+                grid_Panel_Buttons.IsEnabled = false;
+            }));
         }
 
         private void CommandBufferCleared(object sender, EventArgs e)
         {
-            Dispatcher.BeginInvoke((Action)(() => tabControl_main.IsEnabled = true ));
+            Dispatcher.BeginInvoke((Action)(() => {
+                tabControl_main.IsEnabled = true;
+                grid_Panel_Buttons.IsEnabled = true;
+            }));
         }
     }
 }

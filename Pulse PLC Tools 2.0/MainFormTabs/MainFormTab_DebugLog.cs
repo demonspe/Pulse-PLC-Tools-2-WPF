@@ -10,7 +10,7 @@ using System.Windows.Threading;
 
 namespace Pulse_PLC_Tools_2._0
 {
-    public enum Msg_Type : int { Error, Warning, Normal, Good, ToolBarInfo }
+    public enum Msg_Type : int { Error, Warning, Normal, NormalBold, Good, ToolBarInfo, MsgBox }
 
     public class StringMessageEventArgs : EventArgs
     {
@@ -27,24 +27,19 @@ namespace Pulse_PLC_Tools_2._0
 
     public partial class MainWindow : Window
     {
-
+        //Обработчик события
         private void MessageInput(object sender, StringMessageEventArgs e)
         {
-            if(e.MessageType == Msg_Type.ToolBarInfo)
-            {
-                msg(e.MessageString);
-            }
-            else
-            {
-                Log_Add_Line(e.MessageString, e.MessageType);
-            }
+            if (e.MessageType == Msg_Type.ToolBarInfo) { msg(e.MessageString); return; }
+            if (e.MessageType == Msg_Type.MsgBox) { MessageBox.Show(e.MessageString); return; }
+            Log_Add_Line(e.MessageString, e.MessageType);
         }
+        //Обработчик события 
         private void LinkMessageInput(object sender, LinkMessageEventArgs e)
         {
             debug_Log_Add_Line(e.Data, e.Length, e.Direction);
         }
-
-
+        
         //**********************************************
         //Вкладка "Анализ обмена" обработка событий контролов
         //___________________________________________
@@ -95,9 +90,9 @@ namespace Pulse_PLC_Tools_2._0
             //Выводим информацию
             this.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
                 //Название канала
-                paragraph_log_ex.Inlines.Add(new Bold(new Run(msgIcon + " [" + DateTime.Now + "] - ") { Foreground = br }));
+                paragraph_log_ex.Inlines.Add(new Bold(new Run("\n"+msgIcon + " [" + DateTime.Now + "] - ") { Foreground = br }));
                 //Сообщение
-                paragraph_log_ex.Inlines.Add(new Run(" " + msgMain + "\n") { Foreground = br });
+                paragraph_log_ex.Inlines.Add(new Run(" " + msgMain) { Foreground = br });
                 textBox_Log_Debug.ScrollToEnd();
             }));
         }
@@ -107,7 +102,7 @@ namespace Pulse_PLC_Tools_2._0
             Brush br;
             string msgIcon = "";
             string msgMain = "";
-
+            bool bold = false;
             switch (msg_Type)
             {
                 case Msg_Type.Error:
@@ -125,6 +120,12 @@ namespace Pulse_PLC_Tools_2._0
                     msgMain = (string)msg;
                     msgIcon = "--";
                     break;
+                case Msg_Type.NormalBold:
+                    br = Brushes.Black;
+                    msgMain = (string)msg;
+                    msgIcon = "--";
+                    bold = true;
+                    break;
                 case Msg_Type.Good:
                     br = Brushes.Green;
                     msgMain = (string)msg;
@@ -137,11 +138,21 @@ namespace Pulse_PLC_Tools_2._0
             //Выводим информацию
             this.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
                 //Название канала
-                paragraph_log.Inlines.Add(new Bold(new Run(msgIcon + " [" + DateTime.Now + "] - ") { Foreground = br }));
-                paragraph_log_ex.Inlines.Add(new Bold(new Run(msgIcon + " [" + DateTime.Now + "] - ") { Foreground = br }));
+                string newLine = (msgIcon == "[OK]") ? " " : "\n";
+                paragraph_log.Inlines.Add(new Bold(new Run(newLine + msgIcon + " [" + DateTime.Now + "] - ") { Foreground = br }));
+                paragraph_log_ex.Inlines.Add(new Bold(new Run("\n"+msgIcon + " [" + DateTime.Now + "] - ") { Foreground = br }));
                 //Сообщение
-                paragraph_log.Inlines.Add(new Run(" " + msgMain + "\n") { Foreground = br });
-                paragraph_log_ex.Inlines.Add(new Run(" " + msgMain + "\n") { Foreground = br });
+                if(bold)
+                {
+                    paragraph_log.Inlines.Add(new Bold(new Run(" " + msgMain) { Foreground = br }));
+                    paragraph_log_ex.Inlines.Add(new Bold(new Run(" " + msgMain) { Foreground = br }));
+                }
+                else
+                {
+                    paragraph_log.Inlines.Add(new Run(" " + msgMain) { Foreground = br });
+                    paragraph_log_ex.Inlines.Add(new Run(" " + msgMain) { Foreground = br });
+                }
+                
                 //Прокрутка вниз
                 textBox_Log_Debug.ScrollToEnd();
                 textBox_Log_Debug_ex.ScrollToEnd();

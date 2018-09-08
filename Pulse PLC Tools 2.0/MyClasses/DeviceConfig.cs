@@ -54,7 +54,7 @@ namespace Pulse_PLC_Tools_2._0
             T3_Time_2 = 21 * 60;
             T2_Time = 23 * 60;
             ascue_adrs = 0;
-            ascue_pass = new byte[] { 1,1,1,1,1,1};
+            ascue_pass = new byte[6] { 1,1,1,1,1,1};
             ascue_protocol = 0;
             max_Power = 0;
         }

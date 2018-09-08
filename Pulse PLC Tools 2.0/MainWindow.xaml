@@ -55,38 +55,40 @@
 
         <!-- Панель с кнопками в шапке -->
         <Grid Grid.Row ="1" Grid.ColumnSpan="3" Background="LightCoral">
-            <Grid Height="60" VerticalAlignment="Top" Background="#FFD6DBE9">
+            <Grid x:Name="buttonsTab" Height="60" VerticalAlignment="Top" Background="#FFD6DBE9">
                 <Grid x:Name="grid_Access_Input" HorizontalAlignment="Left" Height="60" Margin="0,0,0,0" VerticalAlignment="Top" Width="228">
                     <Label Content="Серийный №" HorizontalAlignment="Left" Margin="2,3,0,0" VerticalAlignment="Top"/>
                     <ComboBox x:Name="comboBox_Serial" Height="24" VerticalAlignment="Top" IsEditable="True" HorizontalAlignment="Left" Width="137" Margin="86,3,0,0" Background="{x:Null}"/>
                     <Label Content="Пароль" HorizontalAlignment="Left" Margin="2,32,0,0" VerticalAlignment="Top" Width="84"/>
                     <TextBox x:Name="textBox_Pass" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="137" Margin="86,32,0,0" Background="{x:Null}"/>
                 </Grid>
-                <Button ToolTip="Прочитать всю конфигурацию из памяти устройства" HorizontalAlignment="Left" Margin="315,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Read_All_Config_Click">
-                    <StackPanel>
-                        <Image Source="Pics/boxupload32.png" Height="32" Width="32"/>
-                    </StackPanel>
-                </Button>
-                <Button ToolTip="Записать всю конфигурацию в память устройства" HorizontalAlignment="Left" Margin="380,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Write_All_Config_Click">
-                    <StackPanel>
-                        <Image Source="Pics/boxdownload32.png" Height="32" Width="32"/>
-                    </StackPanel>
-                </Button>
-                <Button ToolTip="Сохранить в файл..." HorizontalAlignment="Left" Margin="465,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
-                    <StackPanel>
-                        <Image Source="Pics/diskette32.png" Height="28" Width="28"/>
-                    </StackPanel>
-                </Button>
-                <Button ToolTip="Открыть файл..." HorizontalAlignment="Left" Margin="530,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
-                    <StackPanel>
-                        <Image Source="Pics/folder32.png" Height="32" Width="32"/>
-                    </StackPanel>
-                </Button>
-                <Button ToolTip="Поиск устройств в канале связи" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Search_Devices_Click" Margin="228,0,0,0">
-                    <StackPanel>
-                        <Image Source="Pics/search_link.png" Height="32" Width="32"/>
-                    </StackPanel>
-                </Button>
+                <Grid x:Name="grid_Panel_Buttons" HorizontalAlignment="Left" Height="60" Margin="228,0,0,0" VerticalAlignment="Top" Width="350">
+                    <Button ToolTip="Поиск устройств в канале связи" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Search_Devices_Click" Margin="0,0,0,0">
+                        <StackPanel>
+                            <Image Source="Pics/search_link.png" Height="32" Width="32"/>
+                        </StackPanel>
+                    </Button>
+                    <Button ToolTip="Прочитать всю конфигурацию из памяти устройства" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Read_All_Config_Click">
+                        <StackPanel>
+                            <Image Source="Pics/boxupload32.png" Height="32" Width="32"/>
+                        </StackPanel>
+                    </Button>
+                    <Button ToolTip="Записать всю конфигурацию в память устройства" HorizontalAlignment="Left" Margin="140,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" Click="button_Write_All_Config_Click">
+                        <StackPanel>
+                            <Image Source="Pics/boxdownload32.png" Height="32" Width="32"/>
+                        </StackPanel>
+                    </Button>
+                    <Button ToolTip="Сохранить в файл..." HorizontalAlignment="Left" Margin="220,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                        <StackPanel>
+                            <Image Source="Pics/diskette32.png" Height="28" Width="28"/>
+                        </StackPanel>
+                    </Button>
+                    <Button ToolTip="Открыть файл..." HorizontalAlignment="Left" Margin="280,0,0,0" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                        <StackPanel>
+                            <Image Source="Pics/folder32.png" Height="32" Width="32"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
             </Grid>
         </Grid>
 
@@ -125,8 +127,8 @@
             <TabControl x:Name="tabControl_main"  TabStripPlacement="Right" Background="{x:Null}" Margin="0,0,-103,0" BorderThickness="0">
                 <TabItem x:Name="tab_Link" Header="Связь" Margin="0,0,0,0" Width="100">
                     <Grid Margin="-4">
-                        <Button x:Name ="button_open_com" Content="Открыть канал связи" Margin="10,115,0,0" Click="button_Open_Link_Click" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
-                        <Button x:Name ="button_close_com" Content="Закрыть канал связи" Margin="10,140,0,0" Click="button_Close_Link_Click" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+                        <Button x:Name ="button_open_com" Content="Открыть канал связи" Margin="10,115,0,0" Click="Button_Open_Link_Click" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+                        <Button x:Name ="button_close_com" Content="Закрыть канал связи" Margin="10,140,0,0" Click="Button_Close_Link_Click" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
                         <GroupBox x:Name="groupBox_link_type" Header="Канал связи" HorizontalAlignment="Left" Height="87" Margin="10,23,0,0" VerticalAlignment="Top" Width="232">
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel Width="70">
@@ -486,9 +488,9 @@
                                 <DataGridTextColumn x:Name="err_byteColumn" Binding="{Binding Errors}"  Header="Флаги ошибок" Width="16*" IsReadOnly="True" CanUserSort="False"/>
                             </DataGrid.Columns>
                         </DataGrid>
-                        <Button Content="Прочитать все" HorizontalAlignment="Left" Margin="428,10,0,0" VerticalAlignment="Top" Width="110" Click="button_PLC_Table_Read_All" Height="30"/>
-                        <Button Content="Записать все" HorizontalAlignment="Left" Margin="543,10,0,0" VerticalAlignment="Top" Width="110" Click="button_PLC_Table_Write_All" Height="30"/>
-                        <Button Content="Прочитать включенные" HorizontalAlignment="Left" Margin="221,10,0,0" VerticalAlignment="Top" Width="156" Click="button_PLC_Table_Read_En" Height="30"/>
+                        <Button Content="Прочитать все" HorizontalAlignment="Left" Margin="428,10,0,0" VerticalAlignment="Top" Width="110" Click="Button_PLC_Table_Read_All" Height="30"/>
+                        <Button Content="Записать все" HorizontalAlignment="Left" Margin="543,10,0,0" VerticalAlignment="Top" Width="110" Click="Button_PLC_Table_Write_All" Height="30"/>
+                        <Button Content="Прочитать включенные" HorizontalAlignment="Left" Margin="221,10,0,0" VerticalAlignment="Top" Width="156" Click="Button_PLC_Table_Read_En" Height="30"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="tab_Log_Power" Header="Журнал1" Margin="0">
@@ -649,12 +651,12 @@
             </Button>
             <RichTextBox x:Name="textBox_Log_Debug" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True">
                 <FlowDocument>
-                    <Paragraph x:Name="paragraph_log"/>
+                    <Paragraph x:Name="paragraph_log">Привет! Для начала открой канал связи.</Paragraph>
                 </FlowDocument>
             </RichTextBox>
             <RichTextBox x:Name="textBox_Log_Debug_ex" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True">
                 <FlowDocument>
-                    <Paragraph x:Name="paragraph_log_ex"/>
+                    <Paragraph x:Name="paragraph_log_ex">Привет! Для начала открой канал связи.</Paragraph>
                 </FlowDocument>
             </RichTextBox>
         </Grid>

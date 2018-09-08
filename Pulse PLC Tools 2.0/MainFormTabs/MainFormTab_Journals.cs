@@ -15,9 +15,9 @@ namespace Pulse_PLC_Tools_2._0
         private void Button_Read_Log_Power_Click(object sender, RoutedEventArgs e)
         {
             dataGrid_Log_Power.Items.Clear();
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Read_Journal, link, Journal_type.POWER, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Read_Journal, link, Journal_type.POWER, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
             //protocol.Send_CMD(Command_type.Read_Journal, link, Journal_type.POWER);
         }
 
@@ -27,9 +27,9 @@ namespace Pulse_PLC_Tools_2._0
         private void Button_Read_Log_Config_Click(object sender, RoutedEventArgs e)
         {
             dataGrid_Log_Config.Items.Clear();
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Read_Journal, link, Journal_type.CONFIG, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Read_Journal, link, Journal_type.CONFIG, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
             //protocol.Send_CMD(Command_type.Read_Journal, link, Journal_type.CONFIG);
         }
         
@@ -39,9 +39,9 @@ namespace Pulse_PLC_Tools_2._0
         private void Button_Read_Log_Interfaces_Click(object sender, RoutedEventArgs e)
         {
             dataGrid_Log_Interfaces.Items.Clear();
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Read_Journal, link, Journal_type.INTERFACES, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Read_Journal, link, Journal_type.INTERFACES, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
         }
 
         //Вкладка "Журнал-> Лог опроса" обработка событий контролов
@@ -50,9 +50,9 @@ namespace Pulse_PLC_Tools_2._0
         private void Button_Read_Log_Requests_Click(object sender, RoutedEventArgs e)
         {
             dataGrid_Log_Requests.Items.Clear();
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Read_Journal, link, Journal_type.REQUESTS, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Read_Journal, link, Journal_type.REQUESTS, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
         }
     }
 }

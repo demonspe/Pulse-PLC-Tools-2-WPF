@@ -12,7 +12,7 @@ namespace Pulse_PLC_Tools_2._0
         private void button_E_Data_Read_All(object sender, RoutedEventArgs e)
         {
             PLC_Table_Refresh();
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
             dataGrid_E_Data.SelectAll();
             E_Data_Send_Data_Request(E_Data_Get_Selected_Items());
         }
@@ -20,8 +20,8 @@ namespace Pulse_PLC_Tools_2._0
         private void button_E_Data_Read_Enable(object sender, RoutedEventArgs e)
         {
             PLC_Table_Refresh();
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Read_E_Data, link, new byte[] { 0 }, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Read_E_Data, link, new byte[] { 0 }, 0);
         }
 
         //Получить массив с выбранными адресами в таблице
@@ -45,8 +45,8 @@ namespace Pulse_PLC_Tools_2._0
             //Делим массив на несколько или не делим
             for (int i = 0; i < selected_items[0]; i++)
             {
-                CMD_Buffer.Add_CMD(Command.Read_E_Current, link, selected_items[i + 1], 0);
-                CMD_Buffer.Add_CMD(Command.Read_E_Start_Day, link, selected_items[i + 1], 0);
+                CMD_Buffer.Add_CMD(Commands.Read_E_Current, link, selected_items[i + 1], 0);
+                CMD_Buffer.Add_CMD(Commands.Read_E_Start_Day, link, selected_items[i + 1], 0);
             }
         }
         //Очистить таблицу с показаниями
@@ -57,7 +57,7 @@ namespace Pulse_PLC_Tools_2._0
 
         private void menuItem_Read_Selected_E(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
             E_Data_Send_Data_Request(E_Data_Get_Selected_Items());
         }
     }

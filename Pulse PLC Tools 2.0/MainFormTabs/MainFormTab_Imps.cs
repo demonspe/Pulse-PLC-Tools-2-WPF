@@ -84,16 +84,16 @@ namespace Pulse_PLC_Tools_2._0
         //Кнопка "Прочитать"
         private void button_Read_Imp1_Click_1(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Read_IMP, link, IMP_type.IMP1, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Read_IMP, link, IMP_type.IMP1, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
         }
         //Кнопка "Записать"
         private void button_Write_Imp1_Click_1(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Write_IMP, link, IMP_type.IMP1, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Write_IMP, link, IMP_type.IMP1, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
         }
 
         
@@ -162,16 +162,16 @@ namespace Pulse_PLC_Tools_2._0
         //Кнопка "Прочитать"
         private void button_Read_Imp2_Click_1(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Read_IMP, link, IMP_type.IMP2, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Read_IMP, link, IMP_type.IMP2, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
         }
         //Кнопка "Записать"
         private void button_Write_Imp2_Click_1(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Command.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Command.Write_IMP, link, IMP_type.IMP2, 0);
-            CMD_Buffer.Add_CMD(Command.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(Commands.Write_IMP, link, IMP_type.IMP2, 0);
+            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Pulse_PLC_Tools_2._0
         int repeat_Counter;         //Счетчик повторных запросов
 
         //Буфферы данных для выполнения команд
-        Command[] buffer_commands;
+        Commands[] buffer_commands;
         ILink[] buffer_links;
         object[] buffer_params;
         int[] buffer_pauseAfter_ms;
@@ -44,7 +44,7 @@ namespace Pulse_PLC_Tools_2._0
             //Переделать в очередь
             BUF_MASK = BUF_SIZE - 1;
 
-            buffer_commands = new Command[BUF_SIZE];
+            buffer_commands = new Commands[BUF_SIZE];
             buffer_links = new ILink[BUF_SIZE];
             buffer_params = new object[BUF_SIZE];
             buffer_pauseAfter_ms = new int[BUF_SIZE];
@@ -59,9 +59,8 @@ namespace Pulse_PLC_Tools_2._0
             return (idx_OUT == idx_IN);
         }
 
-        public void Add_CMD(Command cmd, ILink link, object param, int pause_After_ms)
+        public void Add_CMD(Commands cmd, ILink link, object param, int pause_After_ms)
         {
-            if (Buffer_Is_Emty()) handle_Thread.Resume();
             //Добавляем команды
             buffer_commands[idx_IN] = cmd;
             buffer_links[idx_IN] = link;
@@ -72,6 +71,8 @@ namespace Pulse_PLC_Tools_2._0
             idx_IN &= BUF_MASK;
             cmd_counter++; //Считаем количество команд в буфере
             cmd_counter_sum++;
+
+            if ((handle_Thread.ThreadState & ThreadState.Suspended) != 0) handle_Thread.Resume();
         }
 
         public void Clear_Buffer()
@@ -85,7 +86,7 @@ namespace Pulse_PLC_Tools_2._0
             cmd_counter = 0;
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.ToolBarInfo, MessageString = "Отправка запросов завершена" });
             //Событие
-            CommandSended(this, new EventArgs());
+            BufferCleared(this, new EventArgs());
         }
 
         //Поток отправляющий команды в фоне
@@ -118,6 +119,11 @@ namespace Pulse_PLC_Tools_2._0
                         }
                         else
                         {
+                            if(buffer_commands[idx_OUT] == Commands.Check_Pass || buffer_commands[idx_OUT] == Commands.Search_Devices)
+                            {
+                                Clear_Buffer();
+                            }
+                            else
                             if (repeat_Counter == REPEATS) //Устройство не отвечает
                             {
                                 StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Error, MessageString = "Устройство не отвечает" });
@@ -126,10 +132,15 @@ namespace Pulse_PLC_Tools_2._0
                             else
                             {
                                 repeat_Counter++;
-                                if(((Protocol)oProtocol).Send_CMD(buffer_commands[idx_OUT], buffer_links[idx_OUT], buffer_params[idx_OUT]))
+                                StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Error, MessageString = "Повторный запрос "+repeat_Counter+"..." });
+                                if (((Protocol)oProtocol).Send_CMD(buffer_commands[idx_OUT], buffer_links[idx_OUT], buffer_params[idx_OUT]))
                                 {
+                                    //Событие - Команда отправлена
+                                    CommandSended(this, new EventArgs());
+                                    //Флаги
                                     busy_flag = true;
                                     haveCommandForCheck = true;
+
                                 }
                                 else //Спорный момент !!! Доделать
                                 {
@@ -138,31 +149,41 @@ namespace Pulse_PLC_Tools_2._0
                             }
                         }
                     }
-                    
-
-                    //Если в буффере есть комманды, то отправляем
-                    if (idx_IN != idx_OUT)
+                    else
                     {
-                        if (((Protocol)oProtocol).Send_CMD(buffer_commands[idx_OUT], buffer_links[idx_OUT], buffer_params[idx_OUT]))
+                        //Если в буффере есть комманды, то отправляем
+                        if (idx_IN != idx_OUT)
                         {
-                            busy_flag = true;
-                            haveCommandForCheck = true;
+                            if (((Protocol)oProtocol).Send_CMD(buffer_commands[idx_OUT], buffer_links[idx_OUT], buffer_params[idx_OUT]))
+                            {
+                                //Сообщение на форму
+                                StringMessage(this, new StringMessageEventArgs()
+                                {
+                                    MessageType = Msg_Type.ToolBarInfo,
+                                    MessageString = "Запросы " + cmd_counter + " из " + cmd_counter_sum + ". Нажми Esc для отмены.."
+                                });
+                                //Событие - Команда отправлена
+                                CommandSended(this, new EventArgs());
+                                //Флаги
+                                busy_flag = true;
+                                haveCommandForCheck = true;
+                            }
+                            else
+                            {
+                                Clear_Buffer();
+                            }
                         }
                         else
-                        {
-                            Clear_Buffer();
+                        {//Буффер пуст
+                            cmd_counter_sum = 0;
+                            StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.ToolBarInfo, MessageString = "Буфер команд пуст" });
+                            //Событие
+                            BufferCleared(this, new EventArgs());
+                            handle_Thread.Suspend();
                         }
                     }
-                    else
-                    {//Буффер пуст
-                        cmd_counter_sum = 0;
-                        StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.ToolBarInfo, MessageString = "Отправка запросов завершена" });
-                        //Событие
-                        BufferCleared(this, new EventArgs());
-                        handle_Thread.Suspend();
-                    }
                 }
-                Thread.Sleep(100);
+                Thread.Sleep(30);
             }
             
         }
