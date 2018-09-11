@@ -14,11 +14,13 @@ namespace Pulse_PLC_Tools_2._0
         public SerialPort serialPort;
         public bool IsConnected { get { return serialPort.IsOpen; } }
         public string ConnectionString { get { return serialPort.PortName; } }
+        public int LinkDelay { get; set; }
         public SerialPort Port { get { return serialPort; } }
-
-        public event EventHandler<LinkRxEventArgs> DataRecieved = delegate { };
-        public event EventHandler<EventArgs> Connected = delegate { };
-        public event EventHandler<EventArgs> Disconnected = delegate { };
+        
+        public event EventHandler<StringMessageEventArgs> ServiceMessage;
+        public event EventHandler<LinkRxEventArgs> DataRecieved;
+        public event EventHandler<EventArgs> Connected;
+        public event EventHandler<EventArgs> Disconnected;
 
         public LinkCOM()
         {
@@ -27,8 +29,8 @@ namespace Pulse_PLC_Tools_2._0
             serialPort.Parity = Parity.None;
             serialPort.DataBits = 8;
             serialPort.StopBits = StopBits.One;
-            serialPort.Encoding = Encoding.Default;
             serialPort.DataReceived += SerialPort_DataReceived;
+            LinkDelay = 500;
         }
         
         public LinkCOM(string portName)
@@ -38,14 +40,15 @@ namespace Pulse_PLC_Tools_2._0
             serialPort.Parity = Parity.None;
             serialPort.DataBits = 8;
             serialPort.StopBits = StopBits.One;
-            serialPort.Encoding = Encoding.Default;
             serialPort.DataReceived += SerialPort_DataReceived;
+            LinkDelay = 500;
         }
 
         public LinkCOM(string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits)
         {
             serialPort = new SerialPort(portName, baudRate, parity, dataBits, stopBits);
             serialPort.DataReceived += SerialPort_DataReceived;
+            LinkDelay = 500;
         }
 
         public void ClearBuffer()
@@ -60,10 +63,12 @@ namespace Pulse_PLC_Tools_2._0
         {
             if (serialPort.PortName != "")
             {
+                serialPort.Encoding = Encoding.Default;
                 try
                 {
                     if (!serialPort.IsOpen) serialPort.Open();
                     Connected(this, new EventArgs());
+                    ServiceMessage(this, new StringMessageEventArgs() { MessageString = "Открыт канал связи [" + ConnectionString + "]", MessageType = Msg_Type.Normal });
                     return true;
                 }
                 catch
@@ -117,7 +122,7 @@ namespace Pulse_PLC_Tools_2._0
                 do
                 {
                     //Получаем байт из буффера
-                    Array.Resize<byte>(ref bytes_buff, bytes_buff.Length + 1);
+                    Array.Resize(ref bytes_buff, bytes_buff.Length + 1);
                     bytes_buff[bytes_buff.Length - 1] = (byte)serialPort.ReadByte();
 
                     if (serialPort.BytesToRead == 0) Thread.Sleep(50);     //Время ожидания байта-------------------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

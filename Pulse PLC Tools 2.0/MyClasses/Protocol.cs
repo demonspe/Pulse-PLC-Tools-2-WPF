@@ -387,7 +387,7 @@ namespace Pulse_PLC_Tools_2._0
             //Очистим контрол
             mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { mainForm.comboBox_Serial.Items.Clear(); }));
 
-            return Request_Start(link, Commands.Search_Devices, 1000);
+            return Request_Start(link, Commands.Search_Devices, link.LinkDelay + 400);
         }
         //Обработка ответа
         private bool CMD_Search_Devices(byte[] bytes_buff, int count)
@@ -429,7 +429,7 @@ namespace Pulse_PLC_Tools_2._0
                 MessageString = "Авторизация: [" + s[0].ToString("00") + s[1].ToString("00") + s[2].ToString("00") + s[3].ToString("00") + "] [" + passtr +"]"
             });
             //Отправляем запрос
-            return Request_Start(link, Commands.Check_Pass, 5000);
+            return Request_Start(link, Commands.Check_Pass, link.LinkDelay + 100);
         }
         //Обработка запроса
         private void CMD_Check_Pass(byte[] bytes_buff, int count)
@@ -451,7 +451,7 @@ namespace Pulse_PLC_Tools_2._0
             Start_Add_Tx(Commands.Close_Session);
             access = Access_Type.No_Access;
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.NormalBold, MessageString = "Закрыть сессию" });
-            return Request_Start(link, Commands.Close_Session, 100);
+            return Request_Start(link, Commands.Close_Session, 200);
         }
         #endregion
 
@@ -462,7 +462,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             Start_Add_Tx(Commands.Bootloader);
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Включить режим обновления" });
-            return Request_Start(link, Commands.Bootloader, 1000);
+            return Request_Start(link, Commands.Bootloader, link.LinkDelay + 100);
         }
         //Обработка запроса
         private void CMD_BOOTLOADER()
@@ -482,7 +482,7 @@ namespace Pulse_PLC_Tools_2._0
                 MessageType = Msg_Type.Normal,
                 MessageString = "ЗАПИСЬ СЕРИЙНОГО НОМЕРА " + params_[0].ToString("00") + params_[1].ToString("00") + params_[2].ToString("00") + params_[3].ToString("00")
             });
-            return Request_Start(link, Commands.SerialWrite, 1000);
+            return Request_Start(link, Commands.SerialWrite, link.LinkDelay + 500);
         }
         //Обработка запроса
         private void CMD_SerialWrite(byte[] bytes_buff, int count)
@@ -496,7 +496,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             Start_Add_Tx(Commands.EEPROM_Burn);
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Сброс к заводским параметрам" });
-            return Request_Start(link, Commands.EEPROM_Burn, 1000);
+            return Request_Start(link, Commands.EEPROM_Burn, link.LinkDelay + 100);
         }
         //Обработка запроса
         private void CMD_EEPROM_BURN()
@@ -511,7 +511,7 @@ namespace Pulse_PLC_Tools_2._0
             Add_Tx((byte)(eep_adrs >> 8));  //Старший
             Add_Tx((byte)(eep_adrs));       //Младший
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение байта EEPROM" });
-            return Request_Start(link, Commands.EEPROM_Read_Byte, 1000);
+            return Request_Start(link, Commands.EEPROM_Read_Byte, link.LinkDelay + 100);
         }
         //Обработка запроса
         private void CMD_EEPROM_Read_Byte(byte[] bytes_buff, int count)
@@ -524,7 +524,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             Start_Add_Tx(Commands.Reboot);
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Перезагрузить" });
-            return Request_Start(link, Commands.Reboot, 1000);
+            return Request_Start(link, Commands.Reboot, link.LinkDelay + 100);
         }
         //Обработка запроса
         private void CMD_Reboot()
@@ -539,7 +539,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             Start_Add_Tx(Commands.Read_Main_Params);
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение основных параметров" });
-            return Request_Start(link, Commands.Read_Main_Params, 1000);
+            return Request_Start(link, Commands.Read_Main_Params, link.LinkDelay + 100);
         }
         //Обработка ответа
         private void CMD_Read_Main_Params(byte[] bytes_buff, int count)
@@ -589,7 +589,7 @@ namespace Pulse_PLC_Tools_2._0
             Add_Tx(mainForm.deviceConfig.Device.Bluetooth_Work_Mode);
 
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Запись основных параметров" });
-            return Request_Start(link, Commands.Write_Main_Params, 1000);
+            return Request_Start(link, Commands.Write_Main_Params, link.LinkDelay + 500);
         }
         //Обработка ответа
         private void CMD_Write_Main_Params(byte[] bytes_buff, int count)
@@ -603,7 +603,7 @@ namespace Pulse_PLC_Tools_2._0
         {
             Start_Add_Tx(Commands.Clear_Errors);
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Очистка флагов ошибок." });
-            return Request_Start(link, Commands.Clear_Errors, 5000);
+            return Request_Start(link, Commands.Clear_Errors, link.LinkDelay + 500);
         }
         //Обработка запроса
         private void CMD_Clear_Errors()
@@ -629,7 +629,7 @@ namespace Pulse_PLC_Tools_2._0
             }
 
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Запись новых паролей" });
-            return Request_Start(link, Commands.Pass_Write, 1000);
+            return Request_Start(link, Commands.Pass_Write, link.LinkDelay + 500);
         }
         //Обработка запроса
         private void CMD_Pass_Write(byte[] bytes_buff, int count)
@@ -651,7 +651,7 @@ namespace Pulse_PLC_Tools_2._0
             if (imp_num == 2) imp_ = Convert.ToByte('2');
             Add_Tx(imp_);
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение настроек IMP" + imp_num });
-            return Request_Start(link, Commands.Read_IMP, 1000);
+            return Request_Start(link, Commands.Read_IMP, link.LinkDelay + 100);
         }
         //Обработка ответа
         private void CMD_Read_Imp_Params(byte[] bytes_buff, int count)
@@ -736,6 +736,7 @@ namespace Pulse_PLC_Tools_2._0
                 mainForm.deviceConfig.Show_On_Form();
                 StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Good, MessageString = "Параметры IMP" + Convert.ToChar(bytes_buff[6]) + " успешно прочитаны" + PingStr() });
             }
+
         //Запрос ЧТЕНИЕ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
         private bool CMD_Read_Imp_Extra_Params(ILink link, int imp_num)
         {
@@ -747,7 +748,7 @@ namespace Pulse_PLC_Tools_2._0
             Add_Tx(imp_);
             //Отправляем запрос
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение состояния IMP" + imp_num });
-            return Request_Start(link, Commands.Read_IMP_extra, 1000);
+            return Request_Start(link, Commands.Read_IMP_extra, link.LinkDelay + 100);
         }
         //Обработка ответа
         private void CMD_Read_Imp_Extra_Params(byte[] bytes_buff, int count)
@@ -779,6 +780,7 @@ namespace Pulse_PLC_Tools_2._0
             }));
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Good, MessageString = "Мгновенные значения считаны" + PingStr() });
         }
+
         //Запрос ЗАПИСЬ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
         private bool CMD_Write_Imp_Params(ILink link, int imp_num)
         {
@@ -842,7 +844,7 @@ namespace Pulse_PLC_Tools_2._0
                 Add_Tx(0);
             }
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Запись параметров IMP"+ imp_num });
-            return Request_Start(link, Commands.Write_IMP, 1000);
+            return Request_Start(link, Commands.Write_IMP, link.LinkDelay + 500);
         }
         //Обработка ответа
         private void CMD_Write_Imp_Params(byte[] bytes_buff, int count)
@@ -865,7 +867,7 @@ namespace Pulse_PLC_Tools_2._0
             if (journal == Journal_type.POWER) jName = "питания";
             if (journal == Journal_type.REQUESTS) jName = "PLC запросов";
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение журнала "+ jName });
-            return Request_Start(link, Commands.Read_Journal, 1000);
+            return Request_Start(link, Commands.Read_Journal, link.LinkDelay + 500);
         }
         //Обработка ответа
         private void CMD_Read_Journal(byte[] bytes_buff, int count)
@@ -961,7 +963,7 @@ namespace Pulse_PLC_Tools_2._0
             Start_Add_Tx(Commands.Read_DateTime);
             //Отправляем запрос
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение даты/времени" });
-            return Request_Start(link, Commands.Read_DateTime, 1000);
+            return Request_Start(link, Commands.Read_DateTime, link.LinkDelay + 100);
         }
         //Обработка ответа
         private void CMD_Read_DateTime(byte[] bytes_buff, int count)
@@ -1005,7 +1007,7 @@ namespace Pulse_PLC_Tools_2._0
             Add_Tx((byte)year_);
 
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Запись даты/времени (" + DateTime.Now + ")" });
-            return Request_Start(link, Commands.Write_DateTime, 5000);
+            return Request_Start(link, Commands.Write_DateTime, link.LinkDelay + 100);
         }
         //Обработка ответа
         private void CMD_Write_DateTime(byte[] bytes_buff, int count)
@@ -1029,7 +1031,7 @@ namespace Pulse_PLC_Tools_2._0
             }
             //Отправляем запрос
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение таблицы PLC - Активные адреса" });
-            return Request_Start(link, cmd, 1000);
+            return Request_Start(link, cmd, link.LinkDelay + 500);
         }
         //Обработка ответа
         private void CMD_Read_PLC_Table(byte[] bytes_buff, int count)
@@ -1185,7 +1187,7 @@ namespace Pulse_PLC_Tools_2._0
 
             //Отправляем запрос
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Запись в таблицу PLC" });
-            return Request_Start(link, Commands.Write_PLC_Table, 2000);
+            return Request_Start(link, Commands.Write_PLC_Table, link.LinkDelay + 1000);
         }
         //Обработка ответа
         private void CMD_Write_PLC_Table(byte[] bytes_buff, int count)
@@ -1204,7 +1206,7 @@ namespace Pulse_PLC_Tools_2._0
             Add_Tx(adrs_dev);
             
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Чтение Показаний на момент последнего опроса" });
-            return Request_Start(link, Commands.Read_E_Current, 1000);
+            return Request_Start(link, Commands.Read_E_Current, link.LinkDelay + 100);
         }
         //Запрос Чтение показаний на Начало суток
         private bool CMD_Read_E_Start_Day(ILink link, byte adrs_dev)
@@ -1215,7 +1217,7 @@ namespace Pulse_PLC_Tools_2._0
 
             //Отправляем запрос
             StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Показания на начало суток" });
-            return Request_Start(link, Commands.Read_E_Start_Day, 1000);
+            return Request_Start(link, Commands.Read_E_Start_Day, link.LinkDelay + 100);
         }
         //Обработка ответа
         private void CMD_Read_E(Commands cmd, byte[] bytes_buff, int count)
@@ -1294,7 +1296,8 @@ namespace Pulse_PLC_Tools_2._0
                 for (int i = 0; i < param[2]; i++) { steps_ += ", " + param[i+3]; }
                 StringMessage(this, new StringMessageEventArgs() { MessageType = Msg_Type.Normal, MessageString = "Запрос PLC на " + param[1] + " через " + steps_ });
             }
-            return Request_Start(link, Commands.Request_PLC, 5000);
+            int delay = 5000 * (param[2] + 1);
+            return Request_Start(link, Commands.Request_PLC, link.LinkDelay + delay);
         }
         //Обработка ответа
         private void CMD_Request_PLC(byte[] bytes_buff, int count)

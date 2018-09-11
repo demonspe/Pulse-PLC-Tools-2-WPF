@@ -64,6 +64,23 @@ namespace Pulse_PLC_Tools_2._0
                 if (!link.Connect()) Log_Add_Line("Порт занят", Msg_Type.Warning);
                 return;
             }
+            if ((bool)radioButton_GSM.IsChecked)
+            {
+                if (comboBox_COM.Text == "") { Log_Add_Line("Порт не выбран", Msg_Type.Warning); return; }
+                link = new LinkGSM(comboBox_COM.Text, 30000);
+                ((LinkGSM)link).PhoneNumber = textBoxPhoneNumber.Text;
+                ((LinkGSM)link).ServiceMessage += MessageInput;
+
+                //Обработчики событий
+                link.Connected += Link_Opened;
+                link.Disconnected += Link_Closed;
+                link.DataRecieved += protocol.DateRecieved;
+
+                //((LinkGSM)link).Initialize();
+                if (!link.Connect()) Log_Add_Line("Порт занят", Msg_Type.Warning);
+                return;
+            }
+
         }
 
         private void Button_Close_Link_Click(object sender, RoutedEventArgs e)
@@ -75,12 +92,13 @@ namespace Pulse_PLC_Tools_2._0
         {
             //if (access_Type == Access_Type.Read) img_ = Status_Img.Access_Read;
             //if (access_Type == Access_Type.Write) img_ = Status_Img.Access_Write;
-
-            groupBox_link_type.IsEnabled = false;
-            groupBox_dateTime.IsEnabled = true;
-            button_open_com.IsEnabled = false;
-            button_close_com.IsEnabled = true;
-
+            Dispatcher.BeginInvoke((Action)(() => {
+                groupBox_link_type.IsEnabled = false;
+                groupBox_dateTime.IsEnabled = true;
+                button_open_com.IsEnabled = false;
+                button_close_com.IsEnabled = true;
+            }));
+            
             Set_Connection_StatusBar(Status_Img.Connected, link.ConnectionString);
             //Отправим сообщение в статус бар
             msg("Открыт канал связи [" + link.ConnectionString + "]");

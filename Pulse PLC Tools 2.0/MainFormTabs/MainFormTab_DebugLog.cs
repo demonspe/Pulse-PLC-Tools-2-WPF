@@ -10,20 +10,7 @@ using System.Windows.Threading;
 
 namespace Pulse_PLC_Tools_2._0
 {
-    public enum Msg_Type : int { Error, Warning, Normal, NormalBold, Good, ToolBarInfo, MsgBox }
-
-    public class StringMessageEventArgs : EventArgs
-    {
-        public Msg_Type MessageType { get; set; }
-        public string MessageString { get; set; }
-    }
-
-    public class LinkMessageEventArgs : EventArgs
-    {
-        public byte[] Data { get; set; }
-        public int Length { get; set; }
-        public Msg_Direction Direction { get; set; }
-    }
+    
 
     public partial class MainWindow : Window
     {

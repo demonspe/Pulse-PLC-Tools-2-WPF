@@ -134,7 +134,7 @@
                                 <StackPanel Width="70">
                                     <RadioButton x:Name="radioButton_COM" IsChecked="True" Margin="3">COM</RadioButton>
                                     <RadioButton x:Name="radioButton_TCP" Margin="3" IsEnabled="False">TCP</RadioButton>
-                                    <RadioButton x:Name="radioButton_GSM" Margin="3" IsEnabled="False">GSM</RadioButton>
+                                    <RadioButton x:Name="radioButton_GSM" Margin="3">GSM</RadioButton>
                                 </StackPanel>
                                 <StackPanel Width="150">
                                     <ComboBox x:Name="comboBox_COM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Background="{x:Null}"/>
@@ -142,6 +142,7 @@
                                         <TextBox TextWrapping="Wrap" Text="192.168.1.59" Width="100" IsEnabled="False"/>
                                         <TextBox TextWrapping="Wrap" Text="11111" Width="50" IsEnabled="False"/>
                                     </StackPanel>
+                                    <TextBox x:Name="textBoxPhoneNumber" Text="89874759939"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>

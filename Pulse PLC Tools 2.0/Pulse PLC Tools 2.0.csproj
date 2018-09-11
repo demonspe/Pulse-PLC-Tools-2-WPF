@@ -77,6 +77,7 @@
     </ApplicationDefinition>
     <Compile Include="MainFormTabs\LinkMessageEventArgs.cs" />
     <Compile Include="MainFormTabs\MainFormTab_DateTime.cs" />
+    <Compile Include="MyClasses\CommandBuffer.cs" />
     <Compile Include="MyClasses\Command_Buffer.cs" />
     <Compile Include="MyClasses\CRC16.cs" />
     <Compile Include="MyClasses\DataGridRow_Log.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="MainFormTabs\MainFormTab_MainParams.cs" />
     <Compile Include="MyClasses\ILink.cs" />
     <Compile Include="MyClasses\LinkCOM.cs" />
+    <Compile Include="MyClasses\LinkGSM.cs" />
     <Compile Include="MyClasses\Protocol.cs" />
     <Compile Include="MainFormTabs\MainFormTab_Service.cs" />
     <Page Include="MainWindow.xaml">

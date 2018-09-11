@@ -23,7 +23,6 @@ namespace Pulse_PLC_Tools_2._0
     /// </summary>
     /// 
 
-    public enum Msg_Direction : int { Send, Receive }
     public enum Status_Img : int { Connected, Disconnected, Access_Read, Access_Write }
 
     public partial class MainWindow : Window
@@ -31,7 +30,8 @@ namespace Pulse_PLC_Tools_2._0
         //public MyLink link;
         public ILink link;
         public Protocol protocol;
-        public Command_Buffer CMD_Buffer;
+        //public Command_Buffer CMD_Buffer;
+        public CommandBuffer CMD_Buffer;
         //Конфигурация
         public DeviceConfig deviceConfig;
         //Таблица PLC
@@ -98,7 +98,8 @@ namespace Pulse_PLC_Tools_2._0
 
             //Канал связи
             //link = new MyLink(this);
-            CMD_Buffer = new Command_Buffer(protocol);
+            //CMD_Buffer = new Command_Buffer(protocol);
+            CMD_Buffer = new CommandBuffer(protocol);
             //Обработчик сообщений из буффера команд
             CMD_Buffer.StringMessage += MessageInput;
             CMD_Buffer.CommandSended += CommandSended;
