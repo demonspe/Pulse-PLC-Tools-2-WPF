@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinkLibrary;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -54,30 +55,29 @@ namespace Pulse_PLC_Tools_2._0
             //Если выбран COM порт в качестве канала связи
             if ((bool)radioButton_COM.IsChecked)
             {
-                if (comboBox_COM.Text == "") { Log_Add_Line("Порт не выбран", Msg_Type.Warning); return; }
+                if (comboBox_COM.Text == "") { Log_Add_Line_String("Порт не выбран", MessageType.Warning); return; }
                 link = new LinkCOM(comboBox_COM.Text);
                 //Обработчики событий
                 link.Connected += Link_Opened;
                 link.Disconnected += Link_Closed;
-                link.DataRecieved += protocol.DateRecieved;
+                ((LinkCOM)link).Message += MessageInput;
 
-                if (!link.Connect()) Log_Add_Line("Порт занят", Msg_Type.Warning);
+                if (!link.Connect()) Log_Add_Line_String("Порт занят", MessageType.Warning);
                 return;
             }
             if ((bool)radioButton_GSM.IsChecked)
             {
-                if (comboBox_COM.Text == "") { Log_Add_Line("Порт не выбран", Msg_Type.Warning); return; }
+                if (comboBox_COM.Text == "") { Log_Add_Line_String("Порт не выбран", MessageType.Warning); return; }
                 link = new LinkGSM(comboBox_COM.Text, 30000);
                 ((LinkGSM)link).PhoneNumber = textBoxPhoneNumber.Text;
-                ((LinkGSM)link).ServiceMessage += MessageInput;
 
                 //Обработчики событий
                 link.Connected += Link_Opened;
                 link.Disconnected += Link_Closed;
-                link.DataRecieved += protocol.DateRecieved;
+                ((LinkGSM)link).Message += MessageInput;
 
                 //((LinkGSM)link).Initialize();
-                if (!link.Connect()) Log_Add_Line("Порт занят", Msg_Type.Warning);
+                if (!link.Connect()) Log_Add_Line_String("Порт занят", MessageType.Warning);
                 return;
             }
 
@@ -100,9 +100,10 @@ namespace Pulse_PLC_Tools_2._0
             }));
             
             Set_Connection_StatusBar(Status_Img.Connected, link.ConnectionString);
+
             //Отправим сообщение в статус бар
-            msg("Открыт канал связи [" + link.ConnectionString + "]");
-            Log_Add_Line("Открыт канал связи [" + link.ConnectionString + "]", Msg_Type.Normal);
+            //msg("Открыт канал связи [" + link.ConnectionString + "]");
+            //Log_Add_Line("Открыт канал связи [" + link.ConnectionString + "]", Msg_Type.Normal);
 
             //CMD_Buffer.Add_CMD(Command_type.Search_Devices, link, null, 0);
             //CMD_Buffer.Add_CMD(Command_type.Close_Session, link, null, 0);
@@ -119,7 +120,7 @@ namespace Pulse_PLC_Tools_2._0
             mainForm.Set_Connection_StatusBar(Status_Img.Disconnected, "");
             //Сообщение о закрытии
             mainForm.msg("Порт закрыт");
-            mainForm.Log_Add_Line("Канал связи закрыт", Msg_Type.Normal);
+            mainForm.Log_Add_Line_String("Канал связи закрыт", MessageType.Normal);
         }
 
         private void CommandSended(object sender, EventArgs e)

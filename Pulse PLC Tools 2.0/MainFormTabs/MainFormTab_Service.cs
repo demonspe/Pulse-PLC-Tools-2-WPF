@@ -21,9 +21,9 @@ namespace Pulse_PLC_Tools_2._0
             UInt16 adrs_eep;
             if (UInt16.TryParse(textBox_Adrs_EEPROM.Text, out adrs_eep))
             {
-                CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
-                CMD_Buffer.Add_CMD(Commands.EEPROM_Read_Byte, link, adrs_eep, 0);
-                CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+                CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
+                CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.EEPROM_Read_Byte, adrs_eep, 0);
+                CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
             }
             else MessageBox.Show("Введите корректный адрес в пределах от 0 до 65535");
         }
@@ -38,9 +38,9 @@ namespace Pulse_PLC_Tools_2._0
                 {
                     serial_bytes[i] = Convert.ToByte(serial_string.Substring(i * 2, 2));
                 }
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Commands.SerialWrite, link, serial_bytes, 0);
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.SerialWrite, serial_bytes, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
 
         //создаем регулярное выражение, описывающее правило ввода

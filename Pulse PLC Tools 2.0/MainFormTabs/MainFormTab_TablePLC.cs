@@ -103,25 +103,25 @@ namespace Pulse_PLC_Tools_2._0
         private void Button_PLC_Table_Read_En(object sender, RoutedEventArgs e)
         {
             PLC_Table_Refresh();
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Commands.Read_PLC_Table, link, new byte[] { 0 }, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Read_PLC_Table, new byte[] { 0 }, 0);
         }
         //Кнопка "Прочитать все"
         private void Button_PLC_Table_Read_All(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
             dataGrid_PLC_Table.SelectAll();
-            PLC_Table_Send_Data_Request(Commands.Read_PLC_Table, PLC_Table_Get_Selected_Items());
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            PLC_Table_Send_Data_Request(PulsePLCv2Commands.Read_PLC_Table, PLC_Table_Get_Selected_Items());
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
         //Кнопка "Записать все"
         private void Button_PLC_Table_Write_All(object sender, RoutedEventArgs e)
         {
             PLC_Table_Refresh();
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
             dataGrid_PLC_Table.SelectAll();
-            PLC_Table_Send_Data_Request(Commands.Write_PLC_Table, PLC_Table_Get_Selected_Items());
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            PLC_Table_Send_Data_Request(PulsePLCv2Commands.Write_PLC_Table, PLC_Table_Get_Selected_Items());
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
 
         //Контекстное меню "Запрос по PLC -> Проверка связи"
@@ -153,7 +153,7 @@ namespace Pulse_PLC_Tools_2._0
         private void PLC_Request_Send_Selected(PLC_Request plc_request_type)
         {
             PLC_Table_Refresh();
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
             byte[] selected_ = PLC_Table_Get_Selected_Items();
             for (int i = 0; i < selected_[0]; i++)
             {
@@ -163,10 +163,10 @@ namespace Pulse_PLC_Tools_2._0
                 byte st3 = plc_table[selected_[i + 1] - 1].S3;
                 byte st4 = plc_table[selected_[i + 1] - 1].S4;
                 byte st5 = plc_table[selected_[i + 1] - 1].S5;
-                CMD_Buffer.Add_CMD(Commands.Request_PLC, link, new byte[] { (byte)plc_request_type, selected_[i + 1], n_st, st1, st2, st3, st4, st5 }, 0);
-                PLC_Table_Send_Data_Request(Commands.Read_PLC_Table, new byte[] { 1, selected_[i + 1] });
+                CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Request_PLC, new byte[] { (byte)plc_request_type, selected_[i + 1], n_st, st1, st2, st3, st4, st5 }, 0);
+                PLC_Table_Send_Data_Request(PulsePLCv2Commands.Read_PLC_Table, new byte[] { 1, selected_[i + 1] });
             }
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
         //Контекстное меню "Очистить таблицу"
         private void menuItem_PLC_Table_Clear(object sender, RoutedEventArgs e)
@@ -198,17 +198,17 @@ namespace Pulse_PLC_Tools_2._0
         //Контекстное меню "Прочитать выделенное"
         private void menuItem_Read_Selected(object sender, RoutedEventArgs e)
         {
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
-            PLC_Table_Send_Data_Request(Commands.Read_PLC_Table, PLC_Table_Get_Selected_Items());
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
+            PLC_Table_Send_Data_Request(PulsePLCv2Commands.Read_PLC_Table, PLC_Table_Get_Selected_Items());
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
         //Контекстное меню "Записать выделенное"
         private void menuItem_Write_Selected(object sender, RoutedEventArgs e)
         {
             PLC_Table_Refresh();
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
-            PLC_Table_Send_Data_Request(Commands.Write_PLC_Table, PLC_Table_Get_Selected_Items());
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
+            PLC_Table_Send_Data_Request(PulsePLCv2Commands.Write_PLC_Table, PLC_Table_Get_Selected_Items());
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
         //Получить массив с выбранными адресами в таблице
         byte[] PLC_Table_Get_Selected_Items()
@@ -224,15 +224,15 @@ namespace Pulse_PLC_Tools_2._0
             return selected_items;
         }
         //Отправить запросы на чтение/запись маршрутов PLC
-        public void PLC_Table_Send_Data_Request(Commands CMD, byte[] selected_items)
+        public void PLC_Table_Send_Data_Request(PulsePLCv2Commands CMD, byte[] selected_items)
         {
-            if (CMD != Commands.Read_PLC_Table && CMD != Commands.Write_PLC_Table) return;
+            if (CMD != PulsePLCv2Commands.Read_PLC_Table && CMD != PulsePLCv2Commands.Write_PLC_Table) return;
 
             if (selected_items[0] == 0) return;
             //Делим массив на несколько или не делим
             if (selected_items[0] < 10)
             {
-                CMD_Buffer.Add_CMD(CMD, link, selected_items, 0);
+                CMD_Buffer.Add_CMD(link, protocol, (int)CMD, selected_items, 0);
             }
             else
             {
@@ -248,7 +248,7 @@ namespace Pulse_PLC_Tools_2._0
                     {
                         request_params[k + 1] = selected_items[adrs_pntr++];
                     }
-                    CMD_Buffer.Add_CMD(CMD, link, request_params, 0);
+                    CMD_Buffer.Add_CMD(link, protocol, (int)CMD, request_params, 0);
                 }
             }
         }

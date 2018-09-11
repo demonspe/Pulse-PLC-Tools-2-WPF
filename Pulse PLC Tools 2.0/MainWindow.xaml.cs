@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Data;
 using System.Threading;
+using LinkLibrary;
 
 namespace Pulse_PLC_Tools_2._0
 {
@@ -29,8 +30,7 @@ namespace Pulse_PLC_Tools_2._0
     {
         //public MyLink link;
         public ILink link;
-        public Protocol protocol;
-        //public Command_Buffer CMD_Buffer;
+        public PulsePLCv2Protocol protocol;
         public CommandBuffer CMD_Buffer;
         //Конфигурация
         public DeviceConfig deviceConfig;
@@ -83,25 +83,20 @@ namespace Pulse_PLC_Tools_2._0
             bitmap_Access_Write.EndInit();
 
             //Проерка соединения и отображение значком и текста на контролах
-            Thread check_connection = new Thread(Reading_COM_List_Handler);
-            check_connection.IsBackground = true;
-            check_connection.Start();
+            Thread comListUpdate = new Thread(Reading_COM_List_Handler) { IsBackground = true };
+            comListUpdate.Start();
         }
 
         //Форма загружена
         private void mainForm_Loaded(object sender, RoutedEventArgs e)
         {
             //Протокол обмена
-            protocol = new Protocol(this);
-            protocol.LinkMessage += LinkMessageInput;
-            protocol.StringMessage += MessageInput;
-
-            //Канал связи
-            //link = new MyLink(this);
-            //CMD_Buffer = new Command_Buffer(protocol);
-            CMD_Buffer = new CommandBuffer(protocol);
+            protocol = new PulsePLCv2Protocol(this);
+            protocol.Message += MessageInput;
+            
+            CMD_Buffer = new CommandBuffer();
             //Обработчик сообщений из буффера команд
-            CMD_Buffer.StringMessage += MessageInput;
+            CMD_Buffer.Message += MessageInput;
             CMD_Buffer.CommandSended += CommandSended;
             CMD_Buffer.BufferCleared += CommandBufferCleared;
             //Конфигурация
@@ -158,7 +153,6 @@ namespace Pulse_PLC_Tools_2._0
             deviceConfig.Show_On_Form();
 
             PLC_Table_Clear();
-            
         }
 
         //Форма закрывается
@@ -179,8 +173,6 @@ namespace Pulse_PLC_Tools_2._0
                 e.Cancel = true;
             }
         }
-
-        
 
         //
         // Отображение сообщений и статусов
@@ -224,7 +216,7 @@ namespace Pulse_PLC_Tools_2._0
             PLC_Table_Refresh();
             byte[] selected_ = PLC_Table_Get_Selected_Items();
             if (selected_[0] == 0) return;
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
             for (int i = 0; i < selected_[0]; i++)
             {
                 byte n_st = plc_table[selected_[i + 1] - 1].N;
@@ -233,27 +225,27 @@ namespace Pulse_PLC_Tools_2._0
                 byte st3 = plc_table[selected_[i + 1] - 1].S3;
                 byte st4 = plc_table[selected_[i + 1] - 1].S4;
                 byte st5 = plc_table[selected_[i + 1] - 1].S5;
-                CMD_Buffer.Add_CMD(Commands.Request_PLC, link, new byte[] { selected_[i + 1], n_st, st1, st2, st3, st4, st5 }, 0);
-                PLC_Table_Send_Data_Request(Commands.Read_PLC_Table, new byte[] { 1, selected_[i + 1] });
+                CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Request_PLC, new byte[] { selected_[i + 1], n_st, st1, st2, st3, st4, st5 }, 0);
+                PLC_Table_Send_Data_Request(PulsePLCv2Commands.Read_PLC_Table, new byte[] { 1, selected_[i + 1] });
             }
             //PLC_Table_Send_Data_Request(Command_type.Read_PLC_Table, selected_);
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
         public void hotKey_Ctrl_M_Monitor_Request()
         {
             treeView_IMPS_Monitor.IsSelected = true;
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
-            CMD_Buffer.Add_CMD(Commands.Read_IMP_extra, link, IMP_type.IMP1, 0);
-            CMD_Buffer.Add_CMD(Commands.Read_IMP_extra, link, IMP_type.IMP2, 0);
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Read_IMP_extra, IMP_type.IMP1, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Read_IMP_extra, IMP_type.IMP2, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
         public void hotKey_Ctrl_R_Read_PLC_Table()
         {
             byte[] selected_ = PLC_Table_Get_Selected_Items();
             if (selected_[0] == 0) return;
-            CMD_Buffer.Add_CMD(Commands.Check_Pass, link, null, 0);
-            PLC_Table_Send_Data_Request(Commands.Read_PLC_Table, selected_);
-            CMD_Buffer.Add_CMD(Commands.Close_Session, link, null, 0);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Check_Pass, null, 0);
+            PLC_Table_Send_Data_Request(PulsePLCv2Commands.Read_PLC_Table, selected_);
+            CMD_Buffer.Add_CMD(link, protocol, (int)PulsePLCv2Commands.Close_Session, null, 0);
         }
         //Обработка нажатия клавиш главной формы
         private void mainForm_KeyDown(object sender, KeyEventArgs e)
