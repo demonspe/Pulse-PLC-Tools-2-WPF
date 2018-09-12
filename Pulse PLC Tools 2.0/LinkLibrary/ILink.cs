@@ -4,24 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Pulse_PLC_Tools_2._0
+namespace LinkLibrary
 {
-    public enum Msg_Type : int { Error, Warning, Normal, NormalBold, Good, ToolBarInfo, MsgBox }
-    public enum Msg_Direction : int { Send, Receive }
-
-    public class StringMessageEventArgs : EventArgs
-    {
-        public Msg_Type MessageType { get; set; }
-        public string MessageString { get; set; }
-    }
-
-    public class LinkMessageEventArgs : EventArgs
-    {
-        public byte[] Data { get; set; }
-        public int Length { get; set; }
-        public Msg_Direction Direction { get; set; }
-    }
-
     public class LinkRxEventArgs : EventArgs
     {
         public byte[] Buffer { get; set; }
@@ -29,7 +13,6 @@ namespace Pulse_PLC_Tools_2._0
 
     public interface ILink
     {
-        event EventHandler<StringMessageEventArgs> ServiceMessage; //Различные сообщения о статусе соединения, ошибках и тд
         event EventHandler<LinkRxEventArgs> DataRecieved;   
         event EventHandler<EventArgs> Connected;
         event EventHandler<EventArgs> Disconnected;

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Pulse_PLC_Tools_2._0
+namespace LinkLibrary
 {
     public static class CRC16
     {

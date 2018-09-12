@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinkLibrary;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,16 +16,12 @@ namespace Pulse_PLC_Tools_2._0
     public partial class MainWindow : Window
     {
         //Обработчик события
-        private void MessageInput(object sender, StringMessageEventArgs e)
+        private void MessageInput(object sender, MessageDataEventArgs e)
         {
-            if (e.MessageType == Msg_Type.ToolBarInfo) { msg(e.MessageString); return; }
-            if (e.MessageType == Msg_Type.MsgBox) { MessageBox.Show(e.MessageString); return; }
-            Log_Add_Line(e.MessageString, e.MessageType);
-        }
-        //Обработчик события 
-        private void LinkMessageInput(object sender, LinkMessageEventArgs e)
-        {
-            debug_Log_Add_Line(e.Data, e.Length, e.Direction);
+            if (e.MessageType == MessageType.ToolBarInfo) { msg(e.MessageString); return; }
+            if (e.MessageType == MessageType.MsgBox) { MessageBox.Show(e.MessageString); return; }
+            if (e.MessageType == MessageType.SendBytes || e.MessageType == MessageType.SendBytes) { Log_Add_Line_Bytes(e.Data, e.Length, e.MessageType); return; }
+            Log_Add_Line_String(e.MessageString, e.MessageType);
         }
         
         //**********************************************
@@ -32,7 +29,7 @@ namespace Pulse_PLC_Tools_2._0
         //___________________________________________
         //
         //Метод для добавления строк в текстовый блок
-        public void debug_Log_Add_Line(byte[] msg, int count, Msg_Direction msg_Dir)
+        public void Log_Add_Line_Bytes(byte[] msg, int count, MessageType msg_Dir)
         {
             //Цвет зависит от направления данных
             Brush br;
@@ -41,17 +38,15 @@ namespace Pulse_PLC_Tools_2._0
 
             switch (msg_Dir)
             {
-                case Msg_Direction.Send:
+                case MessageType.SendBytes:
                     br = Brushes.Orange;
                     msgIcon = "->" + link.ConnectionString;
                     break;
-                case Msg_Direction.Receive:
+                case MessageType.ReceiveBytes:
                     br = Brushes.Blue;
                     msgIcon = "<-" + link.ConnectionString;
                     break;
-                default:
-                    br = Brushes.Black;
-                    break;
+                default: return;
             }
 
             //Если есть массив для отображения
@@ -83,7 +78,7 @@ namespace Pulse_PLC_Tools_2._0
                 textBox_Log_Debug.ScrollToEnd();
             }));
         }
-        public void Log_Add_Line(string msg, Msg_Type msg_Type)
+        public void Log_Add_Line_String(string msg, MessageType msg_Type)
         {
             //Цвет зависит от направления данных
             Brush br;
@@ -92,35 +87,33 @@ namespace Pulse_PLC_Tools_2._0
             bool bold = false;
             switch (msg_Type)
             {
-                case Msg_Type.Error:
+                case MessageType.Error:
                     br = Brushes.Red;
                     msgMain = (string)msg;
                     msgIcon = "[err]";
                     break;
-                case Msg_Type.Warning:
+                case MessageType.Warning:
                     br = Brushes.DarkOrange;
                     msgMain = (string)msg;
                     msgIcon = "(!)";
                     break;
-                case Msg_Type.Normal:
+                case MessageType.Normal:
                     br = Brushes.Black;
                     msgMain = (string)msg;
                     msgIcon = "--";
                     break;
-                case Msg_Type.NormalBold:
+                case MessageType.NormalBold:
                     br = Brushes.Black;
                     msgMain = (string)msg;
                     msgIcon = "--";
                     bold = true;
                     break;
-                case Msg_Type.Good:
+                case MessageType.Good:
                     br = Brushes.Green;
                     msgMain = (string)msg;
                     msgIcon = "[OK]";
                     break;
-                default:
-                    br = Brushes.Black;
-                    break;
+                default: return;
             }
             //Выводим информацию
             this.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {

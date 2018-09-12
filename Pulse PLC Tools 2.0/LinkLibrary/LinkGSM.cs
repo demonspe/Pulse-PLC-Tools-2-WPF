@@ -5,7 +5,7 @@ using System.Threading;
 using System.IO.Ports;
 using System.Text.RegularExpressions;
 
-namespace Pulse_PLC_Tools_2._0
+namespace LinkLibrary
 {
     public class LinkGSM : ILink
     {
@@ -19,7 +19,7 @@ namespace Pulse_PLC_Tools_2._0
         public event EventHandler<LinkRxEventArgs> DataRecieved;
         public event EventHandler<EventArgs> Connected;
         public event EventHandler<EventArgs> Disconnected;
-        public event EventHandler<StringMessageEventArgs> ServiceMessage;
+        public event EventHandler<MessageDataEventArgs> Message;
 
         private int linkTimeout = 5000;
         private SerialPort port;
@@ -61,7 +61,7 @@ namespace Pulse_PLC_Tools_2._0
             if (port.IsOpen)
             {
                 string modemMessage = "Calling " + phoneNumber + ", try: " + currentTryCount.ToString() + " of: " + tryCount.ToString();
-                ServiceMessage(this, new StringMessageEventArgs() { MessageString = modemMessage, MessageType = Msg_Type.Normal });
+                Message(this, new MessageDataEventArgs() { MessageString = modemMessage, MessageType = MessageType.Normal });
 
                 byte[] callString = Encoding.Default.GetBytes("ATDP" + phoneNumber + "\r");
                 Send(callString);
@@ -112,7 +112,7 @@ namespace Pulse_PLC_Tools_2._0
             }
             catch (Exception ex)
             {
-                ServiceMessage(this, new StringMessageEventArgs { MessageString = ex.Message, MessageType = Msg_Type.Error });
+                Message(this, new MessageDataEventArgs { MessageString = ex.Message, MessageType = MessageType.Error });
                 return false;
             }
         }
@@ -145,7 +145,7 @@ namespace Pulse_PLC_Tools_2._0
             {
                 isConnected = true;
                 Connected(this, null);
-                ServiceMessage(this, new StringMessageEventArgs { MessageString = strBuf, MessageType = Msg_Type.Normal });
+                Message(this, new MessageDataEventArgs { MessageString = strBuf, MessageType = MessageType.Normal });
                 currentTryCount = 1;
                 buf = null;
                 return;
@@ -153,14 +153,14 @@ namespace Pulse_PLC_Tools_2._0
 
             if (strBuf.StartsWith("DIA") || strBuf.StartsWith("RIN"))
             {
-                ServiceMessage(this, new StringMessageEventArgs { MessageString = strBuf, MessageType = Msg_Type.Normal });
+                Message(this, new MessageDataEventArgs { MessageString = strBuf, MessageType = MessageType.Normal });
                 buf = null;
                 return;
             }
 
             if ((strBuf.StartsWith("NO") || strBuf.StartsWith("BUS")))
             {
-                ServiceMessage(this, new StringMessageEventArgs { MessageString = strBuf, MessageType = Msg_Type.Normal });
+                Message(this, new MessageDataEventArgs { MessageString = strBuf, MessageType = MessageType.Normal });
                 if (!isConnected)
                 {
                     if (currentTryCount <= tryCount)
@@ -178,11 +178,12 @@ namespace Pulse_PLC_Tools_2._0
                 {
                     Disconnected(this, null);
                 }
+                return;
             }
 
             if (strBuf.StartsWith("ATDP"))
             {
-                ServiceMessage(this, new StringMessageEventArgs { MessageString = strBuf, MessageType = Msg_Type.Normal });
+                Message(this, new MessageDataEventArgs { MessageString = strBuf, MessageType = MessageType.Normal });
                 buf = null;
                 return;
             }
@@ -213,10 +214,7 @@ namespace Pulse_PLC_Tools_2._0
                 return;
             }
 
-            else
-            {
-                DataRecieved(this, new LinkRxEventArgs() { Buffer = buf });
-            }
+            DataRecieved(this, new LinkRxEventArgs() { Buffer = buf });
 
             buf = null;
         }
@@ -243,7 +241,7 @@ namespace Pulse_PLC_Tools_2._0
 
             conString += "; " + vendor + "; Уровень сигнала: " + signalStrenght.ToString() + "%";
 
-            ServiceMessage(this, new StringMessageEventArgs { MessageString = conString, MessageType = Msg_Type.Normal });
+            Message(this, new MessageDataEventArgs { MessageString = conString, MessageType = MessageType.Normal });
 
         }
 
@@ -260,8 +258,8 @@ namespace Pulse_PLC_Tools_2._0
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             timer.Stop();
-            byte[] message = Encoding.Default.GetBytes("No answer from modem in " + (timer.Interval / 1000).ToString("#.0") + " sec.");
-            DataRecieved(this, new LinkRxEventArgs() { Buffer = message });
+            string message = "No answer from modem in " + (timer.Interval / 1000).ToString("#.0") + " sec.";
+            Message(this, new MessageDataEventArgs() { MessageString = message, MessageType = MessageType.Error });
         }
 
         private void InitTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
