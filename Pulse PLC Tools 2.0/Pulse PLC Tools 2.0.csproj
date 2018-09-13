@@ -111,7 +111,9 @@
     <Compile Include="MainFormTabs\MainFormTab_MainParams.cs" />
     <Compile Include="MyClasses\Protocol.cs" />
     <Compile Include="MainFormTabs\MainFormTab_Service.cs" />
+    <Compile Include="ViewModel\DeviceMainParams.cs" />
     <Compile Include="ViewModel\ImpParams.cs" />
+    <Compile Include="ViewModel\LinkVM.cs" />
     <Compile Include="ViewModel\MainVM.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
