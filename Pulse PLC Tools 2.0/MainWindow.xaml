@@ -595,9 +595,9 @@
                 <TabItem  x:Name="tab_IMPS_Monitor" Header="IMPS_Monitor" Margin="0">
                     <Grid Margin="-4">
                         <Button x:Name="button_Read_Imp1_Extra" Content="Прочитать IMP1" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="177" Click="button_Read_Imp1_Extra_Click_1"/>
-                        <Label x:Name="label_Imp1_Extra" Content="Текущие значения:" Height="100" Margin="10,39,729,346"/>
+                        <Label x:Name="label_Imp1_Extra" Content="Текущие значения:" Height="100" Margin="10,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="204"/>
                         <Button x:Name="button_Read_Imp1_Extra_Copy" Content="Прочитать IMP2" HorizontalAlignment="Left" Margin="219,12,0,0" VerticalAlignment="Top" Width="177" Click="button_Read_Imp2_Extra_Click_1"/>
-                        <Label x:Name="label_Imp2_Extra" Content="Текущие значения:" Height="100" Margin="219,39,520,346"/>
+                        <Label x:Name="label_Imp2_Extra" Content="Текущие значения:" Height="100" Margin="219,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="214"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="tab_About" Header="О программе" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="100">
