@@ -1,0 +1,26 @@
+﻿<UserControl x:Class="Pulse_PLC_Tools_2.PageDateTime"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.DataContext>
+        <local:MainVM/>
+    </UserControl.DataContext>
+    <Grid Margin="-4">
+        <StackPanel Margin="5" Width="200" HorizontalAlignment="Left">
+            <TextBlock FontSize="18">Дата/Время</TextBlock>
+            <TextBlock>На устройстве</TextBlock>
+            <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.DeviceDateTime, Mode=OneWay}"/>
+            <TextBlock>На компьютере</TextBlock>
+            <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.PCDateTime, Mode=OneWay}"/>
+            <TextBlock>Разница в секундах</TextBlock>
+            <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.Difference, Mode=OneWay}"/>
+            <Button>Прочитать</Button>
+            <Button>Записать</Button>
+            <Button>Корректровать</Button>
+        </StackPanel>
+    </Grid>
+</UserControl>
