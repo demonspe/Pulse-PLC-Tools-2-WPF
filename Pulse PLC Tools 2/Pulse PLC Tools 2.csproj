@@ -75,6 +75,48 @@
     <Compile Include="Model\LinkLibrary\IProtocol.cs" />
     <Compile Include="Model\LinkLibrary\LinkCOM.cs" />
     <Compile Include="Model\LinkLibrary\LinkGSM.cs" />
+    <Compile Include="MyTimePicker.xaml.cs">
+      <DependentUpon>MyTimePicker.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\DebugLog.xaml.cs">
+      <DependentUpon>DebugLog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageAbout.xaml.cs">
+      <DependentUpon>PageAbout.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageImp1.xaml.cs">
+      <DependentUpon>PageImp1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageImp2.xaml.cs">
+      <DependentUpon>PageImp2.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageImpsMonitor.xaml.cs">
+      <DependentUpon>PageImpsMonitor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageLogConfig.xaml.cs">
+      <DependentUpon>PageLogConfig.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageLogInterfaces.xaml.cs">
+      <DependentUpon>PageLogInterfaces.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageLogPower.xaml.cs">
+      <DependentUpon>PageLogPower.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageLogRequests.xaml.cs">
+      <DependentUpon>PageLogRequests.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageMainParams.xaml.cs">
+      <DependentUpon>PageMainParams.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageService.xaml.cs">
+      <DependentUpon>PageService.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageTableData.xaml.cs">
+      <DependentUpon>PageTableData.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PageTablePLC.xaml.cs">
+      <DependentUpon>PageTablePLC.xaml</DependentUpon>
+    </Compile>
     <None Include="Model\ProtocolPulsePLCv2.cs" />
     <Compile Include="View\PageDateTime.xaml.cs">
       <DependentUpon>PageDateTime.xaml</DependentUpon>
@@ -99,11 +141,67 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="MyTimePicker.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\DebugLog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageAbout.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\PageDateTime.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\PageImp1.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageImp2.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageImpsMonitor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\PageLink.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageLogConfig.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageLogInterfaces.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageLogPower.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageLogRequests.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageMainParams.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageService.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageTableData.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PageTablePLC.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -151,16 +249,16 @@
     <Resource Include="Pics\diskette32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Pics\down32_White.png" />
+    <Resource Include="View\Pics\down32_White.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Pics\folder32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Pics\garbage32_White.png" />
+    <Resource Include="View\Pics\garbage32_White.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Pics\glasses_50_white.png" />
+    <Resource Include="View\Pics\glasses_50_white.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Pics\green.png" />
@@ -175,13 +273,13 @@
     <Resource Include="Pics\search_link.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Pics\up32_White.png" />
+    <Resource Include="View\Pics\up32_White.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Pics\user32_white.png" />
+    <Resource Include="View\Pics\user32_white.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Pics\входы.png">
+    <Resource Include="View\Pics\входы.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

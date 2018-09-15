@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="Pulse_PLC_Tools_2.PageImpsMonitor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="-4">
+        <Button x:Name="button_Read_Imp1_Extra" Content="Прочитать IMP1" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="177" />
+        <Label x:Name="label_Imp1_Extra" Content="Текущие значения:" Height="100" Margin="10,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="204"/>
+        <Button x:Name="button_Read_Imp1_Extra_Copy" Content="Прочитать IMP2" HorizontalAlignment="Left" Margin="219,12,0,0" VerticalAlignment="Top" Width="177" />
+        <Label x:Name="label_Imp2_Extra" Content="Текущие значения:" Height="100" Margin="219,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="214"/>
+    </Grid>
+</UserControl>

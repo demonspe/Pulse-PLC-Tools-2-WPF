@@ -1,0 +1,197 @@
+﻿<UserControl x:Class="Pulse_PLC_Tools_2.PageImp1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.DataContext>
+        <local:MainVM/>
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="-4">
+        <Image HorizontalAlignment="Left" Width="259" Source="Pics/входы.png" Margin="-14,0,0,0" Height="395" VerticalAlignment="Top"/>
+        <GroupBox x:Name="groupBox_IMP1" Header="                                       " HorizontalAlignment="Left" Height="350" VerticalAlignment="Top" Width="847" Margin="201,0,0,0">
+            <Grid Background="#00F9F9F9" >
+                <Label Content="Aдрес PLC" HorizontalAlignment="Left" Margin="13,7,0,0" VerticalAlignment="Top" Width="87"/>
+                <TextBox Text="{Binding Imp1.Adrs_PLC}" HorizontalAlignment="Left" Height="23" Margin="107,10,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="80"/>
+                <GroupBox Header="Тарифное расписание" Height="290" Margin="558,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="274">
+                    <StackPanel Margin="5">
+                        <StackPanel.Resources>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Width" Value="26"/>
+                            </Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Width" Value="150"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>Количество тарифов</TextBlock>
+                            <ComboBox SelectedIndex="{Binding Imp1.T_qty_View}" Background="#00E8E7E7">
+                                <ComboBoxItem>Один</ComboBoxItem>
+                                <ComboBoxItem>Два</ComboBoxItem>
+                                <ComboBoxItem>Три</ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>Начало Т1 (утро пик)</TextBlock>
+                            <TextBox Text="{Binding Imp1.T1_Time_1.Hours}" MaxLength="2"/>
+                            <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
+                            <TextBox Text="{Binding Imp1.T1_Time_1.Minutes}" MaxLength="2"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>Начало Т3 (утро полупик)</TextBlock>
+                            <TextBox Text="{Binding Imp1.T3_Time_1.Hours}"/>
+                            <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
+                            <TextBox Text="{Binding Imp1.T3_Time_1.Minutes}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>Начало Т1 (день пик)</TextBlock>
+                            <TextBox Text="{Binding Imp1.T1_Time_2.Hours}"/>
+                            <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
+                            <TextBox Text="{Binding Imp1.T1_Time_2.Minutes}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>Начало Т3 (день полупик)</TextBlock>
+                            <TextBox Text="{Binding Imp1.T3_Time_2.Hours}"/>
+                            <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
+                            <TextBox Text="{Binding Imp1.T3_Time_2.Minutes}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>Начало Т2 (ночь)</TextBlock>
+                            <TextBox Text="{Binding Imp1.T2_Time.Hours}"/>
+                            <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
+                            <TextBox Text="{Binding Imp1.T2_Time.Minutes}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="Показания текущие" HorizontalAlignment="Left" Height="130" Margin="279,0,0,0" VerticalAlignment="Top" Width="274">
+                    <StackPanel Margin="5">
+                        <StackPanel.Resources>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Width" Value="120"></Setter>
+                            </Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Width" Value="120"></Setter>
+                            </Style>
+                        </StackPanel.Resources>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ тариф 1 (кВт*ч)</TextBlock>
+                            <TextBox Text="{Binding Imp1.E_T1.Value_kWt}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ тариф 2 (кВт*ч)</TextBlock>
+                            <TextBox Text="{Binding Imp1.E_T2.Value_kWt}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ тариф 3 (кВт*ч)</TextBlock>
+                            <TextBox Text="{Binding Imp1.E_T3.Value_kWt}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ сумма (кВт*ч)</TextBlock>
+                            <TextBlock Text="{Binding Imp1.E_Tsum_kWt}" FontWeight="Black"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                </GroupBox>
+                <GroupBox Header="Показания на начало суток" HorizontalAlignment="Left" Height="110" Margin="279,130,0,0" VerticalAlignment="Top" Width="274">
+                    <StackPanel Margin="5">
+                        <StackPanel.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Width" Value="120"></Setter>
+                            </Style>
+                        </StackPanel.Resources>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ тариф 1 (кВт*ч)</TextBlock>
+                            <TextBlock Text="{Binding Imp1.E_T1_Start.Value_kWt}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ тариф 2 (кВт*ч)</TextBlock>
+                            <TextBlock Text="{Binding Imp1.E_T2_Start.Value_kWt}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ тариф 3 (кВт*ч)</TextBlock>
+                            <TextBlock Text="{Binding Imp1.E_T3_Start.Value_kWt}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock>E+ сумма (кВт*ч)</TextBlock>
+                            <TextBlock Text="{Binding Imp1.E_Tsum_Start_kWt}" FontWeight="Black"/>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="Протокол (на верхний уровень) RS485" HorizontalAlignment="Left" Height="110" Margin="5,120,0,0" VerticalAlignment="Top" Width="269">
+                    <Grid>
+                        <TextBox Text="{Binding Imp1.Ascue_adrs}" ToolTip="Адрес устройства для протокола обмена (от 1 до 65535)" HorizontalAlignment="Left" Height="23" Margin="95,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140"/>
+                        <Label Content="Сетевой адрес" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="90"/>
+                        <TextBox Text="{Binding Imp1.Ascue_pass_View}" MaxLength="6" ToolTip="Пароль доступа для протокола обмена (6 символов)" HorizontalAlignment="Left" Height="23" Margin="95,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140"/>
+                        <Label Content="Пароль" HorizontalAlignment="Left" Margin="0,33,0,0" VerticalAlignment="Top" Width="90"/>
+                        <Label Content="Тип" HorizontalAlignment="Left" Margin="0,59,0,0" VerticalAlignment="Top" Width="90"/>
+                        <ComboBox SelectedIndex="{Binding Imp1.Ascue_protocol}" ToolTip="Протокол, по которому будет происходить опрос с верхнего уровня через RS485" HorizontalAlignment="Left" VerticalAlignment="Top" Width="184" Background="#00E8E7E7" Margin="51,61,0,0">
+                            <ComboBoxItem>Pulse PLC</ComboBoxItem>
+                            <ComboBoxItem>Pulse PLC + Mercury 230ART</ComboBoxItem>
+                            <!-- Pulse PLC + Modbus RTU -->
+                            <!-- Pulse PLC + Energomera -->
+                        </ComboBox>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Контроль нагрузки" HorizontalAlignment="Left" Height="60" Margin="5,230,0,0" VerticalAlignment="Top" Width="269">
+                    <Grid>
+                        <TextBox Text="{Binding Imp1.Max_Power}" ToolTip="Макс. мощность от 0 до 65535 Вт (в течение 30 секунд)" HorizontalAlignment="Left" Height="23" Margin="106,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="90"/>
+                        <Label Content="Макс. мощность" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="128"/>
+                        <Label Content=" Вт" HorizontalAlignment="Left" Margin="201,7,0,0" VerticalAlignment="Top" Width="46" />
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Измерения" HorizontalAlignment="Left" Height="82" Margin="10,38,0,0" VerticalAlignment="Top" Width="264">
+                    <Grid>
+                        <TextBox Text="{Binding Imp1.A}" HorizontalAlignment="Left" Height="23" Margin="93,7,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80"/>
+                        <Label Content="A" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="84"/>
+                        <Label Content="имп/кВт*ч" HorizontalAlignment="Left" Margin="178,4,0,0" VerticalAlignment="Top" Width="66" />
+                        <Label Content="Разрядность" HorizontalAlignment="Left" Margin="4,30,0,0" VerticalAlignment="Top" Width="84"/>
+                        <ComboBox SelectedIndex="{Binding Imp1.Perepoln_View}" HorizontalAlignment="Left" Margin="93,34,0,0" VerticalAlignment="Top" Width="120" Background="#00E8E7E7">
+                            <ComboBoxItem>Без сброса</ComboBoxItem>
+                            <ComboBoxItem>99 999,99</ComboBoxItem>
+                            <ComboBoxItem>999 999,99</ComboBoxItem>
+                        </ComboBox>
+
+                    </Grid>
+                </GroupBox>
+                <Label Content="от 1 до 250" HorizontalAlignment="Left" Margin="192,7,0,0" VerticalAlignment="Top" Width="82" />
+            </Grid>
+        </GroupBox>
+        <CheckBox x:Name="checkBox_IMP1_On" Content="Импульсный вход 1" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top"/>
+        <Rectangle x:Name="draw_Imp2_double" HorizontalAlignment="Left" Height="34" Stroke="Black" VerticalAlignment="Top" Width="62" Margin="113,108,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="0">
+            <Rectangle.Fill>
+                <SolidColorBrush Color="#B2808080"/>
+            </Rectangle.Fill>
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleX="-30"/>
+                    <RotateTransform Angle="24.802"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="draw_Imp1_line1" Fill="#B2808080" HorizontalAlignment="Left" Height="124" Margin="87,9,0,0" VerticalAlignment="Top" Width="2"/>
+        <Rectangle x:Name="draw_Imp1_line2" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="87,7,0,0" VerticalAlignment="Top" Width="122"/>
+        <Rectangle x:Name="draw_Imp1_line3" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="97,182,0,0" VerticalAlignment="Top" Width="110"/>
+        <Rectangle x:Name="draw_Imp1_line4" Fill="#B2808080" HorizontalAlignment="Left" Height="100" Margin="207,145,0,0" VerticalAlignment="Top" Width="2"/>
+        <Rectangle x:Name="draw_Imp1" Fill="#B2808080" HorizontalAlignment="Left" Height="36" Width="62" Stroke="Black" VerticalAlignment="Top" Margin="81,130,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="2">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleX="-29"/>
+                    <RotateTransform Angle="25"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Button x:Name="button_Read_Imp1" Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" />
+        <Button x:Name="button_Write_Imp1" Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75"/>
+    </Grid>
+</UserControl>
