@@ -68,6 +68,8 @@
     </ApplicationDefinition>
     <Compile Include="Model\BLLinkManager.cs" />
     <Compile Include="Model\BLProtocolManager.cs" />
+    <Compile Include="Model\DataGridRow_Log.cs" />
+    <Compile Include="Model\DataGridRow_PLC.cs" />
     <Compile Include="Model\LinkLibrary\CommandBuffer.cs" />
     <Compile Include="Model\LinkLibrary\CRC16.cs" />
     <Compile Include="Model\LinkLibrary\ILink.cs" />
@@ -75,9 +77,7 @@
     <Compile Include="Model\LinkLibrary\IProtocol.cs" />
     <Compile Include="Model\LinkLibrary\LinkCOM.cs" />
     <Compile Include="Model\LinkLibrary\LinkGSM.cs" />
-    <Compile Include="MyTimePicker.xaml.cs">
-      <DependentUpon>MyTimePicker.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="ViewModel\PLCTableVM.cs" />
     <Compile Include="View\DebugLog.xaml.cs">
       <DependentUpon>DebugLog.xaml</DependentUpon>
     </Compile>
@@ -141,10 +141,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="MyTimePicker.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="View\DebugLog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

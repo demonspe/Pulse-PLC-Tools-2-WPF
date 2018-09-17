@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="1050">
     <UserControl.DataContext>
         <local:MainVM/>
     </UserControl.DataContext>
@@ -157,13 +157,12 @@
                             <ComboBoxItem>99 999,99</ComboBoxItem>
                             <ComboBoxItem>999 999,99</ComboBoxItem>
                         </ComboBox>
-
                     </Grid>
                 </GroupBox>
                 <Label Content="от 1 до 250" HorizontalAlignment="Left" Margin="192,7,0,0" VerticalAlignment="Top" Width="82" />
             </Grid>
         </GroupBox>
-        <CheckBox x:Name="checkBox_IMP1_On" Content="Импульсный вход 1" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top"/>
+        <CheckBox IsChecked="{Binding Imp1.IsEnable}" Content="Импульсный вход 1" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top"/>
         <Rectangle x:Name="draw_Imp2_double" HorizontalAlignment="Left" Height="34" Stroke="Black" VerticalAlignment="Top" Width="62" Margin="113,108,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="0">
             <Rectangle.Fill>
                 <SolidColorBrush Color="#B2808080"/>
@@ -191,7 +190,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Button x:Name="button_Read_Imp1" Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" />
-        <Button x:Name="button_Write_Imp1" Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" />
+        <Button Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75"/>
     </Grid>
 </UserControl>

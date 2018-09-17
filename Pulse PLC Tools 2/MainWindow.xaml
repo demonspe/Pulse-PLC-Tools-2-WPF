@@ -90,7 +90,7 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock Width="80" VerticalAlignment="Center">Пароль</TextBlock>
-                            <TextBox Width="130" VerticalAlignment="Center"  Text="{Binding Pass}"></TextBox>
+                            <TextBox Width="130" VerticalAlignment="Center" Text="{Binding Pass}"></TextBox>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

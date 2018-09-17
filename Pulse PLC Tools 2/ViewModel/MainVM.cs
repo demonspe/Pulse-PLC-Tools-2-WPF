@@ -18,6 +18,7 @@ namespace Pulse_PLC_Tools_2
         public ImpParams Imp2 { get; set; }
         public DeviceMainParams Device { get; set; }
 
+
         private string serialNum;
         public string SerialNum { get => serialNum; set { serialNum = value; RaisePropertyChanged(nameof(SerialNum)); } }
         private string pass;
@@ -29,9 +30,31 @@ namespace Pulse_PLC_Tools_2
         //VM
         public LinkVM VM_Link { get; }
         public DateTimeVM VM_DateTime { get; }
-
+        public PLCTableVM VM_PLCTable { get; }
         //Commands
+        //Navigate
         public DelegateCommand<string> CommandGoToPage { get; }
+        //For link
+        public DelegateCommand OpenLink { get; }
+        public DelegateCommand CloseLink { get; }
+        //Files
+        public DelegateCommand SaveFile { get; }
+        public DelegateCommand OpenFile { get; }
+        //For protocol
+        public DelegateCommand Send_SearchDevices { get; }
+        public DelegateCommand Send_ReadAllParams { get; }
+        public DelegateCommand Send_WriteAllParams { get; }
+        public DelegateCommand Send_ReadDateTime { get; }   //Date and Time
+        public DelegateCommand Send_WriteDateTime { get; }
+        public DelegateCommand Send_CorrectDateTime { get; }
+        public DelegateCommand Send_ReadMainParams { get; } //Main Params
+        public DelegateCommand Send_WriteMainParams { get; }
+        public DelegateCommand Send_ClearErrors { get; }
+        public DelegateCommand Send_WritePass { get; }
+        public DelegateCommand Send_ReadImp1 { get; }
+        public DelegateCommand Send_WriteImp1 { get; }
+        public DelegateCommand Send_ReadImp2 { get; }
+        public DelegateCommand Send_WriteImp2 { get; }
 
         public MainVM()
         {
@@ -42,9 +65,13 @@ namespace Pulse_PLC_Tools_2
             //VM
             VM_Link = new LinkVM();
             VM_DateTime = new DateTimeVM();
+            VM_PLCTable = new PLCTableVM();
 
             GoToPage(TabPages.Link);
 
+            VM_PLCTable.TablePLC[1].E_Current.IsCorrect = true;
+            VM_PLCTable.TablePLC[1].E_Current.E_T1_Value.Value_kWt = 130.5;
+            VM_PLCTable.TablePLC[1].IsEnable = true;
             //Commands
             CommandGoToPage = new DelegateCommand<string>(
                  nameItem => {

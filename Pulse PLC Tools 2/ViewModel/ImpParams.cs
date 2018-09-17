@@ -50,43 +50,6 @@ namespace Pulse_PLC_Tools_2
         }
     }
 
-    public class ImpEnergy : BindableBase
-    {
-        public ImpEnergy()
-        {
-            Value_Wt = 0;
-        }
-        public ImpEnergy(uint energyInWth)
-        {
-            Value_Wt = energyInWth;
-        }
-        private uint e; //Энергия в ваттах
-        private double e_kWt; //Энергия в киловатах
-
-        public uint Value_Wt
-        {
-            get => e;
-            set
-            {
-                e = value;
-                e_kWt = (double)e / 1000;
-                RaisePropertyChanged(nameof(Value_Wt));
-                RaisePropertyChanged(nameof(Value_kWt));
-            }
-        }
-        public double Value_kWt
-        {
-            get => e_kWt;
-            set
-            {
-                e_kWt = value;
-                e = Convert.ToUInt32(e_kWt * 1000);
-                RaisePropertyChanged(nameof(Value_Wt));
-                RaisePropertyChanged(nameof(Value_kWt));
-            }
-        }
-    }
-
     public class ImpParams : BindableBase
     {
         private  byte isEnable;      //Включен/отключен
@@ -105,13 +68,13 @@ namespace Pulse_PLC_Tools_2
         public byte IsEnable { get => isEnable; set { isEnable = value; RaisePropertyChanged(nameof(IsEnable)); } }
         public byte Adrs_PLC { get => adrs_PLC; set { adrs_PLC = value; RaisePropertyChanged(nameof(Adrs_PLC)); } }
         public ushort A { get => a; set { a = value; RaisePropertyChanged(nameof(A)); } }
-        public ImpEnergy E_T1 { get; set; }
-        public ImpEnergy E_T2 { get; set; }
-        public ImpEnergy E_T3 { get; set; }
+        public ImpEnergyValue E_T1 { get; set; }
+        public ImpEnergyValue E_T2 { get; set; }
+        public ImpEnergyValue E_T3 { get; set; }
         public double E_Tsum_kWt { get => E_T1.Value_kWt + E_T2.Value_kWt + E_T3.Value_kWt; }
-        public ImpEnergy E_T1_Start { get; set; }
-        public ImpEnergy E_T2_Start { get; set; }
-        public ImpEnergy E_T3_Start { get; set; }
+        public ImpEnergyValue E_T1_Start { get; set; }
+        public ImpEnergyValue E_T2_Start { get; set; }
+        public ImpEnergyValue E_T3_Start { get; set; }
         public double E_Tsum_Start_kWt { get => E_T1_Start.Value_kWt + E_T2_Start.Value_kWt + E_T3_Start.Value_kWt; }
         public ImpOverflowType Perepoln { get => perepoln;
             set {
@@ -197,16 +160,16 @@ namespace Pulse_PLC_Tools_2
             IsEnable = 0;
             A = 1600;
 
-            E_T1 = new ImpEnergy();
-            E_T2 = new ImpEnergy();
-            E_T3 = new ImpEnergy();
+            E_T1 = new ImpEnergyValue();
+            E_T2 = new ImpEnergyValue();
+            E_T3 = new ImpEnergyValue();
             E_T1.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_kWt)); };
             E_T2.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_kWt)); };
             E_T3.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_kWt)); };
 
-            E_T1_Start = new ImpEnergy();
-            E_T2_Start = new ImpEnergy();
-            E_T3_Start = new ImpEnergy();
+            E_T1_Start = new ImpEnergyValue();
+            E_T2_Start = new ImpEnergyValue();
+            E_T3_Start = new ImpEnergyValue();
             E_T1_Start.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_Start_kWt)); };
             E_T2_Start.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_Start_kWt)); };
             E_T3_Start.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_Start_kWt)); };
