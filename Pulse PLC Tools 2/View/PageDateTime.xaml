@@ -15,9 +15,9 @@
             <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.PCDateTime, Mode=OneWay, StringFormat='dd.MM.yy hh:mm:ss'}"/>
             <TextBlock>Разница</TextBlock>
             <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.Difference, Mode=OneWay}"/>
-            <Button>Прочитать</Button>
-            <Button>Записать</Button>
-            <Button>Корректровать</Button>
+            <Button Command="{Binding Send_ReadDateTime}">Прочитать</Button>
+            <Button Command="{Binding Send_WriteDateTime}">Записать</Button>
+            <Button Command="{Binding Send_CorrectDateTime}">Корректровать</Button>
         </StackPanel>
     </Grid>
 </UserControl>

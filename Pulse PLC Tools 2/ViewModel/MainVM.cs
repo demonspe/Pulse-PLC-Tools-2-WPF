@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,6 +41,9 @@ namespace Pulse_PLC_Tools_2
         public LinkVM VM_Link { get; }
         public DateTimeVM VM_DateTime { get; }
 
+        //Model
+        LinkManager LinkManager;
+        ProtocolManager ProtocolManager;
         //Commands
         //Navigate
         public DelegateCommand<string> CommandGoToPage { get; }
@@ -72,36 +76,60 @@ namespace Pulse_PLC_Tools_2
             Imp2 = new ImpParams(2);
             Device = new DeviceMainParams();
             TablePLC = new ObservableCollection<DataGridRow_PLC>();
+            FillTablePLC();
+            //Журналы событий
             JournalPower = new ObservableCollection<DataGridRow_Log>();
             JournalConfig = new ObservableCollection<DataGridRow_Log>();
             JournalInterfaces = new ObservableCollection<DataGridRow_Log>();
             JournalRequestsPLC = new ObservableCollection<DataGridRow_Log>();
-            FillTablePLC();
-            JournalPower.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
-            JournalConfig.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
-            JournalInterfaces.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
-            JournalRequestsPLC.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
-            JournalRequestsPLC.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
-            JournalPower.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
+
             //VM
             VM_Link = new LinkVM();
             VM_DateTime = new DateTimeVM();
-
+            
+            //Model
+            LinkManager = new LinkManager(VM_Link, SynchronizationContext.Current);
+            ProtocolManager = new ProtocolManager(this);
             //
             GoToPage(TabPages.Link);
             
             //Commands
-            CommandGoToPage = new DelegateCommand<string>(
-                 nameItem => {
-                     if (nameItem.Length < 2) return;
-                     int numPage;
-                     if(int.TryParse(nameItem.Substring(nameItem.Length - 2, 2), out numPage))
-                        GoToPage((TabPages)numPage);
-                 });
+            CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
+            //For link
+            OpenLink = new DelegateCommand(LinkManager.OpenLink);
+            CloseLink = new DelegateCommand(LinkManager.CloseLink);
+            //For files
+            SaveFile = new DelegateCommand(() => { MessageBox.Show(nameof(SaveFile)); });
+            OpenFile = new DelegateCommand(() => { MessageBox.Show(nameof(OpenFile)); });
+            //For protocol
+            //Common
+            Send_SearchDevices = new DelegateCommand(ProtocolManager.Send_SearchDevices);
+            Send_ReadAllParams = new DelegateCommand(ProtocolManager.Send_ReadAllParams);
+            Send_WriteAllParams = new DelegateCommand(ProtocolManager.Send_WriteAllParams);
+            //DateTime
+            Send_ReadDateTime = new DelegateCommand(ProtocolManager.Send_ReadDateTime);
+            Send_WriteDateTime = new DelegateCommand(ProtocolManager.Send_WriteDateTime);
+            Send_CorrectDateTime = new DelegateCommand(ProtocolManager.Send_CorrectDateTime);
+            //Main params
+            Send_ReadMainParams = new DelegateCommand(ProtocolManager.Send_ReadMainParams);
+            Send_WriteMainParams = new DelegateCommand(ProtocolManager.Send_WriteMainParams);
+            Send_ClearErrors = new DelegateCommand(ProtocolManager.Send_ClearErrors);
+            Send_WritePass = new DelegateCommand(ProtocolManager.Send_WritePass);
+            //Imps params
+            Send_ReadImp1 = new DelegateCommand(ProtocolManager.Send_ReadImp1);
+            Send_WriteImp1 = new DelegateCommand(ProtocolManager.Send_WriteImp1);
+            Send_ReadImp2 = new DelegateCommand(ProtocolManager.Send_ReadImp2);
+            Send_WriteImp2 = new DelegateCommand(ProtocolManager.Send_WriteImp2);
 
-            
         }
 
+        void GoToPageFromXName(string xNameOfPage)
+        {
+            if (xNameOfPage.Length < 2) return;
+            int numPage;
+            if (int.TryParse(xNameOfPage.Substring(xNameOfPage.Length - 2, 2), out numPage))
+                GoToPage((TabPages)numPage);
+        }
         void GoToPage(TabPages page)
         {
             CurrentPage = (int)page;

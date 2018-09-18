@@ -13,13 +13,13 @@
                     <CheckBox IsChecked="{Binding Device.NewPassRead}" Content="Пароль на чтение" Margin="0,34,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" />
                     <TextBox Text="{Binding Device.PassWrite_View}" MaxLength="6" Margin="127,0,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
                     <TextBox Text="{Binding Device.PassRead_View}" MaxLength="6" Margin="127,30,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
-                    <Button x:Name="button_Write_Pass" Content="Записать новые пароли" Margin="0,61,0,0" Height="22" VerticalAlignment="Top"/>
+                    <Button Command="{Binding Send_WritePass}" Content="Записать новые пароли" Margin="0,61,0,0" Height="22" VerticalAlignment="Top"/>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Ошибки" HorizontalAlignment="Left" Height="171" Margin="265,10,0,0" VerticalAlignment="Top" Width="194">
                 <Grid>
                     <ListView ItemsSource="{Binding Device.ListErrors}" Margin="0,0,0,23"/>
-                    <Button Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top"/>
+                    <Button Command="{Binding Send_ClearErrors}" Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </GroupBox>
             <Label x:Name="label_versions" Content="Версия ПО: " HorizontalAlignment="Left" Margin="265,192,0,0" VerticalAlignment="Top"/>
@@ -57,7 +57,7 @@
 
                 </Grid>
             </GroupBox>
-            <Button x:Name="button_Main_Params_Read" Content="Прочитать" HorizontalAlignment="Left" Margin="10,194,0,0" VerticalAlignment="Top" Width="110" />
-            <Button x:Name="button_Main_Params_Write" Content="Записать" HorizontalAlignment="Left" Margin="123,194,0,0" Width="120" Height="22" VerticalAlignment="Top"/>
+            <Button Command="{Binding Send_ReadMainParams}" Content="Прочитать" HorizontalAlignment="Left" Margin="10,194,0,0" VerticalAlignment="Top" Width="110" />
+            <Button Command="{Binding Send_WriteMainParams}" Content="Записать" HorizontalAlignment="Left" Margin="123,194,0,0" Width="120" Height="22" VerticalAlignment="Top"/>
         </Grid>
 </UserControl>

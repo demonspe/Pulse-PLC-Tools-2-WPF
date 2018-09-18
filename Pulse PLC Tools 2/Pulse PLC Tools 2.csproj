@@ -66,10 +66,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Model\BLLinkManager.cs" />
+    <Compile Include="Model\LinkManager.cs" />
     <Compile Include="Model\BLProtocolManager.cs" />
-    <Compile Include="Model\DataGridRow_Log.cs" />
-    <Compile Include="Model\DataGridRow_PLC.cs" />
+    <Compile Include="Model\ProtocolManager.cs" />
+    <Compile Include="ViewModel\DataGridRow_Log.cs" />
+    <Compile Include="ViewModel\DataGridRow_PLC.cs" />
     <Compile Include="Model\LinkLibrary\CommandBuffer.cs" />
     <Compile Include="Model\LinkLibrary\CRC16.cs" />
     <Compile Include="Model\LinkLibrary\ILink.cs" />

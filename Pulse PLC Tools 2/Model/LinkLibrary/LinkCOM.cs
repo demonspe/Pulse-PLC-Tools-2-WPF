@@ -77,8 +77,13 @@ namespace LinkLibrary
                 }
                 catch
                 {
+                    Message(this, new MessageDataEventArgs() { MessageString = "Не удалось открыть порт.", MessageType = MessageType.Warning });
                     return false;
                 }
+            }
+            else
+            {
+                Message(this, new MessageDataEventArgs() { MessageString = "Не выбран COM порт.", MessageType = MessageType.Warning });
             }
             return false;
         }

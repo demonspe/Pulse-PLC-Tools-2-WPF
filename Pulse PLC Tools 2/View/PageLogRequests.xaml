@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="White" Margin="-4">
         <Button Content="Прочитать журнал опроса PLC" VerticalAlignment="Top" Height="25" Background="{x:Null}"/>
-        <DataGrid x:Name="dataGrid_Log_Requests" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White" Background="{x:Null}">
+        <DataGrid ItemsSource="{Binding JournalRequestsPLC}" Margin="0,25,0,0" AutoGenerateColumns="False" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" AlternatingRowBackground="#FFE8E8E8" RowBackground="White" Background="{x:Null}">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Path=Num}" ClipboardContentBinding="{x:Null}" Header="№" Width="40*" IsReadOnly="True"/>
                 <DataGridTextColumn Binding="{Binding Path=Date}" ClipboardContentBinding="{x:Null}" Header="Адрес - Статус запроса" Width="60*" IsReadOnly="True"/>

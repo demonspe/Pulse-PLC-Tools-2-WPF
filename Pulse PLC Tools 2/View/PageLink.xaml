@@ -7,8 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Margin="-4">
-        <Button x:Name ="button_open_com" Content="Открыть канал связи" Margin="10,115,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1" Command="{Binding VM_Link.CommandOpenLink}"/>
-        <Button x:Name ="button_close_com" Content="Закрыть канал связи" Margin="10,140,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1" Command="{Binding VM_Link.CommandCloseLink}"/>
+        <Label Content="Выберите канал связи с устройством" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"/>
         <GroupBox x:Name="groupBox_link_type" Header="Канал связи" HorizontalAlignment="Left" Height="87" Margin="10,23,0,0" VerticalAlignment="Top" Width="232">
             <StackPanel Orientation="Horizontal">
                 <StackPanel Width="70">
@@ -17,7 +16,7 @@
                     <RadioButton x:Name="radioButton_GSM" Margin="3" Command="{Binding VM_Link.CommandSetLinkType}" CommandParameter="{Binding ElementName=radioButton_GSM, Path=Content}">GSM</RadioButton>
                 </StackPanel>
                 <StackPanel Width="150">
-                    <ComboBox SelectedValue="{Binding VM_Link.SelectedComPort}" ItemsSource="{Binding VM_Link.ComPortList}" Background="{x:Null}" />
+                    <ComboBox Text="{Binding VM_Link.SelectedComPort}" IsEditable="True" ItemsSource="{Binding VM_Link.ComPortList}" Background="{x:Null}" />
                     <StackPanel Orientation="Horizontal">
                         <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.IP_Address}" Width="100" IsEnabled="False"/>
                         <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.TCP_Port}" Width="50" IsEnabled="False"/>
@@ -29,7 +28,8 @@
         <Rectangle Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" Fill="#FFFF9700" Margin="252,50,0,0" HorizontalAlignment="Left" Width="2" Height="45" VerticalAlignment="Top"/>
         <Rectangle Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" Fill="#FFFF9700" Margin="235,93,0,0" HorizontalAlignment="Left" Width="17" Height="2" VerticalAlignment="Top"/>
         <Rectangle Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" Fill="#FFFF9700" Margin="235,50,0,0" Height="2" VerticalAlignment="Top" HorizontalAlignment="Left" Width="17"/>
-        <Label Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" FontSize="10" Foreground="#FFFF9700" Content="Порт модема" HorizontalAlignment="Left" Margin="254,58,0,0" VerticalAlignment="Top"/>
-        <Label Content="Выберите канал связи с устройством" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"/>
+        <Label Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" FontSize="10" Foreground="Black" Content="Порт модема, номер" HorizontalAlignment="Left" Margin="254,58,0,0" VerticalAlignment="Top"/>
+        <Button Command="{Binding OpenLink}" IsEnabled="{Binding VM_Link.ConnectIsEnable}" Content="Открыть канал связи" Margin="10,115,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+        <Button Command="{Binding CloseLink}" IsEnabled="{Binding VM_Link.DisconnectIsEnable}" Content="Закрыть канал связи" Margin="10,140,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
     </Grid>
 </UserControl>

@@ -187,7 +187,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Button Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" />
-        <Button Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button Command="{Binding Send_ReadImp1}" Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" />
+        <Button Command="{Binding Send_WriteImp1}" Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75"/>
     </Grid>
 </UserControl>

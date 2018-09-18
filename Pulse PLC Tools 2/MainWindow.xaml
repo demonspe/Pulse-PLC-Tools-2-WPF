@@ -94,27 +94,27 @@
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button ToolTip="Поиск устройств в канале связи" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                        <Button Command="{Binding Send_SearchDevices}" ToolTip="Поиск устройств в канале связи" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
                             <StackPanel>
                                 <Image Source="Pics/search_link.png" Height="32" Width="32"/>
                             </StackPanel>
                         </Button>
-                        <Button ToolTip="Прочитать всю конфигурацию из памяти устройства" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" >
+                        <Button Command="{Binding Send_ReadAllParams}" ToolTip="Прочитать всю конфигурацию из памяти устройства" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" >
                             <StackPanel>
                                 <Image Source="Pics/boxupload32.png" Height="32" Width="32"/>
                             </StackPanel>
                         </Button>
-                        <Button ToolTip="Записать всю конфигурацию в память устройства" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                        <Button Command="{Binding Send_WriteAllParams}" ToolTip="Записать всю конфигурацию в память устройства" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
                             <StackPanel>
                                 <Image Source="Pics/boxdownload32.png" Height="32" Width="32"/>
                             </StackPanel>
                         </Button>
-                        <Button ToolTip="Сохранить в файл..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                        <Button Command="{Binding SaveFile}" ToolTip="Сохранить в файл..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
                             <StackPanel>
                                 <Image Source="Pics/diskette32.png" Height="28" Width="28"/>
                             </StackPanel>
                         </Button>
-                        <Button ToolTip="Открыть файл..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
+                        <Button Command="{Binding OpenFile}" ToolTip="Открыть файл..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
                             <StackPanel>
                                 <Image Source="Pics/folder32.png" Height="32" Width="32"/>
                             </StackPanel>
@@ -196,7 +196,7 @@
                     <local:PageImpsMonitor/>
                 </TabItem>
                 <TabItem Header="О программе">
-                    <local:PageImpsMonitor/>
+                    <local:PageAbout/>
                 </TabItem>
                 <TabItem Header="Сервис">
                     <local:PageService/>
