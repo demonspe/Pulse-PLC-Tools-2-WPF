@@ -6,6 +6,9 @@
              xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.DataContext>
+        <local:MainVM/>
+    </UserControl.DataContext>
     <Grid Margin="-4">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -18,7 +21,7 @@
                 <CheckBox x:Name="checkBox_E_Month" Grid.Row ="0" Content="Начало месяца" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="109" Margin="196,10,0,0" IsChecked="True"/>
             </Grid>
         </GroupBox>
-        <DataGrid Grid.Row ="1" x:Name="dataGrid_E_Data" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
+        <DataGrid Grid.Row ="1" ItemsSource="{Binding VM_PLCTable.TablePLC, UpdateSourceTrigger=PropertyChanged}" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Прочитать выделенное" />
@@ -28,7 +31,7 @@
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Enable}" Value="False">
+                        <DataTrigger Binding="{Binding IsEnable}" Value="False">
                             <Setter Property="Foreground" Value="LightGray"/>
                         </DataTrigger>
                     </Style.Triggers>
@@ -36,15 +39,15 @@
             </DataGrid.CellStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Adrs_PLC}" Header="Адрес PLC" Width="6*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridCheckBoxColumn Binding="{Binding Enable}" Header="Включен" Width="6*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_Current_T1}" Header="Текущие (Т1)" Width="10*" IsReadOnly="True" MinWidth="100" MaxWidth="200" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_Current_T2}" Header="Текущие (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_Current_T3}" Header="Текущие (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_Current_Summ}" Header="Текущие (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_StartDay_T1}" Header="Нач. суток (Т1)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_StartDay_T2}" Header="Нач. суток (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_StartDay_T3}" Header="Нач. суток (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding E_StartDay_Summ}" Header="Нач. суток (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridCheckBoxColumn Binding="{Binding IsEnable}" Header="Включен" Width="6*" IsReadOnly="False" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_Current.E_T1_View}" Header="Текущие (Т1)" Width="10*" IsReadOnly="True" MinWidth="100" MaxWidth="200" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_Current.E_T2_View}" Header="Текущие (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_Current.E_T3_View}" Header="Текущие (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_Current.E_Summ_View}" Header="Текущие (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartDay.E_T1_View}" Header="Нач. суток (Т1)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartDay.E_T2_View}" Header="Нач. суток (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartDay.E_T3_View}" Header="Нач. суток (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartDay.E_Summ_View}" Header="Нач. суток (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
             </DataGrid.Columns>
         </DataGrid>
         <Button Content="Прочитать все" HorizontalAlignment="Left" Margin="528,10,0,0" VerticalAlignment="Top" Width="110" Height="30"/>
