@@ -6,9 +6,6 @@
              xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="1200">
-    <UserControl.DataContext>
-        <local:MainVM/>
-    </UserControl.DataContext>
     <Grid Margin="-4">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -21,7 +18,7 @@
                 <CheckBox x:Name="checkBox_Show_Status" Grid.Row ="0" Content="Статус" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="67" Margin="145,10,0,0" IsChecked="True"/>
             </Grid>
         </GroupBox>
-        <DataGrid Grid.Row ="1" ItemsSource="{Binding VM_PLCTable.TablePLC}" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
+        <DataGrid Grid.Row ="1" ItemsSource="{Binding TablePLC}" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Прочитать (Ctrl+R)" />

@@ -6,43 +6,54 @@
              xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.DataContext>
-        <local:MainVM/>
-    </UserControl.DataContext>
     <Grid Margin="-4">
             <GroupBox Header="Сменить пароли" HorizontalAlignment="Left" Height="106" Margin="465,10,0,0" VerticalAlignment="Top" Width="249">
                 <Grid Height="84" VerticalAlignment="Top">
-                    <CheckBox x:Name="checkBox_Read_Pass" Content="Пароль на чтение" Margin="0,34,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" />
-                    <CheckBox x:Name="checkBox_Write_Pass" Content="Пароль на запись" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" />
-                    <TextBox x:Name="textBox_Write_Pass" Margin="127,0,0,0" VerticalAlignment="Top" Background="{x:Null}" HorizontalContentAlignment="Center"/>
-                    <TextBox x:Name="textBox_Read_Pass" Margin="127,30,0,0" VerticalAlignment="Top" Background="{x:Null}" HorizontalContentAlignment="Center"/>
+                    <CheckBox IsChecked="{Binding Device.NewPassWrite}" Content="Пароль на запись" Margin="0,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" />
+                    <CheckBox IsChecked="{Binding Device.NewPassRead}" Content="Пароль на чтение" Margin="0,34,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" />
+                    <TextBox Text="{Binding Device.PassWrite_View}" MaxLength="6" Margin="127,0,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+                    <TextBox Text="{Binding Device.PassRead_View}" MaxLength="6" Margin="127,30,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
                     <Button x:Name="button_Write_Pass" Content="Записать новые пароли" Margin="0,61,0,0" Height="22" VerticalAlignment="Top"/>
-
                 </Grid>
             </GroupBox>
             <GroupBox Header="Ошибки" HorizontalAlignment="Left" Height="171" Margin="265,10,0,0" VerticalAlignment="Top" Width="194">
                 <Grid>
-                    <ListView x:Name="listErrors" Margin="0,0,0,23"/>
-                    <Button x:Name="button_EEPROM_BURN_Copy" Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top"/>
+                    <ListView ItemsSource="{Binding Device.ListErrors}" Margin="0,0,0,23"/>
+                    <Button Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </GroupBox>
             <Label x:Name="label_versions" Content="Версия ПО: " HorizontalAlignment="Left" Margin="265,192,0,0" VerticalAlignment="Top"/>
             <GroupBox Header="Режим работы" HorizontalAlignment="Left" Height="84" Margin="10,10,0,0" VerticalAlignment="Top" Width="250">
                 <Grid>
                     <Label Content="Режим работы" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>
-                    <ComboBox x:Name ="comboBox_work_mode"  HorizontalAlignment="Left" Margin="96,9,0,0" VerticalAlignment="Top" Width="137" Background="#00000000"/>
+                <ComboBox SelectedIndex="{Binding Device.WorkMode_View}" HorizontalAlignment="Left" Margin="96,9,0,0" VerticalAlignment="Top" Width="137" Background="#00000000">
+                    <ComboBoxItem>Счетчик</ComboBoxItem>
+                    <ComboBoxItem>Концентратор A</ComboBoxItem>
+                    <ComboBoxItem>Концентратор B</ComboBoxItem>
+                    <ComboBoxItem>Концентратор C</ComboBoxItem>
+                </ComboBox>
                     <Label Content="Батарея" HorizontalAlignment="Left" Margin="0,32,0,0" VerticalAlignment="Top"/>
-                    <ComboBox x:Name ="comboBox_battery_mode"  HorizontalAlignment="Left" Margin="58,36,0,0" VerticalAlignment="Top" Width="175" Background="#00000000"/>
-                    <Label Content="Батарея" HorizontalAlignment="Left" Margin="0,32,0,0" VerticalAlignment="Top"/>
-
-                </Grid>
+                <ComboBox SelectedIndex="{Binding Device.BatteryMode_View}" HorizontalAlignment="Left" Margin="58,36,0,0" VerticalAlignment="Top" Width="175" Background="#00000000">
+                    <ComboBoxItem>Часы+Тарифы+Архив</ComboBoxItem>
+                    <ComboBoxItem>Без батареи</ComboBoxItem>
+                </ComboBox>
+                <Label Content="Батарея" HorizontalAlignment="Left" Margin="0,32,0,0" VerticalAlignment="Top"/>
+            </Grid>
             </GroupBox>
             <GroupBox Header="Интерфейсы" HorizontalAlignment="Left" Height="87" Margin="10,94,0,0" VerticalAlignment="Top" Width="250">
                 <Grid>
                     <Label Content="RS485" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>
-                    <ComboBox x:Name ="comboBox_RS485_Is_Enable"  HorizontalAlignment="Left" Margin="96,9,0,0" VerticalAlignment="Top" Width="137" Background="#00000000"/>
+                <ComboBox SelectedIndex="{Binding Device.RS485_WorkMode_View}" HorizontalAlignment="Left" Margin="96,9,0,0" VerticalAlignment="Top" Width="137" Background="#00000000">
+                    <ComboBoxItem>Отключен</ComboBoxItem>
+                    <ComboBoxItem>Только чтение</ComboBoxItem>
+                    <ComboBoxItem>Чтение/Запись</ComboBoxItem>
+                </ComboBox>
                     <Label Content="Bluetooth" HorizontalAlignment="Left" Margin="0,32,0,-6" VerticalAlignment="Top"/>
-                    <ComboBox x:Name ="comboBox_Bluetooth_Is_Enable"  HorizontalAlignment="Left" Margin="96,36,0,-6" VerticalAlignment="Top" Width="137" Background="#00000000"/>
+                <ComboBox SelectedIndex="{Binding Device.Bluetooth_WorkMode_View}" HorizontalAlignment="Left" Margin="96,36,0,-6" VerticalAlignment="Top" Width="137" Background="#00000000">
+                    <ComboBoxItem>Отключен</ComboBoxItem>
+                    <ComboBoxItem>Только чтение</ComboBoxItem>
+                    <ComboBoxItem>Чтение/Запись</ComboBoxItem>
+                </ComboBox>
 
                 </Grid>
             </GroupBox>

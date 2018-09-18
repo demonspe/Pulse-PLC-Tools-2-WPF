@@ -6,9 +6,6 @@
              xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="1050">
-    <UserControl.DataContext>
-        <local:MainVM/>
-    </UserControl.DataContext>
     <UserControl.Resources>
         <Style TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>

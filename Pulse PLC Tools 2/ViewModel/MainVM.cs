@@ -2,6 +2,7 @@
 using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,23 +15,31 @@ namespace Pulse_PLC_Tools_2
 
     public class MainVM : BindableBase
     {
+        //Data
         public ImpParams Imp1 { get; set; }
         public ImpParams Imp2 { get; set; }
         public DeviceMainParams Device { get; set; }
+        public ObservableCollection<DataGridRow_PLC> TablePLC { get; }
+        //Device events journals
+        public ObservableCollection<DataGridRow_Log> JournalPower { get; }
+        public ObservableCollection<DataGridRow_Log> JournalConfig { get; }
+        public ObservableCollection<DataGridRow_Log> JournalInterfaces { get; }
+        public ObservableCollection<DataGridRow_Log> JournalRequestsPLC { get; }
 
-
+        //Access data
         private string serialNum;
         public string SerialNum { get => serialNum; set { serialNum = value; RaisePropertyChanged(nameof(SerialNum)); } }
         private string pass;
         public string Pass { get => pass; set { pass = value; RaisePropertyChanged(nameof(Pass)); } }
 
+        //Navigate
         private int currentPage;
         public int CurrentPage { get => currentPage; set { currentPage = value; RaisePropertyChanged(nameof(CurrentPage)); } }
 
         //VM
         public LinkVM VM_Link { get; }
         public DateTimeVM VM_DateTime { get; }
-        public PLCTableVM VM_PLCTable { get; }
+
         //Commands
         //Navigate
         public DelegateCommand<string> CommandGoToPage { get; }
@@ -62,16 +71,25 @@ namespace Pulse_PLC_Tools_2
             Imp1 = new ImpParams(1);
             Imp2 = new ImpParams(2);
             Device = new DeviceMainParams();
+            TablePLC = new ObservableCollection<DataGridRow_PLC>();
+            JournalPower = new ObservableCollection<DataGridRow_Log>();
+            JournalConfig = new ObservableCollection<DataGridRow_Log>();
+            JournalInterfaces = new ObservableCollection<DataGridRow_Log>();
+            JournalRequestsPLC = new ObservableCollection<DataGridRow_Log>();
+            FillTablePLC();
+            JournalPower.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
+            JournalConfig.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
+            JournalInterfaces.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
+            JournalRequestsPLC.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
+            JournalRequestsPLC.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
+            JournalPower.Add(new DataGridRow_Log() { Date = "date", Name = "name", Num = "Num", Time = "Time" });
             //VM
             VM_Link = new LinkVM();
             VM_DateTime = new DateTimeVM();
-            VM_PLCTable = new PLCTableVM();
 
+            //
             GoToPage(TabPages.Link);
-
-            VM_PLCTable.TablePLC[1].E_Current.IsCorrect = true;
-            VM_PLCTable.TablePLC[1].E_Current.E_T1_Value.Value_kWt = 130.5;
-            VM_PLCTable.TablePLC[1].IsEnable = true;
+            
             //Commands
             CommandGoToPage = new DelegateCommand<string>(
                  nameItem => {
@@ -87,6 +105,12 @@ namespace Pulse_PLC_Tools_2
         void GoToPage(TabPages page)
         {
             CurrentPage = (int)page;
+        }
+
+        void FillTablePLC()
+        {
+            for (int i = 0; i < 250; i++)
+                TablePLC.Add(new DataGridRow_PLC((byte)(i + 1), ImpAscueProtocolType.Mercury230ART));
         }
     }
 }
