@@ -7,17 +7,17 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Button ToolTip="Простой лог" x:Name="debug_Log_Mode_Simple" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" HorizontalAlignment="Left" Width="40" BorderBrush="#FF707070" BorderThickness="0">
+        <Button ToolTip="Простой лог" Command="{Binding ShowLogSimple}" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" HorizontalAlignment="Left" Width="40" BorderBrush="#FF707070" BorderThickness="0">
             <StackPanel>
                 <Image Source="Pics/user32_white.png" Height="12" Width="12"/>
             </StackPanel>
         </Button>
-        <Button ToolTip="Расширеный лог" x:Name="debug_Log_Mode_Extra" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" HorizontalAlignment="Left" Width="40" BorderBrush="#FF707070" BorderThickness="0" Margin="45,0,0,0">
+        <Button ToolTip="Расширеный лог" Command="{Binding ShowLogExpert}" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" HorizontalAlignment="Left" Width="40" BorderBrush="#FF707070" BorderThickness="0" Margin="45,0,0,0">
             <StackPanel>
                 <Image Source="Pics/glasses_50_white.png" Height="16" Width="16"/>
             </StackPanel>
         </Button>
-        <Button ToolTip="Очистить" x:Name="debug_Log_Clear" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Margin="0,0,87,0" HorizontalAlignment="Right" Width="40" BorderBrush="#FF707070" BorderThickness="0">
+        <Button ToolTip="Очистить" Command="{Binding ClearLog}" VerticalAlignment="Top" Background="{x:Null}" Padding="0" Height="20" Margin="0,0,87,0" HorizontalAlignment="Right" Width="40" BorderBrush="#FF707070" BorderThickness="0">
             <StackPanel>
                 <Image Source="Pics/garbage32_White.png" Height="16" Width="16"/>
             </StackPanel>
@@ -32,15 +32,7 @@
                 <Image Source="Pics/up32_White.png" Height="15" Width="16"/>
             </StackPanel>
         </Button>
-        <RichTextBox x:Name="textBox_Log_Debug" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True">
-            <FlowDocument>
-                <Paragraph x:Name="paragraph_log">Привет! Для начала открой канал связи.</Paragraph>
-            </FlowDocument>
-        </RichTextBox>
-        <RichTextBox x:Name="textBox_Log_Debug_ex" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True">
-            <FlowDocument>
-                <Paragraph x:Name="paragraph_log_ex">Привет! Для начала открой канал связи.</Paragraph>
-            </FlowDocument>
-        </RichTextBox>
+        <local:BindableRichTextBox Document="{Binding Log}" Visibility="{Binding LogVisible}" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True"/>
+        <local:BindableRichTextBox Document="{Binding LogEx}" Visibility="{Binding LogExVisible}" Margin="0,20,0,0" ScrollViewer.CanContentScroll="True" VerticalScrollBarVisibility="Visible" Focusable="True"/>
     </Grid>
 </UserControl>

@@ -63,10 +63,10 @@ namespace LinkLibrary
             return (commands.Count == 0);
         }
 
-        public void Add_CMD(ILink link, IProtocol protocol, int commandCode,  object commandParams, int pauseAfterCmdMilliseconds)
+        public void Add_CMD(ILink link, IProtocol protocol, object commandCode,  object commandParams, int pauseAfterCmdMilliseconds)
         {
             //Добавляем команды
-            commands.Enqueue(new CommandBufferItem(link, protocol, commandCode, commandParams, pauseAfterCmdMilliseconds));
+            commands.Enqueue(new CommandBufferItem(link, protocol, (int)commandCode, commandParams, pauseAfterCmdMilliseconds));
             countCommandsMax++;
 
             if ((handle_Thread.ThreadState & ThreadState.Suspended) != 0) handle_Thread.Resume();

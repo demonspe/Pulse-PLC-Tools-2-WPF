@@ -9,14 +9,19 @@ using System.Threading.Tasks;
 
 namespace Pulse_PLC_Tools_2
 {
-    public class LinkManager
+    public class LinkManager : IMessage
     {
         public ILink Link { get; set; }
         SynchronizationContext context;
         LinkVM linkViewModel;
+        EventHandler<MessageDataEventArgs> messageInputHandler;
 
-        public LinkManager(LinkVM viewModel, SynchronizationContext context)
+        public event EventHandler<MessageDataEventArgs> Message;
+
+        public LinkManager(LinkVM viewModel, SynchronizationContext context, EventHandler<MessageDataEventArgs> MessageInputHandler)
         {
+            Message += MessageInputHandler;
+            messageInputHandler = MessageInputHandler;
             Link = new LinkCOM();
             this.context = context;
             linkViewModel = viewModel;
@@ -29,8 +34,13 @@ namespace Pulse_PLC_Tools_2
             switch (linkViewModel.SelectedLinkType)
             {
                 case TypeOfLink.COM:
+                    if (linkViewModel.SelectedComPort == null || linkViewModel.SelectedComPort == string.Empty)
+                    {
+                        Message(this, new MessageDataEventArgs() { MessageString = "Не выбран COM порт", MessageType = MessageType.Warning });
+                        return;
+                    }
                     Link = new LinkCOM(linkViewModel.SelectedComPort);
-                    ((LinkCOM)Link).Message += Service_Message;
+                    ((LinkCOM)Link).Message += messageInputHandler;
                     Link.Connected += Link_Connected;
                     Link.Disconnected += Link_Disconnected;
                     Link.Connect();
@@ -38,9 +48,14 @@ namespace Pulse_PLC_Tools_2
                 case TypeOfLink.TCP:
                     break;
                 case TypeOfLink.GSM:
-                    Link = new LinkGSM(linkViewModel.SelectedComPort, 30000);
+                    if (linkViewModel.SelectedComPort == null || linkViewModel.SelectedComPort == string.Empty)
+                    {
+                        Message(this, new MessageDataEventArgs() { MessageString = "Не выбран COM порт", MessageType = MessageType.Warning });
+                        return;
+                    }
+                    Link = new LinkGSM(linkViewModel.SelectedComPort, 20000);
                     ((LinkGSM)Link).PhoneNumber = linkViewModel.PhoneNumber;
-                    ((LinkGSM)Link).Message += Service_Message;
+                    ((LinkGSM)Link).Message += messageInputHandler;
                     Link.Connected += Link_Connected;
                     Link.Connect();
                     break;
@@ -61,12 +76,7 @@ namespace Pulse_PLC_Tools_2
 
         public void CloseLink()
         {
-            Link.Disconnect();
-        }
-
-        private void Service_Message(object sender, MessageDataEventArgs e)
-        {
-
+            Link?.Disconnect();
         }
 
         //Чтение списка COM портов в системe

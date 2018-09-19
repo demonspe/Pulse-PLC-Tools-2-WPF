@@ -96,6 +96,7 @@ namespace LinkLibrary
             try
             {
                 serialPort.Close();
+                Message(this, new MessageDataEventArgs() { MessageString = "Канал связи закрыт [" + ConnectionString + "]", MessageType = MessageType.Normal });
                 Disconnected(this, new EventArgs());
             } catch { }
         }

@@ -1,4 +1,5 @@
-﻿using Prism.Commands;
+﻿using LinkLibrary;
+using Prism.Commands;
 using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 
 namespace Pulse_PLC_Tools_2
 {
@@ -16,6 +18,17 @@ namespace Pulse_PLC_Tools_2
 
     public class MainVM : BindableBase
     {
+        //Messages and Log
+        private FlowDocument logContent;
+        private FlowDocument logExContent;
+        private Visibility logVisible;
+        private Visibility logExVisible;
+        private string toolBarText;
+        //Navigate
+        private int currentPage;
+
+
+        public ObservableCollection<string> SerialNumList { get; }
         //Data
         public ImpParams Imp1 { get; set; }
         public ImpParams Imp2 { get; set; }
@@ -26,25 +39,28 @@ namespace Pulse_PLC_Tools_2
         public ObservableCollection<DataGridRow_Log> JournalConfig { get; }
         public ObservableCollection<DataGridRow_Log> JournalInterfaces { get; }
         public ObservableCollection<DataGridRow_Log> JournalRequestsPLC { get; }
-
-        //Access data
-        private string serialNum;
-        public string SerialNum { get => serialNum; set { serialNum = value; RaisePropertyChanged(nameof(SerialNum)); } }
-        private string pass;
-        public string Pass { get => pass; set { pass = value; RaisePropertyChanged(nameof(Pass)); } }
-
+        //Messages and Log
+        public FlowDocument Log { get => logContent; set { logContent = value; RaisePropertyChanged(nameof(Log)); } }
+        public FlowDocument LogEx { get => logExContent; set { logExContent = value; RaisePropertyChanged(nameof(LogEx)); } }
+        public Visibility LogVisible { get => logVisible; set { logVisible = value; RaisePropertyChanged(nameof(LogVisible)); } }
+        public Visibility LogExVisible { get => logExVisible; set { logExVisible = value; RaisePropertyChanged(nameof(LogExVisible)); } }
+        public string ToolBarText { get => toolBarText; set { toolBarText = value; RaisePropertyChanged(nameof(ToolBarText)); } }
+        
         //Navigate
-        private int currentPage;
         public int CurrentPage { get => currentPage; set { currentPage = value; RaisePropertyChanged(nameof(CurrentPage)); } }
 
         //VM
         public LinkVM VM_Link { get; }
-        public DateTimeVM VM_DateTime { get; }
 
         //Model
         LinkManager LinkManager;
         ProtocolManager ProtocolManager;
+        LogManager LogManager;
+
         //Commands
+        public DelegateCommand ShowLogSimple { get; }
+        public DelegateCommand ShowLogExpert { get; }
+        public DelegateCommand ClearLog { get; }
         //Navigate
         public DelegateCommand<string> CommandGoToPage { get; }
         //For link
@@ -64,13 +80,16 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_WriteMainParams { get; }
         public DelegateCommand Send_ClearErrors { get; }
         public DelegateCommand Send_WritePass { get; }
-        public DelegateCommand Send_ReadImp1 { get; }
+        public DelegateCommand Send_ReadImp1 { get; }   //Imp1
         public DelegateCommand Send_WriteImp1 { get; }
-        public DelegateCommand Send_ReadImp2 { get; }
+        public DelegateCommand Send_ReadImp2 { get; }   //Imp2
         public DelegateCommand Send_WriteImp2 { get; }
+        public DelegateCommand Send_ReadEnableTablePLC { get; } //PLC Table
+
 
         public MainVM()
         {
+            SerialNumList = new ObservableCollection<string>();
             //Контейнеры для данных
             Imp1 = new ImpParams(1);
             Imp2 = new ImpParams(2);
@@ -82,18 +101,24 @@ namespace Pulse_PLC_Tools_2
             JournalConfig = new ObservableCollection<DataGridRow_Log>();
             JournalInterfaces = new ObservableCollection<DataGridRow_Log>();
             JournalRequestsPLC = new ObservableCollection<DataGridRow_Log>();
-
+            //Log
+            Log = new FlowDocument();
+            LogEx = new FlowDocument();
+            LogVisible = Visibility.Visible;
+            LogExVisible = Visibility.Hidden;
+            LogManager = new LogManager(Log, LogEx, SynchronizationContext.Current);
+            ToolBarText = "Привет";
             //VM
             VM_Link = new LinkVM();
-            VM_DateTime = new DateTimeVM();
             
             //Model
-            LinkManager = new LinkManager(VM_Link, SynchronizationContext.Current);
-            ProtocolManager = new ProtocolManager(this);
-            //
-            GoToPage(TabPages.Link);
-            
+            LinkManager = new LinkManager(VM_Link, SynchronizationContext.Current, MessageInput);
+            ProtocolManager = new ProtocolManager(LinkManager, this, MessageInput);
+
             //Commands
+            ShowLogSimple = new DelegateCommand(() => { LogVisible = Visibility.Visible; LogExVisible = Visibility.Hidden; });
+            ShowLogExpert = new DelegateCommand(() => { LogVisible = Visibility.Hidden; LogExVisible = Visibility.Visible; });
+            ClearLog = new DelegateCommand(LogManager.ClearLog);
             CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
             //For link
             OpenLink = new DelegateCommand(LinkManager.OpenLink);
@@ -121,6 +146,9 @@ namespace Pulse_PLC_Tools_2
             Send_ReadImp2 = new DelegateCommand(ProtocolManager.Send_ReadImp2);
             Send_WriteImp2 = new DelegateCommand(ProtocolManager.Send_WriteImp2);
 
+
+            //Start page
+            GoToPage(TabPages.Link);
         }
 
         void GoToPageFromXName(string xNameOfPage)
@@ -139,6 +167,15 @@ namespace Pulse_PLC_Tools_2
         {
             for (int i = 0; i < 250; i++)
                 TablePLC.Add(new DataGridRow_PLC((byte)(i + 1), ImpAscueProtocolType.Mercury230ART));
+        }
+
+        //Обработчик события сообщения
+        public void MessageInput(object sender, MessageDataEventArgs e)
+        {
+            if (e.MessageType == MessageType.ToolBarInfo) { ToolBarText = e.MessageString; return; }
+            if (e.MessageType == MessageType.MsgBox) { MessageBox.Show(e.MessageString); return; }
+            if (e.MessageType == MessageType.SendBytes || e.MessageType == MessageType.SendBytes) { LogManager.Add_Line_Bytes(e.Data, e.Length, e.MessageType, LinkManager.Link.ConnectionString); return; }
+            LogManager.Add_Line_String(e.MessageString, e.MessageType);
         }
     }
 }

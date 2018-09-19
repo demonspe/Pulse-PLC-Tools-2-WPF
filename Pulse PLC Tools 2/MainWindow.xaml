@@ -86,11 +86,11 @@
                     <StackPanel Margin="5" HorizontalAlignment="Left">
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock Width="80" VerticalAlignment="Center">Серийный №</TextBlock>
-                            <ComboBox Width="130" VerticalAlignment="Center" IsEditable="True" Text="{Binding SerialNum}"></ComboBox>
+                            <ComboBox Text="{Binding Device.Serial_View}" ItemsSource="{Binding SerialNumList}" Width="130" VerticalAlignment="Center" IsEditable="True"></ComboBox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock Width="80" VerticalAlignment="Center">Пароль</TextBlock>
-                            <TextBox Width="130" VerticalAlignment="Center" Text="{Binding Pass}"></TextBox>
+                            <TextBox Text="{Binding Device.PassCurrent_View}" MaxLength="6" Width="130" VerticalAlignment="Center" ></TextBox>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -213,7 +213,7 @@
         <Grid Grid.Row="5" Grid.ColumnSpan ="3" Background="#FFEAEAEA">
             <StatusBar Height="22" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Grid.Row="1" Background="#FF007ACC">
                 <StatusBarItem Height="22" VerticalAlignment="Bottom">
-                    <TextBlock x:Name="status_msg" Width="300" Foreground="White" />
+                    <TextBlock Text="{Binding ToolBarText}" Width="300" Foreground="White" />
                 </StatusBarItem>
                 <StatusBarItem Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right">
                     <StackPanel Orientation="Horizontal">

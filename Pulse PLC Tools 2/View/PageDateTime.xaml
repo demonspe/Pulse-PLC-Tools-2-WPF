@@ -10,11 +10,11 @@
         <StackPanel Margin="5" Width="200" HorizontalAlignment="Left">
             <TextBlock FontSize="18">Дата/Время</TextBlock>
             <TextBlock>На устройстве</TextBlock>
-            <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.DeviceDateTime, Mode=OneWay, StringFormat='dd.MM.yy hh:mm:ss'}"/>
+            <TextBox IsReadOnly="True" Text="{Binding Device.DeviceDateTime, Mode=OneWay, StringFormat='dd.MM.yy hh:mm:ss'}"/>
             <TextBlock>На компьютере</TextBlock>
-            <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.PCDateTime, Mode=OneWay, StringFormat='dd.MM.yy hh:mm:ss'}"/>
+            <TextBox IsReadOnly="True" Text="{Binding Device.PCDateTime, Mode=OneWay, StringFormat='dd.MM.yy hh:mm:ss'}"/>
             <TextBlock>Разница</TextBlock>
-            <TextBox IsReadOnly="True" Text="{Binding VM_DateTime.Difference, Mode=OneWay}"/>
+            <TextBox IsReadOnly="True" Text="{Binding Device.TimeDifference, Mode=OneWay}"/>
             <Button Command="{Binding Send_ReadDateTime}">Прочитать</Button>
             <Button Command="{Binding Send_WriteDateTime}">Записать</Button>
             <Button Command="{Binding Send_CorrectDateTime}">Корректровать</Button>

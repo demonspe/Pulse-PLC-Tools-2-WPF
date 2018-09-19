@@ -68,6 +68,7 @@
     </ApplicationDefinition>
     <Compile Include="Model\LinkManager.cs" />
     <Compile Include="Model\BLProtocolManager.cs" />
+    <Compile Include="Model\MessageLodManager.cs" />
     <Compile Include="Model\ProtocolManager.cs" />
     <Compile Include="ViewModel\DataGridRow_Log.cs" />
     <Compile Include="ViewModel\DataGridRow_PLC.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Model\LinkLibrary\IProtocol.cs" />
     <Compile Include="Model\LinkLibrary\LinkCOM.cs" />
     <Compile Include="Model\LinkLibrary\LinkGSM.cs" />
+    <Compile Include="View\BindableRichTextBox.cs" />
     <Compile Include="View\DebugLog.xaml.cs">
       <DependentUpon>DebugLog.xaml</DependentUpon>
     </Compile>
@@ -117,14 +119,13 @@
     <Compile Include="View\PageTablePLC.xaml.cs">
       <DependentUpon>PageTablePLC.xaml</DependentUpon>
     </Compile>
-    <None Include="Model\ProtocolPulsePLCv2.cs" />
+    <Compile Include="Model\ProtocolPulsePLCv2.cs" />
     <Compile Include="View\PageDateTime.xaml.cs">
       <DependentUpon>PageDateTime.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\PageLink.xaml.cs">
       <DependentUpon>PageLink.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewModel\DateTimeVM.cs" />
     <Compile Include="ViewModel\DeviceMainParams.cs" />
     <Compile Include="ViewModel\ImpParams.cs" />
     <Compile Include="ViewModel\LinkVM.cs" />

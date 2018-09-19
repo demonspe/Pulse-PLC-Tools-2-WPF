@@ -16,7 +16,7 @@
                     <RadioButton x:Name="radioButton_GSM" Margin="3" Command="{Binding VM_Link.CommandSetLinkType}" CommandParameter="{Binding ElementName=radioButton_GSM, Path=Content}">GSM</RadioButton>
                 </StackPanel>
                 <StackPanel Width="150">
-                    <ComboBox Text="{Binding VM_Link.SelectedComPort}" IsEditable="True" ItemsSource="{Binding VM_Link.ComPortList}" Background="{x:Null}" />
+                    <ComboBox Text="{Binding VM_Link.SelectedComPort}" ItemsSource="{Binding VM_Link.ComPortList}" IsEditable="True" Background="{x:Null}" />
                     <StackPanel Orientation="Horizontal">
                         <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.IP_Address}" Width="100" IsEnabled="False"/>
                         <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.TCP_Port}" Width="50" IsEnabled="False"/>
