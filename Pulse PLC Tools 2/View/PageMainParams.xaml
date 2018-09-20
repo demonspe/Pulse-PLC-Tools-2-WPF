@@ -16,13 +16,22 @@
                     <Button Command="{Binding Send_WritePass}" Content="Записать новые пароли" Margin="0,61,0,0" Height="22" VerticalAlignment="Top"/>
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Ошибки" HorizontalAlignment="Left" Height="171" Margin="265,10,0,0" VerticalAlignment="Top" Width="194">
-                <Grid>
-                    <ListView ItemsSource="{Binding Device.ListErrors}" Margin="0,0,0,23"/>
-                    <Button Command="{Binding Send_ClearErrors}" Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top"/>
-                </Grid>
-            </GroupBox>
-            <Label x:Name="label_versions" Content="Версия ПО: " HorizontalAlignment="Left" Margin="265,192,0,0" VerticalAlignment="Top"/>
+        <GroupBox Header="Ошибки" HorizontalAlignment="Left" Height="171" Margin="265,10,0,0" VerticalAlignment="Top" Width="194">
+            <Grid>
+                <ListView ItemsSource="{Binding Device.ErrorsList}" Margin="0,0,0,23"/>
+                <Button Command="{Binding Send_ClearErrors}" Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top"/>
+            </Grid>
+        </GroupBox>
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="265,190,0,0">
+            <StackPanel Orientation="Horizontal" Width="200">
+                <TextBlock Text="Версия прошивки: "/>
+                <TextBlock Text="{Binding Device.VersionFirmware}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Width="200">
+                <TextBlock Text="Версия памяти: "/>
+                <TextBlock Text="{Binding Device.VersionEEPROM}"/>
+            </StackPanel>
+        </StackPanel>
             <GroupBox Header="Режим работы" HorizontalAlignment="Left" Height="84" Margin="10,10,0,0" VerticalAlignment="Top" Width="250">
                 <Grid>
                     <Label Content="Режим работы" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>

@@ -53,9 +53,9 @@ namespace Pulse_PLC_Tools_2
         public LinkVM VM_Link { get; }
 
         //Model
-        LinkManager LinkManager;
-        ProtocolManager ProtocolManager;
-        LogManager LogManager;
+        public LinkManager LinkManager { get; }
+        ProtocolManager ProtocolManager { get; }
+        LogManager LogManager { get; }
 
         //Commands
         public DelegateCommand ShowLogSimple { get; }
@@ -112,8 +112,8 @@ namespace Pulse_PLC_Tools_2
             VM_Link = new LinkVM();
             
             //Model
-            LinkManager = new LinkManager(VM_Link, SynchronizationContext.Current, MessageInput);
-            ProtocolManager = new ProtocolManager(LinkManager, this, MessageInput);
+            LinkManager = new LinkManager(this, SynchronizationContext.Current);
+            ProtocolManager = new ProtocolManager(this, SynchronizationContext.Current);
 
             //Commands
             ShowLogSimple = new DelegateCommand(() => { LogVisible = Visibility.Visible; LogExVisible = Visibility.Hidden; });

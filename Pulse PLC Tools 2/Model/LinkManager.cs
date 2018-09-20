@@ -18,13 +18,13 @@ namespace Pulse_PLC_Tools_2
 
         public event EventHandler<MessageDataEventArgs> Message;
 
-        public LinkManager(LinkVM viewModel, SynchronizationContext context, EventHandler<MessageDataEventArgs> MessageInputHandler)
+        public LinkManager(MainVM mainVM, SynchronizationContext context)
         {
-            Message += MessageInputHandler;
-            messageInputHandler = MessageInputHandler;
+            Message += mainVM.MessageInput;
+            messageInputHandler = mainVM.MessageInput;
             Link = new LinkCOM();
             this.context = context;
-            linkViewModel = viewModel;
+            linkViewModel = mainVM.VM_Link;
             //Запускаем поток для сканирования COM портов
             ThreadPool.QueueUserWorkItem(Get_COM_List_Handler, linkViewModel.ComPortList);
         }

@@ -14,12 +14,15 @@ namespace Pulse_PLC_Tools_2
 
     public class DeviceMainParams : BindableBase
     {
-        private string pass_Write;  //Пароль доступа к данным устройства с которым идет общение
-        private string pass_Read;   //Пароль доступа к данным устройства с которым идет общение
-        private string pass_Current;   //Пароль текущий пароль который вводит пользователь
+        private byte[] passWrite;  //Пароль доступа к данным устройства с которым идет общение
+        private byte[] passRead;   //Пароль доступа к данным устройства с которым идет общение
+        private byte[] passCurrent;   //Пароль текущий пароль который вводит пользователь
         private byte[] serial_bytes;  //Серийный номер устройства с которым идет общение
         private string serial_string;
 
+        private byte errorsByte;
+        private string firmwareVersion; //Версия прошивки
+        private string eepromVersion; //Версия разметки памяти
         private byte work_mode;             //Режим устройства (Счетчик/УСПД)
         private byte mode_No_Battery;       //Режим работы без часов, тарифов и BKP (без батареи)
         private byte rs485_Work_Mode;       //Режим работы интерфейса (выкл, чтение, чтение/запись)
@@ -28,7 +31,29 @@ namespace Pulse_PLC_Tools_2
         private bool newPassRead;   //Флаг записи нового пароля
         private DateTime deviceDateTime; //Время прочитанное из устройства
 
-        public ObservableCollection<string> ListErrors { get; }
+        public string VersionFirmware { get => firmwareVersion; set { firmwareVersion = value; RaisePropertyChanged(nameof(VersionFirmware)); } }
+        public string VersionEEPROM { get => eepromVersion; set { eepromVersion = value; RaisePropertyChanged(nameof(VersionEEPROM)); } }
+
+        public byte ErrorsByte { get => errorsByte;
+            set
+            {
+                errorsByte = value;
+                ErrorsList.Clear();
+                if (errorsByte == 0) ErrorsList.Add("Нет ошибок");
+                else
+                {
+                    if ((errorsByte & 1) > 0) ErrorsList.Add("Проблема с батарейкой");
+                    if ((errorsByte & 2) > 0) ErrorsList.Add("Режим без батарейки");
+                    if ((errorsByte & 4) > 0) ErrorsList.Add("Переполнение IMP1");
+                    if ((errorsByte & 8) > 0) ErrorsList.Add("Переполнение IMP2");
+                    if ((errorsByte & 16) > 0) ErrorsList.Add("Проблема с памятью");
+                    if ((errorsByte & 32) > 0) ErrorsList.Add("Ошибка времени");
+                    //!! добавить ошибки ДОДЕЛАТЬ
+                }
+                RaisePropertyChanged(nameof(ErrorsByte));
+            }
+        }
+        public ObservableCollection<string> ErrorsList { get; }
         public byte[] Serial
         {
             get => serial_bytes;
@@ -81,41 +106,59 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(Serial_View));
             }
         }
-        public string PassWrite {
-            get => pass_Write;
+        public byte[] PassWrite {
+            get => passWrite;
             set
             {
-                char[] tmp = new char[6] { Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF) };
-                for (int i = 0; i < 6; i++) if (i < value.Length) tmp[i] = value[i];
-                pass_Write = new string(tmp);
+                passWrite = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) passWrite[i] = value[i];
                 RaisePropertyChanged(nameof(PassWrite_View));
             }
         }
-        public string PassRead
+        public byte[] PassRead
         {
-            get => pass_Read;
+            get => passRead;
             set
             {
-                char[] tmp = new char[6] { Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF) };
-                for (int i = 0; i < 6; i++) if (i < value.Length) tmp[i] = value[i];
-                pass_Read = new string(tmp);
+                passRead = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) passRead[i] = value[i];
                 RaisePropertyChanged(nameof(PassRead_View));
             }
         }
-        public string PassCurrent
+        public byte[] PassCurrent
         {
-            get => pass_Current;
+            get => passCurrent;
             set
             {
-                char[] tmp = new char[6] { Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF), Convert.ToChar(0xFF) };
-                for (int i = 0; i < 6; i++) if (i < value.Length) tmp[i] = value[i];
-                pass_Current = new string(tmp);
-                RaisePropertyChanged(nameof(PassRead_View));
+                passCurrent = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) passCurrent[i] = value[i];
+                RaisePropertyChanged(nameof(PassCurrent_View));
             }
         }
-        public string PassRead_View { get => PassRead.Trim(Convert.ToChar(255)); set { PassRead = value; } }
-        public string PassWrite_View { get => PassWrite.Trim(Convert.ToChar(255)); set { PassWrite = value; } }
-        public string PassCurrent_View { get => PassCurrent.Trim(Convert.ToChar(255)); set { PassCurrent = value; } }
+        public string PassRead_View { get => Encoding.Default.GetString(passRead).Trim(Encoding.Default.GetString(new byte[1] { 255 })[0]);
+            set
+            {
+                passRead = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) passRead[i] = Convert.ToByte(value[i]);
+                PassRead = passRead;
+            }
+        }
+        public string PassWrite_View { get => Encoding.Default.GetString(passWrite).Trim(Encoding.Default.GetString(new byte[1] { 255 })[0]);
+            set
+            {
+                passWrite = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) passWrite[i] = Convert.ToByte(value[i]);
+                PassWrite = passWrite;
+            }
+        }
+        public string PassCurrent_View { get => Encoding.Default.GetString(passCurrent).Trim(Encoding.Default.GetString(new byte[1] { 255 })[0]);
+            set
+            {
+                passCurrent = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) passCurrent[i] = Convert.ToByte(value[i]);
+                PassCurrent = passCurrent;
+            }
+        }
 
         public WorkMode WorkMode { get => (WorkMode)work_mode; set { work_mode = (byte)value; RaisePropertyChanged(nameof(WorkMode_View)); } }
         public BatteryMode BatteryMode { get => (BatteryMode)mode_No_Battery; set { mode_No_Battery = (byte)value; RaisePropertyChanged(nameof(BatteryMode_View)); } }
@@ -143,8 +186,8 @@ namespace Pulse_PLC_Tools_2
 
         public DeviceMainParams()
         {
-            ListErrors = new ObservableCollection<string>();
-            ListErrors.Add("Нет ошибок");
+            ErrorsList = new ObservableCollection<string>();
+            ErrorsList.Add("Нет ошибок");
             SetDefaultParams();
         }
 
@@ -153,9 +196,9 @@ namespace Pulse_PLC_Tools_2
             NewPassWrite = false;
             NewPassRead = false;
             Serial_View = "0";
-            PassCurrent = "";
-            PassRead = "";
-            PassWrite = "111111";
+            PassCurrent = new byte[6] { 255, 255, 255, 255, 255, 255};
+            PassRead = new byte[6] { 255, 255, 255, 255, 255, 255 };
+            PassWrite = new byte[6] { 255, 255, 255, 255, 255, 255 };
             WorkMode = WorkMode.Counter;
             BatteryMode = BatteryMode.Enable;
             RS485_WorkMode = InterfaceMode.ReadOnly;

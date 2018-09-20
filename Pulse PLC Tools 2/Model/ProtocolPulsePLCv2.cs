@@ -17,24 +17,87 @@ namespace Pulse_PLC_Tools_2
     
     public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day } //Добавить начало месяца и тд
     public enum Journal_type : int { POWER = 1, CONFIG, INTERFACES, REQUESTS }
-    public enum IMP_type : int { IMP1 = 1, IMP2 }
+    public enum ImpNum : int { IMP1 = 1, IMP2 }
 
-    public enum Access_Type : int { No_Access, Read, Write }
+    public enum AccessType : int { No_Access, Read, Write }
 
     public class PulsePLCv2LoginPass
     {
-        public byte[] Login { get; }
+        public byte[] Serial { get; }
         public byte[] Pass { get; }
+        public string SerialString { get; }
+        public string PassString { get; }
 
         public PulsePLCv2LoginPass(byte[] serialNum, byte[] pass)
         {
-            Login = serialNum;
-            Pass = pass;
+            //Подгоняем под нужный формат
+            Serial = new byte[4] { 0, 0, 0, 0 };
+            for (int i = 0; i < serialNum.Length; i++)
+            {
+                if (i < 4)
+                    Serial[i] = serialNum[i];
+                else break;
+            }
+            Pass = new byte[6] { 255, 255, 255, 255, 255, 255 };
+            for (int i = 0; i < pass.Length; i++)
+            {
+                if (i < 6)
+                    Pass[i] = pass[i];
+                else break;
+            }
+            //В виде строк
+            SerialString = Serial[0].ToString("00") + Serial[1].ToString("00") + Serial[2].ToString("00") + Serial[3].ToString("00");
+            PassString = Encoding.Default.GetString(Pass).Trim(Convert.ToChar(255));
+        }
+    }
+
+    public class ImpParamsForProtocol
+    {
+        public ImpParams Imp { get; }
+        public ImpNum Num { get; }
+
+        public ImpParamsForProtocol(ImpParams imp, ImpNum num)
+        {
+            Imp = imp;
+            Num = num;
+        }
+    }
+
+    public class ImpExParamsForProtocol
+    {
+        public ImpExParams Imp { get; }
+        public ImpNum Num { get; }
+
+        public ImpExParamsForProtocol(ImpExParams imp, ImpNum num)
+        {
+            Imp = imp;
+            Num = num;
+        }
+    }
+
+    public class ImpExParams
+    {
+
+    }
+
+    public class ProtocolDataContainer
+    {
+        public string ProtocolName { get; set; }
+        public int CommandCode { get; set; }
+        public object Data { get; set; }
+
+        public ProtocolDataContainer(string protocolName, int commandCode, object data)
+        {
+            ProtocolName = protocolName;
+            CommandCode = commandCode;
+            Data = data;
         }
     }
 
     public class PulsePLCv2Protocol : IProtocol, IMessage
     {
+        public string ProtocolName { get => "PulsePLCv2"; }
+        ProtocolDataContainer DataContainer { get; set; }
         //Комманды посылаемые на устройство
         public enum Commands : int
         {
@@ -69,12 +132,15 @@ namespace Pulse_PLC_Tools_2
 
         //Пришел ответ на запрос
         public event EventHandler<ProtocolEventArgs> CommandEnd = delegate { };
-        public event EventHandler<MessageDataEventArgs> Message = delegate { };
+        public event EventHandler<MessageDataEventArgs> Message = delegate { }; //IMessage
+        public event EventHandler AccessEnd = delegate { };
 
         //Выполняемая сейчас команда
-        Commands currentCmd = Commands.None;
+        Commands CurrentCommand { get; set; }
+        //Текущий канал
+        ILink CurrentLink { get; set; }
         //Доступ к выполнению команд на устройстве
-        Access_Type access = Access_Type.No_Access;
+        AccessType access = AccessType.No_Access;
 
         //Таймеры
         DispatcherTimer timer_Timeout;
@@ -83,154 +149,199 @@ namespace Pulse_PLC_Tools_2
         Stopwatch ping = new Stopwatch();
 
         //Буффер для передачи
-        byte[] tx_buf = new byte[512];
+        byte[] TxBytes = new byte[512];
         int tx_len;
         //Буффер для приема
-        byte[] bytes_buff = new byte[0];
+        byte[] Rx_Bytes = new byte[0];
 
         //Коды команд и их символьные представления для отправки на устройство
-        private Dictionary<Commands, string> commandCodes = new Dictionary<Commands, string>(5);
-        
+        private Dictionary<Commands, string> CommandCodes;
+        private Dictionary<Commands, int> CommandTimeout;
+
         public PulsePLCv2Protocol()
         {
-            //---Заполним коды команд---
-            //Доступ
-            commandCodes.Add(Commands.Check_Pass,       "Ap");
-            commandCodes.Add(Commands.Close_Session,    "Ac");
-            //Системные
-            commandCodes.Add(Commands.Bootloader,       "Su");
-            commandCodes.Add(Commands.SerialWrite,      "Ss");
-            commandCodes.Add(Commands.EEPROM_Read_Byte, "Se");
-            commandCodes.Add(Commands.EEPROM_Burn,      "Sb");
-            commandCodes.Add(Commands.Clear_Errors,     "Sc");
-            commandCodes.Add(Commands.Reboot,           "Sr");
-            commandCodes.Add(Commands.Request_PLC,      "SR");
-            //Чтение
-            commandCodes.Add(Commands.Search_Devices,   "RL");
-            commandCodes.Add(Commands.Read_Journal,     "RJ");
-            commandCodes.Add(Commands.Read_DateTime,    "RT");
-            commandCodes.Add(Commands.Read_Main_Params, "RM");
-            commandCodes.Add(Commands.Read_IMP,         "RI");
-            commandCodes.Add(Commands.Read_IMP_extra,   "Ri");
-            commandCodes.Add(Commands.Read_PLC_Table,   "RP");
-            commandCodes.Add(Commands.Read_PLC_Table_En,"RP");
-            commandCodes.Add(Commands.Read_E_Current,   "REc");
-            commandCodes.Add(Commands.Read_E_Start_Day, "REd");
-            commandCodes.Add(Commands.Read_E_Month,     "REm");
-            //Запись
-            commandCodes.Add(Commands.Write_DateTime,   "WT");
-            commandCodes.Add(Commands.Write_Main_Params,"WM");
-            commandCodes.Add(Commands.Write_IMP,        "WI");
-            commandCodes.Add(Commands.Write_PLC_Table,  "WP");
-            commandCodes.Add(Commands.Pass_Write,       "Wp");
-            //-------------
+            InitCommandCodes();
+            InitCommandTimeout();
 
             //Ограничивает время ожидания ответа
             timer_Timeout = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
             timer_Timeout.Tick += Timer_Timeout_Tick;
             //Показывает есть ли доступ к устройству
-            timer_Access = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
+            timer_Access = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 30000) };
             timer_Access.Tick += Timer_Access_Tick;
+        }
+
+        void InitCommandCodes()
+        {
+            CommandCodes = new Dictionary<Commands, string>();
+            CommandTimeout = new Dictionary<Commands, int>();
+            //---Заполним коды команд---
+            //Доступ
+            CommandCodes.Add(Commands.Check_Pass, "Ap");
+            CommandCodes.Add(Commands.Close_Session, "Ac");
+            //Системные
+            CommandCodes.Add(Commands.Bootloader, "Su");
+            CommandCodes.Add(Commands.SerialWrite, "Ss");
+            CommandCodes.Add(Commands.EEPROM_Read_Byte, "Se");
+            CommandCodes.Add(Commands.EEPROM_Burn, "Sb");
+            CommandCodes.Add(Commands.Clear_Errors, "Sc");
+            CommandCodes.Add(Commands.Reboot, "Sr");
+            CommandCodes.Add(Commands.Request_PLC, "SR");
+            //Чтение
+            CommandCodes.Add(Commands.Search_Devices, "RL");
+            CommandCodes.Add(Commands.Read_Journal, "RJ");
+            CommandCodes.Add(Commands.Read_DateTime, "RT");
+            CommandCodes.Add(Commands.Read_Main_Params, "RM");
+            CommandCodes.Add(Commands.Read_IMP, "RI");
+            CommandCodes.Add(Commands.Read_IMP_extra, "Ri");
+            CommandCodes.Add(Commands.Read_PLC_Table, "RP");
+            CommandCodes.Add(Commands.Read_PLC_Table_En, "RP");
+            CommandCodes.Add(Commands.Read_E_Current, "REc");
+            CommandCodes.Add(Commands.Read_E_Start_Day, "REd");
+            CommandCodes.Add(Commands.Read_E_Month, "REm");
+            //Запись
+            CommandCodes.Add(Commands.Write_DateTime, "WT");
+            CommandCodes.Add(Commands.Write_Main_Params, "WM");
+            CommandCodes.Add(Commands.Write_IMP, "WI");
+            CommandCodes.Add(Commands.Write_PLC_Table, "WP");
+            CommandCodes.Add(Commands.Pass_Write, "Wp");
+            //-------------
+        }
+        void InitCommandTimeout()
+        {
+            CommandTimeout = new Dictionary<Commands, int>();
+            //---Заполним коды команд---
+            //Доступ
+            CommandTimeout.Add(Commands.Check_Pass,         100);
+            CommandTimeout.Add(Commands.Close_Session,      100);
+            //Системные
+            CommandTimeout.Add(Commands.Bootloader,         100);
+            CommandTimeout.Add(Commands.SerialWrite,        200);
+            CommandTimeout.Add(Commands.EEPROM_Read_Byte,   100);
+            CommandTimeout.Add(Commands.EEPROM_Burn,        100);
+            CommandTimeout.Add(Commands.Clear_Errors,       100);
+            CommandTimeout.Add(Commands.Reboot,             100);
+            CommandTimeout.Add(Commands.Request_PLC,        15000);
+            //Чтение
+            CommandTimeout.Add(Commands.Search_Devices,     500);
+            CommandTimeout.Add(Commands.Read_Journal,       200);
+            CommandTimeout.Add(Commands.Read_DateTime,      100);
+            CommandTimeout.Add(Commands.Read_Main_Params,   100);
+            CommandTimeout.Add(Commands.Read_IMP,           100);
+            CommandTimeout.Add(Commands.Read_IMP_extra,     100);
+            CommandTimeout.Add(Commands.Read_PLC_Table,     200);
+            CommandTimeout.Add(Commands.Read_PLC_Table_En,  200);
+            CommandTimeout.Add(Commands.Read_E_Current,     100);
+            CommandTimeout.Add(Commands.Read_E_Start_Day,   100);
+            CommandTimeout.Add(Commands.Read_E_Month,       100);
+            //Запись
+            CommandTimeout.Add(Commands.Write_DateTime,     500);
+            CommandTimeout.Add(Commands.Write_Main_Params,  500);
+            CommandTimeout.Add(Commands.Write_IMP,          500);
+            CommandTimeout.Add(Commands.Write_PLC_Table,    2000);
+            CommandTimeout.Add(Commands.Pass_Write,         500);
+            //-------------
         }
 
         public bool Send(int cmdCode, ILink link, object param)
         {
             if (link == null) return false;
             if (!link.IsConnected) return false;
-            //Приведем код команды к типу PulsePLCv2Commands
-            Commands cmd = (Commands)cmdCode;
+            //Установим канал и команду
+            CurrentLink = link;
+            CurrentCommand = (Commands)cmdCode;
 
-            if (cmd == Commands.Check_Pass)     return CMD_Check_Pass(link, (PulsePLCv2LoginPass)param);
-            if (cmd == Commands.Close_Session)  return CMD_Close_Session(link);
-            if (cmd == Commands.Search_Devices) return CMD_Search_Devices(link);
+            if (CurrentCommand == Commands.Check_Pass)     return CMD_Check_Pass((PulsePLCv2LoginPass)param);
+            if (CurrentCommand == Commands.Close_Session)  return CMD_Close_Session();
+            if (CurrentCommand == Commands.Search_Devices) return CMD_Search_Devices();
             //Доступ - Чтение
-            if (access != Access_Type.Read && access != Access_Type.Write) {
+            if (access != AccessType.Read && access != AccessType.Write) {
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.MsgBox, MessageString = "Нет доступа к данным устройства. Сначала авторизуйтесь." }); return false; }
-            if (cmd == Commands.Read_Journal)       return CMD_Read_Journal(link, (Journal_type)param);
-            if (cmd == Commands.Read_DateTime)      return CMD_Read_DateTime(link);
-            if (cmd == Commands.Read_Main_Params)   return CMD_Read_Main_Params(link);
-            if (cmd == Commands.Read_IMP)           return CMD_Read_Imp_Params(link, (int)param);
-            if (cmd == Commands.Read_IMP_extra)     return CMD_Read_Imp_Extra_Params(link, (int)param);
-            if (cmd == Commands.Read_PLC_Table || cmd == Commands.Read_PLC_Table_En || cmd == Commands.Read_E_Data) return CMD_Read_PLC_Table(cmd, link, (byte[])param);
-            if (cmd == Commands.Read_E_Current)     return CMD_Read_E_Current(link, (byte)param);
-            if (cmd == Commands.Read_E_Start_Day)   return CMD_Read_E_Start_Day(link, (byte)param);
+            if (CurrentCommand == Commands.Read_Journal)       return CMD_Read_Journal((Journal_type)param);
+            if (CurrentCommand == Commands.Read_DateTime)      return CMD_Read_DateTime();
+            if (CurrentCommand == Commands.Read_Main_Params)   return CMD_Read_Main_Params();
+            if (CurrentCommand == Commands.Read_IMP)           return CMD_Read_Imp_Params((ImpNum)param);
+            if (CurrentCommand == Commands.Read_IMP_extra)     return CMD_Read_Imp_Extra_Params((ImpNum)param);
+            if (CurrentCommand == Commands.Read_PLC_Table || CurrentCommand == Commands.Read_PLC_Table_En || CurrentCommand == Commands.Read_E_Data) return CMD_Read_PLC_Table((byte[])param);
+            if (CurrentCommand == Commands.Read_E_Current)     return CMD_Read_E_Current((byte)param);
+            if (CurrentCommand == Commands.Read_E_Start_Day)   return CMD_Read_E_Start_Day((byte)param);
             //Доступ - Запись
-            if (access != Access_Type.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.MsgBox, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
-            if (cmd == Commands.Bootloader)         return CMD_BOOTLOADER(link);
-            if (cmd == Commands.SerialWrite)        return CMD_SerialWrite(link, (byte[])param);
-            if (cmd == Commands.Pass_Write)         return CMD_Pass_Write(link, (bool[])param);
-            if (cmd == Commands.EEPROM_Burn)        return CMD_EEPROM_BURN(link);
-            if (cmd == Commands.EEPROM_Read_Byte)   return CMD_EEPROM_Read_Byte(link, (UInt16)param);
-            if (cmd == Commands.Reboot)             return CMD_Reboot(link);
-            if (cmd == Commands.Clear_Errors)       return CMD_Clear_Errors(link);
-            if (cmd == Commands.Write_DateTime)     return CMD_Write_DateTime(link);
-            if (cmd == Commands.Write_Main_Params)  return CMD_Write_Main_Params(link);
-            if (cmd == Commands.Write_IMP)          return CMD_Write_Imp_Params(link, (int)param);
-            if (cmd == Commands.Write_PLC_Table)    return CMD_Write_PLC_Table(link, (byte[])param);
-            if (cmd == Commands.Request_PLC)        return CMD_Request_PLC(link, (byte[])param);
+            if (access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.MsgBox, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
+            if (CurrentCommand == Commands.Bootloader)         return CMD_BOOTLOADER();
+            if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2LoginPass)param);
+            if (CurrentCommand == Commands.Pass_Write)         return CMD_Pass_Write((DeviceMainParams)param);
+            if (CurrentCommand == Commands.EEPROM_Burn)        return CMD_EEPROM_BURN();
+            if (CurrentCommand == Commands.EEPROM_Read_Byte)   return CMD_EEPROM_Read_Byte((UInt16)param);
+            if (CurrentCommand == Commands.Reboot)             return CMD_Reboot();
+            if (CurrentCommand == Commands.Clear_Errors)       return CMD_Clear_Errors();
+            if (CurrentCommand == Commands.Write_DateTime)     return CMD_Write_DateTime();
+            if (CurrentCommand == Commands.Write_Main_Params)  return CMD_Write_Main_Params((DeviceMainParams)param);
+            if (CurrentCommand == Commands.Write_IMP)          return CMD_Write_Imp_Params((ImpParamsForProtocol)param);
+            if (CurrentCommand == Commands.Write_PLC_Table)    return CMD_Write_PLC_Table((byte[])param);
+            if (CurrentCommand == Commands.Request_PLC)        return CMD_Request_PLC((byte[])param);
             return false;
         }
 
-        int Handle(byte[] bytes_buff, int length)
+        int Handle(byte[] rxBytes, int length)
         {
-            if(bytes_buff[0] == 0 &&  bytes_buff[1] == 'P' && bytes_buff[2] == 'l' && bytes_buff[3] == 's' )
+            if(rxBytes[0] == 0 &&  rxBytes[1] == 'P' && rxBytes[2] == 'l' && rxBytes[3] == 's' )
             {
-                byte CMD_Type = bytes_buff[4];
-                byte CMD_Name = bytes_buff[5];
+                byte CMD_Type = rxBytes[4];
+                byte CMD_Name = rxBytes[5];
 
                 //Доступ
                 if (CMD_Type == 'A')
                 {
-                    if (CMD_Name == 'p' && currentCmd == Commands.Check_Pass) { CMD_Check_Pass(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'p' && CurrentCommand == Commands.Check_Pass) { CMD_Check_Pass(rxBytes); return 0; }
                 }
                 //Системные команды
                 if (CMD_Type == 'S')
                 {
-                    if (CMD_Name == 'u' && currentCmd == Commands.Bootloader) { CMD_BOOTLOADER(); return 0; }
-                    if (CMD_Name == 's' && currentCmd == Commands.SerialWrite) { CMD_SerialWrite(bytes_buff, length); return 0; }
-                    if (CMD_Name == 'r' && currentCmd == Commands.Reboot) { CMD_Reboot(); return 0; }
-                    if (CMD_Name == 'b' && currentCmd == Commands.EEPROM_Burn) { CMD_EEPROM_BURN(); return 0; }
-                    if (CMD_Name == 'e' && currentCmd == Commands.EEPROM_Read_Byte) { CMD_EEPROM_Read_Byte(bytes_buff, length); return 0; }
-                    if (CMD_Name == 'c' && currentCmd == Commands.Clear_Errors) { CMD_Clear_Errors(); return 0; }
-                    if (CMD_Name == 'R' && currentCmd == Commands.Request_PLC) { CMD_Request_PLC(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'u' && CurrentCommand == Commands.Bootloader) { CMD_BOOTLOADER(); return 0; }
+                    if (CMD_Name == 's' && CurrentCommand == Commands.SerialWrite) { CMD_SerialWrite(rxBytes); return 0; }
+                    if (CMD_Name == 'r' && CurrentCommand == Commands.Reboot) { CMD_Reboot(); return 0; }
+                    if (CMD_Name == 'b' && CurrentCommand == Commands.EEPROM_Burn) { CMD_EEPROM_BURN(); return 0; }
+                    if (CMD_Name == 'e' && CurrentCommand == Commands.EEPROM_Read_Byte) { CMD_EEPROM_Read_Byte(rxBytes); return 0; }
+                    if (CMD_Name == 'c' && CurrentCommand == Commands.Clear_Errors) { CMD_Clear_Errors(); return 0; }
+                    if (CMD_Name == 'R' && CurrentCommand == Commands.Request_PLC) { CMD_Request_PLC(rxBytes, length); return 0; }
                 }
                 //Команды чтения
                 if (CMD_Type == 'R')
                 {
                     //Поиск устройств
-                    if (CMD_Name == 'L' && currentCmd == Commands.Search_Devices) { if (CMD_Search_Devices(bytes_buff, length)) return 0; else return 1; }
+                    if (CMD_Name == 'L' && CurrentCommand == Commands.Search_Devices) { if (CMD_Search_Devices(rxBytes)) return 0; else return 1; }
                     //Чтение журнала
-                    if (CMD_Name == 'J' && currentCmd == Commands.Read_Journal) { CMD_Read_Journal(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'J' && CurrentCommand == Commands.Read_Journal) { CMD_Read_Journal(rxBytes); return 0; }
                     //Чтение времени
-                    if (CMD_Name == 'T' && currentCmd == Commands.Read_DateTime) { CMD_Read_DateTime(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'T' && CurrentCommand == Commands.Read_DateTime) { CMD_Read_DateTime(rxBytes); return 0; }
                     //Чтение основных параметров
-                    if (CMD_Name == 'M' && currentCmd == Commands.Read_Main_Params) { CMD_Read_Main_Params(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'M' && CurrentCommand == Commands.Read_Main_Params) { CMD_Read_Main_Params(rxBytes); return 0; }
                     //Чтение основных параметров
-                    if (CMD_Name == 'I' && currentCmd == Commands.Read_IMP) { CMD_Read_Imp_Params(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'I' && CurrentCommand == Commands.Read_IMP) { CMD_Read_Imp_Params(rxBytes); return 0; }
                     //Чтение основных параметров
-                    if (CMD_Name == 'i' && currentCmd == Commands.Read_IMP_extra) { CMD_Read_Imp_Extra_Params(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'i' && CurrentCommand == Commands.Read_IMP_extra) { CMD_Read_Imp_Extra_Params(rxBytes); return 0; }
                     //Чтение таблицы PLC - Активные адреса
-                    if (CMD_Name == 'P' && (currentCmd == Commands.Read_PLC_Table ||
-                                            currentCmd == Commands.Read_PLC_Table_En ||
-                                            currentCmd == Commands.Read_E_Data)) { CMD_Read_PLC_Table(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'P' && (CurrentCommand == Commands.Read_PLC_Table ||
+                                            CurrentCommand == Commands.Read_PLC_Table_En ||
+                                            CurrentCommand == Commands.Read_E_Data)) { CMD_Read_PLC_Table(rxBytes); return 0; }
                     //Чтение Показаний - Активные адреса
                     if (CMD_Name == 'E') {
-                        if (bytes_buff[6] == 'c' && currentCmd == Commands.Read_E_Current) { CMD_Read_E(Commands.Read_E_Current, bytes_buff, length); return 0; }
-                        if (bytes_buff[6] == 'd' && currentCmd == Commands.Read_E_Start_Day) { CMD_Read_E(Commands.Read_E_Start_Day, bytes_buff, length); return 0; }
+                        if (rxBytes[6] == 'c' && CurrentCommand == Commands.Read_E_Current) { CMD_Read_E(rxBytes); return 0; }
+                        if (rxBytes[6] == 'd' && CurrentCommand == Commands.Read_E_Start_Day) { CMD_Read_E(rxBytes); return 0; }
                     }
                 }
                 //Команды записи
                 if (CMD_Type == 'W')
                 {
-                    if (CMD_Name == 'p' && currentCmd == Commands.Pass_Write) { CMD_Pass_Write(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'p' && CurrentCommand == Commands.Pass_Write) { CMD_Pass_Write(rxBytes); return 0; }
                     //Запись времени
-                    if (CMD_Name == 'T' && currentCmd == Commands.Write_DateTime) { CMD_Write_DateTime(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'T' && CurrentCommand == Commands.Write_DateTime) { CMD_Write_DateTime(rxBytes); return 0; }
                     //Запись основных параметров
-                    if (CMD_Name == 'M' && currentCmd == Commands.Write_Main_Params) { CMD_Write_Main_Params(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'M' && CurrentCommand == Commands.Write_Main_Params) { CMD_Write_Main_Params(rxBytes); return 0; }
                     //Запись параметров импульсных входов
-                    if (CMD_Name == 'I' && currentCmd == Commands.Write_IMP) { CMD_Write_Imp_Params(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'I' && CurrentCommand == Commands.Write_IMP) { CMD_Write_Imp_Params(rxBytes); return 0; }
                     //Запись таблицы PLC
-                    if (CMD_Name == 'P' && currentCmd == Commands.Write_PLC_Table) { CMD_Write_PLC_Table(bytes_buff, length); return 0; }
+                    if (CMD_Name == 'P' && CurrentCommand == Commands.Write_PLC_Table) { CMD_Write_PLC_Table(rxBytes); return 0; }
                 }
             }
             return 2;
@@ -246,20 +357,20 @@ namespace Pulse_PLC_Tools_2
             //Забираем данные
             for (int i = 0; i < e.Buffer.Length; i++)
             {
-                Array.Resize<byte>(ref bytes_buff, bytes_buff.Length + 1);
-                bytes_buff[bytes_buff.Length - 1] = e.Buffer[i];
-                if (CRC16.ComputeChecksum(bytes_buff, bytes_buff.Length) == 0) break;
+                Array.Resize<byte>(ref Rx_Bytes, Rx_Bytes.Length + 1);
+                Rx_Bytes[Rx_Bytes.Length - 1] = e.Buffer[i];
+                if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0) break;
             }
 
             //Проверяем CRC16
-            if (CRC16.ComputeChecksum(bytes_buff, bytes_buff.Length) == 0)
+            if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0)
             {
-                int handle_code = Handle(bytes_buff, bytes_buff.Length);
+                int handle_code = Handle(Rx_Bytes, Rx_Bytes.Length);
 
                 //Комманда выполнена успешно
                 if (handle_code == 0)
                 {
-                    Message(this, new MessageDataEventArgs() { Data = bytes_buff, Length = bytes_buff.Length, MessageType = MessageType.ReceiveBytes });
+                    Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
                     Request_End(true);
                     //Обновляем таймер доступа (в устройстве он обновляется при получении команды по интерфейсу)
                     timer_Access.Stop();
@@ -271,7 +382,7 @@ namespace Pulse_PLC_Tools_2
                 //Получилось обработать и ждем следующую часть сообщения
                 if (handle_code == 1)
                 {
-                    Message(this, new MessageDataEventArgs() { Data = bytes_buff, Length = bytes_buff.Length, MessageType = MessageType.ReceiveBytes });
+                    Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
                     //ping_ms = 0;
                     return;
                 }
@@ -280,7 +391,7 @@ namespace Pulse_PLC_Tools_2
                 if(handle_code == 2)
                 {
                     //Отправим в Log окно 
-                    Message(this, new MessageDataEventArgs() { Data = bytes_buff, Length = bytes_buff.Length, MessageType = MessageType.ReceiveBytes });
+                    Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
                     Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неверный формат ответа" });
                     Message(this, new MessageDataEventArgs() { MessageType = MessageType.ToolBarInfo, MessageString = "Неверный формат ответа. Попробуйте еще раз." });
                     Request_End(false);
@@ -291,7 +402,7 @@ namespace Pulse_PLC_Tools_2
                 //Request_End(false);
 
                 //Отправим в Log окно 
-                Message(this, new MessageDataEventArgs() { Data = bytes_buff, Length = bytes_buff.Length, MessageType = MessageType.ReceiveBytes });
+                Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неверная контрольная сумма" });
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.ToolBarInfo, MessageString = "Неверная контрольная сумма. Попробуйте еще раз." });
             }
@@ -300,10 +411,10 @@ namespace Pulse_PLC_Tools_2
         private void Timer_Timeout_Tick(object sender, EventArgs e)
         {
             //Если ожидали данных но не дождались
-            if (currentCmd != Commands.None)
+            if (CurrentCommand != Commands.None)
             {
-                if (currentCmd == Commands.Close_Session) { Request_End(true); return; }
-                if (currentCmd == Commands.Search_Devices) { Request_End(true); return; }
+                if (CurrentCommand == Commands.Close_Session) { Request_End(true); return; }
+                if (CurrentCommand == Commands.Search_Devices) { Request_End(true); return; }
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Истекло время ожидания ответа" });
                 //Комманда не выполнилась
                 Request_End(false);
@@ -312,32 +423,28 @@ namespace Pulse_PLC_Tools_2
 
         private void Timer_Access_Tick(object sender, EventArgs e)
         {
+            access = AccessType.No_Access;
             timer_Access.Stop();
-            //mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
-            //{
-            //    mainForm.connect_Access_timeout.Text = "Не авторизован";
-            //}));
+            AccessEnd(this, null);
         }
 
         //Выставить флаги о том что запрос отправлен
-        private bool Request_Start(ILink link, Commands cmd_, int timeout_ms)
+        private bool Request_Start() { return Request_Start(null); }
+        private bool Request_Start(object prepareDataContainer)
         {
-            //Текущая команда
-            currentCmd = cmd_;
             //Запускаем таймер ожидания ответа
             timer_Timeout.Stop();
-            timer_Timeout.Interval = new TimeSpan(0, 0, 0, 0, timeout_ms);
+            timer_Timeout.Interval = new TimeSpan(0, 0, 0, 0, CurrentLink.LinkDelay + CommandTimeout[CurrentCommand]);
             timer_Timeout.Start();
-
             //Добавим контрольную сумму
-            Add_Tx(CRC16.ComputeChecksumBytes(tx_buf, tx_len));
-
+            Add_Tx(CRC16.ComputeChecksumBytes(TxBytes, tx_len));
             //Время отправки запроса
             ping.Restart();
-
-            if (link.Send(tx_buf, tx_len))
+            //Подготовим данные для передачи во View
+            DataContainer = new ProtocolDataContainer(ProtocolName, (int)CurrentCommand, prepareDataContainer);
+            if (CurrentLink.Send(TxBytes, tx_len))
             {
-                Message(this, new MessageDataEventArgs() { Data = tx_buf, Length = tx_len, MessageType = MessageType.SendBytes });
+                Message(this, new MessageDataEventArgs() { Data = TxBytes, Length = tx_len, MessageType = MessageType.SendBytes });
                 return true;
             }
             return false;
@@ -346,10 +453,11 @@ namespace Pulse_PLC_Tools_2
         //Сбросить флаги ожидания ответа на запрос
         private void Request_End(bool status)
         {
-            bytes_buff = new byte[0];
+            Rx_Bytes = new byte[0];
             timer_Timeout.Stop();
-            currentCmd = Commands.None;
-            CommandEnd(this, new ProtocolEventArgs(status));
+            CurrentCommand = Commands.None;
+            if(!status) DataContainer = null;
+            CommandEnd(this, new ProtocolEventArgs(status) { DataObject = DataContainer });
         }
 
         //Возвращает время в милисекундах прошедшее с последнего запроса Request_Start
@@ -365,39 +473,37 @@ namespace Pulse_PLC_Tools_2
 
         //Работа с буфером отправки
         private void Clear_Tx() { tx_len = 0; }
-        private void Add_Tx(byte data) { tx_buf[tx_len++] = data; }
+        private void Add_Tx(byte data) { TxBytes[tx_len++] = data; }
+        private void Add_Tx(bool data) { Add_Tx(data ? (byte)1 : (byte)0); }
+        private void Add_Tx(string data) { Add_Tx(Encoding.Default.GetBytes(data)); }
         private void Add_Tx(byte[] data) { Add_Tx(data, data.Length); }
         private void Add_Tx(byte[] data, int length) { for (int i = 0; i < length; i++) Add_Tx(data[i]); }
         private void Start_Add_Tx(Commands cmd)
         {
             Clear_Tx(); //Очистим буфер передачи
             Add_Tx(0);  //Добавим первый байт сообщение
-            Add_Tx(Encoding.UTF8.GetBytes("Pls" + commandCodes[cmd]));//Добавим остальные байты начала сообщения
+            Add_Tx(Encoding.UTF8.GetBytes("Pls" + CommandCodes[cmd]));//Добавим остальные байты начала сообщения
         }
 
         #region КАНАЛ
         //Запрос ПОИСК УСТРОЙСТВ в канале (и режима работы)
-        private bool CMD_Search_Devices(ILink link)
+        private bool CMD_Search_Devices()
         {
             Start_Add_Tx(Commands.Search_Devices);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Поиск устройств" });
-
-            return Request_Start(link, Commands.Search_Devices, link.LinkDelay + 400);
+            return Request_Start(new List<string>());
         }
         //Обработка ответа
-        private bool CMD_Search_Devices(byte[] bytes_buff, int count)
+        private bool CMD_Search_Devices(byte[] rxBytes)
         {
-            int mode = bytes_buff[6];
+            int mode = rxBytes[6];
             string mode_ = "";
             if (mode == 0) mode_ = " [Счетчик]";
             if (mode == 1) mode_ = " [Фаза А]";
             if (mode == 2) mode_ = " [Фаза B]";
             if (mode == 3) mode_ = " [Фаза C]";
-            string serial_num = bytes_buff[7].ToString("00") + bytes_buff[8].ToString("00") + bytes_buff[9].ToString("00") + bytes_buff[10].ToString("00");
-            //mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
-            //    mainForm.comboBox_Serial.Items.Add(serial_num + mode_);
-            //    mainForm.comboBox_Serial.SelectedIndex = 0;
-            //}));
+            string serial_num = rxBytes[7].ToString("00") + rxBytes[8].ToString("00") + rxBytes[9].ToString("00") + rxBytes[10].ToString("00");
+            ((List<string>)DataContainer.Data).Add(serial_num + mode_);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Ответил " + serial_num + mode_+ PingStr() });
             if (mode == 0 || mode == 3)
                 return true;    //заканчиваем
@@ -406,11 +512,11 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Запрос ПРОВЕРКА ПАРОЛЯ
-        private bool CMD_Check_Pass(ILink link, PulsePLCv2LoginPass param)
+        private bool CMD_Check_Pass(PulsePLCv2LoginPass param)
         {
             Start_Add_Tx(Commands.Check_Pass);
             //Серийник
-            byte[] serial = param.Login;
+            byte[] serial = param.Serial;
             Add_Tx(serial);
             //Пароль
             byte[] pass_ = param.Pass;
@@ -426,43 +532,44 @@ namespace Pulse_PLC_Tools_2
                 serial[3].ToString("00") + "] [" +  Encoding.Default.GetString(pass_buf) +"]"
             });
             //Отправляем запрос
-            return Request_Start(link, Commands.Check_Pass, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_Check_Pass(byte[] bytes_buff, int count)
+        private void CMD_Check_Pass(byte[] rxBytes)
         {
             string accessStr = "_";
-            string service_mode = bytes_buff[6] == 1 ? "[Sercvice mode]" : "";
-            if (bytes_buff[7] == 's') { accessStr = "Нет доступа "; access = Access_Type.Write; }
-            if (bytes_buff[7] == 'r') { accessStr = "Чтение "; access = Access_Type.Read; }
-            if (bytes_buff[7] == 'w') { accessStr = "Запись "; access = Access_Type.Write; }
+            string service_mode = rxBytes[6] == 1 ? "[Sercvice mode]" : "";
+            if (rxBytes[7] == 's') { accessStr = "Нет доступа "; access = AccessType.Write; }
+            if (rxBytes[7] == 'r') { accessStr = "Чтение "; access = AccessType.Read; }
+            if (rxBytes[7] == 'w') { accessStr = "Запись "; access = AccessType.Write; }
+            DataContainer.Data = access;
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Доступ открыт: " + accessStr + service_mode + PingStr() });
             //Таймер доступа ДОДЕЛАТЬ (добавить отображение значка доступа и сообщения типа "Запись/Чтение")
             timer_Access.Start();
         }
 
         //Запрос ЗАКРЫТИЕ СЕССИИ (закрывает доступ к данным)
-        private bool CMD_Close_Session(ILink link)
+        private bool CMD_Close_Session()
         {
             //Первые байты по протоколу конфигурации
             Start_Add_Tx(Commands.Close_Session);
-            access = Access_Type.No_Access;
+            access = AccessType.No_Access;
+            AccessEnd(this, null);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.NormalBold, MessageString = "Закрыть сессию" });
-            return Request_Start(link, Commands.Close_Session, 200);
+            return Request_Start();
         }
         #endregion
 
         #region СЕРВИСНЫЕ КОМАНДЫ
-
         //Запрос BOOTLOADER (стирает сектор флеш памяти чтобы устройство загружалось в режиме bootloader)
-        private bool CMD_BOOTLOADER(ILink link)
+        private bool CMD_BOOTLOADER()
         {
             Start_Add_Tx(Commands.Bootloader);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Включить режим обновления" });
-            return Request_Start(link, Commands.Bootloader, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_BOOTLOADER()
+        private void CMD_BOOTLOADER(byte[] rxBytes)
         {
             Message(this, new MessageDataEventArgs() {
                 MessageType = MessageType.Good,
@@ -471,60 +578,60 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Запрос - Запись серийного номера
-        private bool CMD_SerialWrite(ILink link, byte[] params_)
+        private bool CMD_SerialWrite(PulsePLCv2LoginPass serial)
         {
             Start_Add_Tx(Commands.SerialWrite);
-            Add_Tx(params_, 4); //Новый серийник 4 байта
+            Add_Tx(serial.Serial); //Новый серийник 4 байта
             Message(this, new MessageDataEventArgs() {
                 MessageType = MessageType.Normal,
-                MessageString = "ЗАПИСЬ СЕРИЙНОГО НОМЕРА " + params_[0].ToString("00") + params_[1].ToString("00") + params_[2].ToString("00") + params_[3].ToString("00")
+                MessageString = "ЗАПИСЬ СЕРИЙНОГО НОМЕРА " + serial.SerialString
             });
-            return Request_Start(link, Commands.SerialWrite, link.LinkDelay + 500);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_SerialWrite(byte[] bytes_buff, int count)
+        private void CMD_SerialWrite(byte[] rxBytes)
         {
-            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K')
+            if (rxBytes[6] == 'O' && rxBytes[7] == 'K')
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "СЕРИЙНЫЙ НОМЕР ЗАПИСАН" + PingStr() });
         }
 
         //Запрос EEPROM BURN (сброс к заводским настройкам)
-        private bool CMD_EEPROM_BURN(ILink link)
+        private bool CMD_EEPROM_BURN()
         {
             Start_Add_Tx(Commands.EEPROM_Burn);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Сброс к заводским параметрам" });
-            return Request_Start(link, Commands.EEPROM_Burn, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_EEPROM_BURN()
+        private void CMD_EEPROM_BURN(byte[] rxBytes)
         {
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "После перезагрузки устройство запишет в память заводские настройки." + PingStr() });
         }
 
         //Запрос EEPROM READ BYTE (чтение байта из памяти)
-        private bool CMD_EEPROM_Read_Byte(ILink link, UInt16 eep_adrs)
+        private bool CMD_EEPROM_Read_Byte(ushort eep_adrs)
         {
             Start_Add_Tx(Commands.EEPROM_Read_Byte);
             Add_Tx((byte)(eep_adrs >> 8));  //Старший
-            Add_Tx((byte)(eep_adrs));       //Младший
+            Add_Tx((byte)eep_adrs);       //Младший
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение байта EEPROM" });
-            return Request_Start(link, Commands.EEPROM_Read_Byte, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_EEPROM_Read_Byte(byte[] bytes_buff, int count)
+        private void CMD_EEPROM_Read_Byte(byte[] rxBytes)
         {
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Байт прочитан int: " + bytes_buff[6] + ", ASCII: '" + Convert.ToChar(bytes_buff[6]) + "'" + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Байт прочитан int: " + rxBytes[6] + ", ASCII: '" + Convert.ToChar(rxBytes[6]) + "'" + PingStr() });
         }
 
         //Запрос ПЕРЕЗАГРУЗКА
-        private bool CMD_Reboot(ILink link)
+        private bool CMD_Reboot()
         {
             Start_Add_Tx(Commands.Reboot);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Перезагрузить" });
-            return Request_Start(link, Commands.Reboot, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_Reboot()
+        private void CMD_Reboot(byte[] rxBytes)
         {
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство перезагружается.." + PingStr() });
         }
@@ -532,223 +639,191 @@ namespace Pulse_PLC_Tools_2
 
         #region ОСНОВНЫЕ ПАРАМЕТРЫ (режимы работы, ошибки, пароли)
         //Запрос - ЧТЕНИЕ ОСНОВНЫХ ПАРАМЕТРОВ 
-        private bool CMD_Read_Main_Params(ILink link)
+        private bool CMD_Read_Main_Params()
         {
             Start_Add_Tx(Commands.Read_Main_Params);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение основных параметров" });
-            return Request_Start(link, Commands.Read_Main_Params, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_Main_Params(byte[] bytes_buff, int count)
+        private void CMD_Read_Main_Params(byte[] rxBytes)
         {
-            //mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
-                //Версия прошивки
-                string version_str = "Версия прошивки: v2." + bytes_buff[7] + "." + bytes_buff[8];
-                version_str += "\n";
-                version_str += "Разметка памяти: v1." + bytes_buff[6];
-               // mainForm.label_versions.Content = version_str;
-                //Параметры
-                //mainForm.deviceConfig.Device.Work_mode = bytes_buff[9];
-                //mainForm.deviceConfig.Device.Mode_No_Battery = bytes_buff[10];
-                //mainForm.deviceConfig.Device.RS485_Work_Mode = bytes_buff[11];
-                //mainForm.deviceConfig.Device.Bluetooth_Work_Mode = bytes_buff[12];
-
-                //Ошибки
-                byte err_byte = bytes_buff[13];
-                //mainForm.listErrors.Items.Clear();
-                //if ((err_byte & 1) > 0) mainForm.listErrors.Items.Add("Проблема с батарейкой");
-                //if ((err_byte & 2) > 0) mainForm.listErrors.Items.Add("Режим без батарейки");
-                //if ((err_byte & 4) > 0) mainForm.listErrors.Items.Add("Переполнение IMP1");
-                //if ((err_byte & 8) > 0) mainForm.listErrors.Items.Add("Переполнение IMP2");
-                //if ((err_byte & 16) > 0) mainForm.listErrors.Items.Add("Проблема с памятью");
-                //if ((err_byte & 32) > 0) mainForm.listErrors.Items.Add("Ошибка времени");
-                //!! добавить ошибки ДОДЕЛАТЬ
-                //if (mainForm.listErrors.Items.Count == 0) mainForm.listErrors.Items.Add("Нет ошибок");
-
-                //Покрасим пункт меню в зеленый
-                //mainForm.treeView_Config_Main.Foreground = Brushes.Green;
-            //}));
-            //Отобразим
-            //mainForm.deviceConfig.Show_On_Form();
-
+            DeviceMainParams device = new DeviceMainParams();
+            //Версия прошивки
+            device.VersionFirmware = "v2." + rxBytes[7] + "." + rxBytes[8];
+            device.VersionEEPROM = "v1." + rxBytes[6];
+            //Параметры
+            device.WorkMode = (WorkMode)rxBytes[9];
+            device.BatteryMode = (BatteryMode)rxBytes[10];
+            device.RS485_WorkMode = (InterfaceMode)rxBytes[11];
+            device.Bluetooth_WorkMode = (InterfaceMode)rxBytes[12];
+            //Ошибки
+            device.ErrorsByte = rxBytes[13];
+            //Передаем данные
+            DataContainer.Data = device;
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Основные параметры успешно прочитаны" + PingStr() });
         }
 
         //Запрос - ЗАПИСЬ ОСНОВНЫХ ПАРАМЕТРОВ 
-        private bool CMD_Write_Main_Params(ILink link)
+        private bool CMD_Write_Main_Params(DeviceMainParams device)
         {
             Start_Add_Tx(Commands.Write_Main_Params);
-
             //Параметры
-            //Add_Tx(mainForm.deviceConfig.Device.Work_mode);
-            //Add_Tx(mainForm.deviceConfig.Device.Mode_No_Battery);
-            //Add_Tx(mainForm.deviceConfig.Device.RS485_Work_Mode);
-            //Add_Tx(mainForm.deviceConfig.Device.Bluetooth_Work_Mode);
-
+            Add_Tx((byte)device.WorkMode);
+            Add_Tx((byte)device.BatteryMode);
+            Add_Tx((byte)device.RS485_WorkMode);
+            Add_Tx((byte)device.Bluetooth_WorkMode);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись основных параметров" });
-            return Request_Start(link, Commands.Write_Main_Params, link.LinkDelay + 500);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Write_Main_Params(byte[] bytes_buff, int count)
+        private void CMD_Write_Main_Params(byte[] rxBytes)
         {
-            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Основные параметры успешно записаны" + PingStr() });
-            if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи." + PingStr() });
+            if (rxBytes[6] == 'O' && rxBytes[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Основные параметры успешно записаны" + PingStr() });
+            if (rxBytes[6] == 'e' && rxBytes[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи." + PingStr() });
         }
 
         //Запрос - ОЧИСТИТЬ ФЛАГИ ОШИБОК
-        private bool CMD_Clear_Errors(ILink link)
+        private bool CMD_Clear_Errors()
         {
             Start_Add_Tx(Commands.Clear_Errors);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Очистка флагов ошибок." });
-            return Request_Start(link, Commands.Clear_Errors, link.LinkDelay + 500);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_Clear_Errors()
+        private void CMD_Clear_Errors(byte[] rxBytes)
         {
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Флаги ошибок сброшены" + PingStr() });
         }
 
         //Запрос - Запись паролей
-        private bool CMD_Pass_Write(ILink link, bool[] params_)
+        private bool CMD_Pass_Write(DeviceMainParams device)
         {
             Start_Add_Tx(Commands.Pass_Write);
             //Пароль на запись
-            Add_Tx(params_[0] ? (byte)1 : (byte)0);
-            for (int i = 0; i < 6; i++)
-            {
-                //Add_Tx(Convert.ToByte(mainForm.deviceConfig.Device.Pass_Write[i]));
-            }
+            Add_Tx(device.NewPassWrite);//Флаг записи
+            Add_Tx(device.PassWrite);
             //Пароль на чтение
-            Add_Tx(params_[1] ? (byte)1 : (byte)0); //Флаг записи
-            for (int i = 0; i < 6; i++)
-            {
-                //Add_Tx(Convert.ToByte(mainForm.deviceConfig.Device.Pass_Read[i]));
-            }
+            Add_Tx(device.NewPassRead); //Флаг записи
+            Add_Tx(device.PassRead);
 
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись новых паролей" });
-            return Request_Start(link, Commands.Pass_Write, link.LinkDelay + 500);
+            return Request_Start();
         }
         //Обработка запроса
-        private void CMD_Pass_Write(byte[] bytes_buff, int count)
+        private void CMD_Pass_Write(byte[] bytes_buff)
         {
-            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Пароли успешно записаны" + PingStr() });
-
-            //Отобразим
-            //mainForm.deviceConfig.Show_On_Form();
+            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K')
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Пароли успешно записаны" + PingStr() });
         }
         #endregion
 
         #region ПАРАМЕТРЫ ИМПУЛЬСНЫХ ВХОДОВ
         //Запрос ЧТЕНИЕ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
-        private bool CMD_Read_Imp_Params(ILink link, int imp_num)
+        private bool CMD_Read_Imp_Params(ImpNum imp_num)
         {
             Start_Add_Tx(Commands.Read_IMP);
-            byte imp_ = 0;
-            if (imp_num == 1) imp_ = Convert.ToByte('1');
-            if (imp_num == 2) imp_ = Convert.ToByte('2');
-            Add_Tx(imp_);
+            Add_Tx(Convert.ToByte(imp_num.ToString()));
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение настроек IMP" + imp_num });
-            return Request_Start(link, Commands.Read_IMP, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_Imp_Params(byte[] bytes_buff, int count)
+        private void CMD_Read_Imp_Params(byte[] rxBytes)
         {
-            //ImpsData Imp_;
-            //int pntr = 6;
-            //if (bytes_buff[pntr] == '1') { Imp_ = mainForm.deviceConfig.Imp1; mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { mainForm.treeView_IMP1.Foreground = Brushes.Green; })); }
-            //else if (bytes_buff[pntr] == '2') { Imp_ = mainForm.deviceConfig.Imp2; mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { mainForm.treeView_IMP2.Foreground = Brushes.Green; }));
-            //}
-            //else return;
-            //    pntr++;
-            //    Imp_.Is_Enable = bytes_buff[pntr++];
-            //    if (Imp_.Is_Enable != 0)
-            //    {
-            //        Imp_.adrs_PLC = bytes_buff[pntr++];
-            //        //Тип протокола
-            //        Imp_.ascue_protocol = bytes_buff[pntr++];
-            //        //Адрес аскуэ
-            //        Imp_.ascue_adrs = (UInt16)(bytes_buff[pntr++] << 8);
-            //        Imp_.ascue_adrs += bytes_buff[pntr++];
-            //        //Пароль для аскуэ (6)
-            //        Imp_.ascue_pass[0] = bytes_buff[pntr++];
-            //        Imp_.ascue_pass[1] = bytes_buff[pntr++];
-            //        Imp_.ascue_pass[2] = bytes_buff[pntr++];
-            //        Imp_.ascue_pass[3] = bytes_buff[pntr++];
-            //        Imp_.ascue_pass[4] = bytes_buff[pntr++];
-            //        Imp_.ascue_pass[5] = bytes_buff[pntr++];
-            //        //Эмуляция переполнения (1)
-            //        Imp_.perepoln = bytes_buff[pntr++];
-            //        //Передаточное число (2)
-            //        Imp_.A = (UInt16)(bytes_buff[pntr++] << 8);
-            //        Imp_.A += bytes_buff[pntr++];
-            //        //Тарифы (11)
-            //        Imp_.T_qty = bytes_buff[pntr++];
-            //        Imp_.T1_Time_1 = (UInt16)(bytes_buff[pntr++] * 60);
-            //        Imp_.T1_Time_1 += bytes_buff[pntr++];
-            //        Imp_.T3_Time_1 = (UInt16)(bytes_buff[pntr++] * 60);
-            //        Imp_.T3_Time_1 += bytes_buff[pntr++];
-            //        Imp_.T1_Time_2 = (UInt16)(bytes_buff[pntr++] * 60);
-            //        Imp_.T1_Time_2 += bytes_buff[pntr++];
-            //        Imp_.T3_Time_2 = (UInt16)(bytes_buff[pntr++] * 60);
-            //        Imp_.T3_Time_2 += bytes_buff[pntr++];
-            //        Imp_.T2_Time = (UInt16)(bytes_buff[pntr++] * 60);
-            //        Imp_.T2_Time += bytes_buff[pntr++];
-            //        //Показания - Текущие (12)
-            //        Imp_.E_T1 = bytes_buff[pntr++];
-            //        Imp_.E_T1 = (Imp_.E_T1 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T1 = (Imp_.E_T1 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T1 = (Imp_.E_T1 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T2 = bytes_buff[pntr++];
-            //        Imp_.E_T2 = (Imp_.E_T2 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T2 = (Imp_.E_T2 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T2 = (Imp_.E_T2 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T3 = bytes_buff[pntr++];
-            //        Imp_.E_T3 = (Imp_.E_T3 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T3 = (Imp_.E_T3 << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T3 = (Imp_.E_T3 << 8) + bytes_buff[pntr++];
-            //        //Показания - На начало суток (12)
-            //        Imp_.E_T1_Start = bytes_buff[pntr++];
-            //        Imp_.E_T1_Start = (Imp_.E_T1_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T1_Start = (Imp_.E_T1_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T1_Start = (Imp_.E_T1_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T2_Start = bytes_buff[pntr++];
-            //        Imp_.E_T2_Start = (Imp_.E_T2_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T2_Start = (Imp_.E_T2_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T2_Start = (Imp_.E_T2_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T3_Start = bytes_buff[pntr++];
-            //        Imp_.E_T3_Start = (Imp_.E_T3_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T3_Start = (Imp_.E_T3_Start << 8) + bytes_buff[pntr++];
-            //        Imp_.E_T3_Start = (Imp_.E_T3_Start << 8) + bytes_buff[pntr++];
-            //        //Максимальная мощность
-            //        Imp_.max_Power = (UInt16)(bytes_buff[pntr++] << 8);
-            //        Imp_.max_Power += bytes_buff[pntr++];
-            //        //Резервные параметры (на будущее)
-            //        //4 байта
-            //        byte reserv_ = bytes_buff[pntr++];
-            //        reserv_ = bytes_buff[pntr++];
-            //        reserv_ = bytes_buff[pntr++];
-            //        reserv_ = bytes_buff[pntr++];
-            //    }
-            ////Отобразим
-            //mainForm.deviceConfig.Show_On_Form();
-            //Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры IMP" + Convert.ToChar(bytes_buff[6]) + " успешно прочитаны" + PingStr() });
+            ImpParams Imp = null;
+            if (rxBytes[6] != '1' && rxBytes[6] != '2') return;
+            int pntr = 7;
+            Imp.IsEnable = rxBytes[pntr++];
+            if (Imp.IsEnable != 0)
+            {
+                Imp.Adrs_PLC = rxBytes[pntr++];
+                //Тип протокола
+                Imp.Ascue_protocol = rxBytes[pntr++];
+                //Адрес аскуэ
+                Imp.Ascue_adrs = (ushort)(rxBytes[pntr++] << 8);
+                Imp.Ascue_adrs += rxBytes[pntr++];
+                //Пароль для аскуэ (6)
+                Imp.Ascue_pass[0] = rxBytes[pntr++];
+                Imp.Ascue_pass[1] = rxBytes[pntr++];
+                Imp.Ascue_pass[2] = rxBytes[pntr++];
+                Imp.Ascue_pass[3] = rxBytes[pntr++];
+                Imp.Ascue_pass[4] = rxBytes[pntr++];
+                Imp.Ascue_pass[5] = rxBytes[pntr++];
+                //Эмуляция переполнения (1)
+                Imp.Perepoln = (ImpOverflowType)rxBytes[pntr++];
+                //Передаточное число (2)
+                Imp.A = (UInt16)(rxBytes[pntr++] << 8);
+                Imp.A += rxBytes[pntr++];
+                //Тарифы (11)
+                Imp.T_qty = (ImpNumOfTarifs)rxBytes[pntr++];
+                Imp.T1_Time_1 = new ImpTime(rxBytes[pntr++], rxBytes[pntr++]);
+                Imp.T3_Time_1 = new ImpTime(rxBytes[pntr++], rxBytes[pntr++]);
+                Imp.T1_Time_2 = new ImpTime(rxBytes[pntr++], rxBytes[pntr++]);
+                Imp.T3_Time_2 = new ImpTime(rxBytes[pntr++], rxBytes[pntr++]);
+                Imp.T2_Time = new ImpTime(rxBytes[pntr++], rxBytes[pntr++]);
+                //Показания - Текущие (12)
+
+                uint E = rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                Imp.E_T1 = new ImpEnergyValue(E);
+                E = rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                Imp.E_T2 = new ImpEnergyValue(E);
+                E = rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                Imp.E_T3 = new ImpEnergyValue(E);
+                //Показания - На начало суток (12)
+                E = rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                Imp.E_T1_Start = new ImpEnergyValue(E);
+                E = rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                Imp.E_T2_Start = new ImpEnergyValue(E);
+                E = rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                E = (E << 8) + rxBytes[pntr++];
+                Imp.E_T3_Start = new ImpEnergyValue(E);
+                //Максимальная мощность
+                Imp.Max_Power = (UInt16)(rxBytes[pntr++] << 8);
+                Imp.Max_Power += rxBytes[pntr++];
+                //Резервные параметры (на будущее)
+                //4 байта
+                byte reserv_ = rxBytes[pntr++];
+                reserv_ = rxBytes[pntr++];
+                reserv_ = rxBytes[pntr++];
+                reserv_ = rxBytes[pntr++];
+            }
+            ImpNum impNum = (rxBytes[6] == '1') ? ImpNum.IMP1 : ImpNum.IMP2;
+            DataContainer.Data = new ImpParamsForProtocol(Imp, impNum);
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры IMP" + Convert.ToChar(rxBytes[6]) + " успешно прочитаны" + PingStr() });
         }
 
         //Запрос ЧТЕНИЕ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
-        private bool CMD_Read_Imp_Extra_Params(ILink link, int imp_num)
+        private bool CMD_Read_Imp_Extra_Params(ImpNum imp_num)
         {
             Start_Add_Tx(Commands.Read_IMP_extra);
             byte imp_ = 0;
-            if (imp_num == 1) imp_ = Convert.ToByte('1');
-            if (imp_num == 2) imp_ = Convert.ToByte('2');
+            if (imp_num == ImpNum.IMP1) imp_ = Convert.ToByte('1');
+            if (imp_num == ImpNum.IMP2) imp_ = Convert.ToByte('2');
             //Параметры
             Add_Tx(imp_);
             //Отправляем запрос
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение состояния IMP" + imp_num });
-            return Request_Start(link, Commands.Read_IMP_extra, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_Imp_Extra_Params(byte[] bytes_buff, int count)
+        private void CMD_Read_Imp_Extra_Params(byte[] bytes_buff)
         {
             Label label_;
             int pntr = 6;
@@ -779,7 +854,7 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Запрос ЗАПИСЬ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
-        private bool CMD_Write_Imp_Params(ILink link, int imp_num)
+        private bool CMD_Write_Imp_Params(ImpParamsForProtocol imp)
         {
             //ImpsData Imp_;
             //if (imp_num == 1) Imp_ = mainForm.deviceConfig.Imp1;
@@ -840,11 +915,11 @@ namespace Pulse_PLC_Tools_2
             //    Add_Tx(0);
             //    Add_Tx(0);
             //}
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись параметров IMP"+ imp_num });
-            return Request_Start(link, Commands.Write_IMP, link.LinkDelay + 500);
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись параметров IMP" + "num!!!" });
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Write_Imp_Params(byte[] bytes_buff, int count)
+        private void CMD_Write_Imp_Params(byte[] bytes_buff)
         {
             if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры успешно записаны" + PingStr() });
             if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи IMP" + PingStr() });
@@ -853,7 +928,7 @@ namespace Pulse_PLC_Tools_2
 
         #region ЧТЕНИЕ ЖУРНАЛА СОБЫТИЙ
         //Запрос ЧТЕНИЕ ЖУРНАЛА СОБЫТИЙ
-        private bool CMD_Read_Journal(ILink link, Journal_type journal)
+        private bool CMD_Read_Journal(Journal_type journal)
         {
             Start_Add_Tx(Commands.Read_Journal);
             //Тип журнала
@@ -864,10 +939,10 @@ namespace Pulse_PLC_Tools_2
             if (journal == Journal_type.POWER) jName = "питания";
             if (journal == Journal_type.REQUESTS) jName = "PLC запросов";
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение журнала "+ jName });
-            return Request_Start(link, Commands.Read_Journal, link.LinkDelay + 500);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_Journal(byte[] bytes_buff, int count)
+        private void CMD_Read_Journal(byte[] bytes_buff)
         {
             object dataGrid_journal = null;
             //if (bytes_buff[6] == '1') dataGrid_journal = mainForm.dataGrid_Log_Power;
@@ -955,15 +1030,15 @@ namespace Pulse_PLC_Tools_2
 
         #region ВРЕМЯ И ДАТА
         //Запрос ЧТЕНИЕ ВРЕМЕНИ И ДАТЫ
-        private bool CMD_Read_DateTime(ILink link)
+        private bool CMD_Read_DateTime()
         {
             Start_Add_Tx(Commands.Read_DateTime);
             //Отправляем запрос
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение даты/времени" });
-            return Request_Start(link, Commands.Read_DateTime, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_DateTime(byte[] bytes_buff, int count)
+        private void CMD_Read_DateTime(byte[] bytes_buff)
         {
             
             try
@@ -990,7 +1065,7 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Запрос ЗАПИСЬ ВРЕМЕНИ И ДАТЫ
-        private bool CMD_Write_DateTime(ILink link)
+        private bool CMD_Write_DateTime()
         {
             Start_Add_Tx(Commands.Write_DateTime);
             //Данные
@@ -1004,10 +1079,10 @@ namespace Pulse_PLC_Tools_2
             Add_Tx((byte)year_);
 
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись даты/времени (" + DateTime.Now + ")" });
-            return Request_Start(link, Commands.Write_DateTime, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Write_DateTime(byte[] bytes_buff, int count)
+        private void CMD_Write_DateTime(byte[] bytes_buff)
         {
             if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Дата и время успешно записаны" + PingStr() });
             if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи даты и времени. Возможно недопустимый формат даты." + PingStr() });
@@ -1016,7 +1091,7 @@ namespace Pulse_PLC_Tools_2
 
         #region Таблица PLC
         //Запрос ЧТЕНИЕ Таблицы PLC - Активные адреса
-        private bool CMD_Read_PLC_Table(Commands cmd ,ILink link, byte[] adrs_massiv)
+        private bool CMD_Read_PLC_Table(byte[] adrs_massiv)
         {
             Start_Add_Tx(Commands.Read_PLC_Table);
             //Данные
@@ -1028,7 +1103,7 @@ namespace Pulse_PLC_Tools_2
             }
             //Отправляем запрос
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение таблицы PLC - Активные адреса" });
-            return Request_Start(link, cmd, link.LinkDelay + 500);
+            return Request_Start();
         }
         //Обработка ответа
         private void CMD_Read_PLC_Table(byte[] bytes_buff, int count)
@@ -1045,7 +1120,7 @@ namespace Pulse_PLC_Tools_2
                 //Сообщение
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Найдено " + count_adrs + " активных адресов" + PingStr() });
                 //Отправим запрос на данные Таблицы PLC
-                if(currentCmd == Commands.Read_PLC_Table)
+                if(CurrentCommand == Commands.Read_PLC_Table)
                 {
                     //mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
                     //    byte[] buff_adrs = new byte[251];
@@ -1061,7 +1136,7 @@ namespace Pulse_PLC_Tools_2
                     //}));
                 }
                 //Отправим запрос на данные Показаний
-                if (currentCmd == Commands.Read_E_Data)
+                if (CurrentCommand == Commands.Read_E_Data)
                 {
                     //mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
                     //    byte[] buff_adrs = new byte[251];
@@ -1144,7 +1219,7 @@ namespace Pulse_PLC_Tools_2
             
         }
         //Запрос ЗАПИСЬ в Таблицу PLC
-        private bool CMD_Write_PLC_Table(ILink link, byte[] adrs_massiv)
+        private bool CMD_Write_PLC_Table(byte[] adrs_massiv)
         {
             Start_Add_Tx(Commands.Write_PLC_Table);
             //Данные
@@ -1184,7 +1259,7 @@ namespace Pulse_PLC_Tools_2
 
             //Отправляем запрос
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись в таблицу PLC" });
-            return Request_Start(link, Commands.Write_PLC_Table, link.LinkDelay + 1000);
+            return Request_Start();
         }
         //Обработка ответа
         private void CMD_Write_PLC_Table(byte[] bytes_buff, int count)
@@ -1196,17 +1271,17 @@ namespace Pulse_PLC_Tools_2
 
         #region E показания
         //Запрос Чтение Текущих показаний
-        private bool CMD_Read_E_Current(ILink link, byte adrs_dev)
+        private bool CMD_Read_E_Current(byte adrs_dev)
         {
             Start_Add_Tx(Commands.Read_E_Current);
             //Адрес устройства
             Add_Tx(adrs_dev);
             
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение Показаний на момент последнего опроса" });
-            return Request_Start(link, Commands.Read_E_Current, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Запрос Чтение показаний на Начало суток
-        private bool CMD_Read_E_Start_Day(ILink link, byte adrs_dev)
+        private bool CMD_Read_E_Start_Day(byte adrs_dev)
         {
             Start_Add_Tx(Commands.Read_E_Start_Day);
             //Адрес устройства
@@ -1214,10 +1289,10 @@ namespace Pulse_PLC_Tools_2
 
             //Отправляем запрос
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Показания на начало суток" });
-            return Request_Start(link, Commands.Read_E_Start_Day, link.LinkDelay + 100);
+            return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_E(Commands cmd, byte[] bytes_buff, int count)
+        private void CMD_Read_E(byte[] bytes_buff)
         {
             //Получаем данные
             UInt32 E_T1, E_T2, E_T3;
@@ -1243,7 +1318,7 @@ namespace Pulse_PLC_Tools_2
 
             //Вставляем данные в таблицу
             string type_E = "";
-            if(cmd == Commands.Read_E_Current)
+            if(CurrentCommand == Commands.Read_E_Current)
             {
                 type_E = "Последние показания";
                 //mainForm.plc_table[adrs_PLC - 1].E_Current_T1 = E_T1.ToString();
@@ -1251,7 +1326,7 @@ namespace Pulse_PLC_Tools_2
                 //mainForm.plc_table[adrs_PLC - 1].E_Current_T3 = E_T3.ToString();
                 //mainForm.plc_table[adrs_PLC - 1].e_Current_Correct = E_Correct;
             }
-            if (cmd == Commands.Read_E_Start_Day)
+            if (CurrentCommand == Commands.Read_E_Start_Day)
             {
                 type_E = "Начало суток";
                 //mainForm.plc_table[adrs_PLC - 1].E_StartDay_T1 = E_T1.ToString();
@@ -1275,7 +1350,7 @@ namespace Pulse_PLC_Tools_2
 
         #region PLC запросы
         //Команда Отправка запроса PLC
-        private bool CMD_Request_PLC(ILink link, byte[] param)
+        private bool CMD_Request_PLC(byte[] param)
         {
             Start_Add_Tx(Commands.Request_PLC);
             //Тип запроса по PLC 1б
@@ -1294,7 +1369,7 @@ namespace Pulse_PLC_Tools_2
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запрос PLC на " + param[1] + " через " + steps_ });
             }
             int delay = 5000 * (param[2] + 1);
-            return Request_Start(link, Commands.Request_PLC, link.LinkDelay + delay);
+            return Request_Start();
         }
         //Обработка ответа
         private void CMD_Request_PLC(byte[] bytes_buff, int count)

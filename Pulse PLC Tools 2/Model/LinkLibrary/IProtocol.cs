@@ -19,7 +19,7 @@ namespace LinkLibrary
     public interface IProtocol
     {
         event EventHandler<ProtocolEventArgs> CommandEnd; //Завершение команды (удачное или нет) если нет, то повтор команды
-
+        string ProtocolName { get; }
         bool Send(int cmdCode, ILink link, object param);
         void DateRecieved(object sender, LinkRxEventArgs e);
 

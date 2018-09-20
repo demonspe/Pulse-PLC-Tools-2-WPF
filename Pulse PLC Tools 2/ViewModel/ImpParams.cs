@@ -11,14 +11,14 @@ namespace Pulse_PLC_Tools_2
     public enum ImpNumOfTarifs: byte { One = 1, Two = 2, Three = 3 }
     public enum ImpAscueProtocolType : byte { PulsePLC = 0, Mercury230ART = 1 }
 
-    public class ImpTimeTarifs : BindableBase
+    public class ImpTime : BindableBase
     {
-        public ImpTimeTarifs()
+        public ImpTime()
         {
             this.hours = 0;
             this.minutes = 0;
         }
-        public ImpTimeTarifs(int hours, int minutes)
+        public ImpTime(int hours, int minutes)
         {
             this.hours = hours;
             this.minutes = minutes;
@@ -116,11 +116,11 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(T_qty_View));
             }
         }
-        public ImpTimeTarifs T1_Time_1 { get; set; }
-        public ImpTimeTarifs T3_Time_1 { get; set; }
-        public ImpTimeTarifs T1_Time_2 { get; set; }
-        public ImpTimeTarifs T3_Time_2 { get; set; }
-        public ImpTimeTarifs T2_Time { get; set; }
+        public ImpTime T1_Time_1 { get; set; }
+        public ImpTime T3_Time_1 { get; set; }
+        public ImpTime T1_Time_2 { get; set; }
+        public ImpTime T3_Time_2 { get; set; }
+        public ImpTime T2_Time { get; set; }
         public ushort Ascue_adrs { get => ascue_adrs; set { ascue_adrs = value; RaisePropertyChanged(nameof(Ascue_adrs)); } }
         public byte[] Ascue_pass { get => ascue_pass;
             set {
@@ -149,12 +149,17 @@ namespace Pulse_PLC_Tools_2
         public byte Ascue_protocol { get => ascue_protocol; set { ascue_protocol = value; RaisePropertyChanged(nameof(Ascue_protocol)); } }
         public ushort Max_Power { get => max_Power; set { max_Power = value; RaisePropertyChanged(nameof(Max_Power)); } }
 
+        public ImpParams()
+        {
+            Adrs_PLC = 1;
+            SetDefaultParams();
+        }
         public ImpParams(byte adrsPLC)
         {
             Adrs_PLC = adrsPLC;
             SetDefaultParams();
         }
-
+        
         public void SetDefaultParams()
         {
             IsEnable = 0;
@@ -176,11 +181,11 @@ namespace Pulse_PLC_Tools_2
 
             Perepoln = ImpOverflowType.Disable;
             T_qty = ImpNumOfTarifs.One;
-            T1_Time_1 = new ImpTimeTarifs(7, 0); 
-            T3_Time_1 = new ImpTimeTarifs(10, 0);
-            T1_Time_2 = new ImpTimeTarifs(17, 0);
-            T3_Time_2 = new ImpTimeTarifs(21, 0);
-            T2_Time = new ImpTimeTarifs(23, 0);
+            T1_Time_1 = new ImpTime(7, 0); 
+            T3_Time_1 = new ImpTime(10, 0);
+            T1_Time_2 = new ImpTime(17, 0);
+            T3_Time_2 = new ImpTime(21, 0);
+            T2_Time = new ImpTime(23, 0);
             Ascue_adrs = 0;
             Ascue_pass = new byte[6] { 1, 1, 1, 1, 1, 1 };
             Ascue_protocol = (byte)ImpAscueProtocolType.PulsePLC;
