@@ -256,7 +256,7 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Search_Devices) return CMD_Search_Devices();
             //Доступ - Чтение
             if (access != AccessType.Read && access != AccessType.Write) {
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.MsgBox, MessageString = "Нет доступа к данным устройства. Сначала авторизуйтесь." }); return false; }
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к данным устройства. Сначала авторизуйтесь." }); return false; }
             if (CurrentCommand == Commands.Read_Journal)       return CMD_Read_Journal((Journal_type)param);
             if (CurrentCommand == Commands.Read_DateTime)      return CMD_Read_DateTime();
             if (CurrentCommand == Commands.Read_Main_Params)   return CMD_Read_Main_Params();
@@ -266,7 +266,7 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Read_E_Current)     return CMD_Read_E_Current((byte)param);
             if (CurrentCommand == Commands.Read_E_Start_Day)   return CMD_Read_E_Start_Day((byte)param);
             //Доступ - Запись
-            if (access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.MsgBox, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
+            if (access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
             if (CurrentCommand == Commands.Bootloader)         return CMD_BOOTLOADER();
             if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2LoginPass)param);
             if (CurrentCommand == Commands.Pass_Write)         return CMD_Pass_Write((DeviceMainParams)param);
@@ -274,7 +274,7 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.EEPROM_Read_Byte)   return CMD_EEPROM_Read_Byte((UInt16)param);
             if (CurrentCommand == Commands.Reboot)             return CMD_Reboot();
             if (CurrentCommand == Commands.Clear_Errors)       return CMD_Clear_Errors();
-            if (CurrentCommand == Commands.Write_DateTime)     return CMD_Write_DateTime();
+            if (CurrentCommand == Commands.Write_DateTime)     return CMD_Write_DateTime((DateTime)param);
             if (CurrentCommand == Commands.Write_Main_Params)  return CMD_Write_Main_Params((DeviceMainParams)param);
             if (CurrentCommand == Commands.Write_IMP)          return CMD_Write_Imp_Params((ImpParamsForProtocol)param);
             if (CurrentCommand == Commands.Write_PLC_Table)    return CMD_Write_PLC_Table((byte[])param);
@@ -723,14 +723,14 @@ namespace Pulse_PLC_Tools_2
         private bool CMD_Read_Imp_Params(ImpNum imp_num)
         {
             Start_Add_Tx(Commands.Read_IMP);
-            Add_Tx(Convert.ToByte(imp_num.ToString()));
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение настроек IMP" + imp_num });
+            Add_Tx(Convert.ToByte(((byte)imp_num).ToString()[0]));
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение настроек" + imp_num });
             return Request_Start();
         }
         //Обработка ответа
         private void CMD_Read_Imp_Params(byte[] rxBytes)
         {
-            ImpParams Imp = null;
+            ImpParams Imp = new ImpParams();
             if (rxBytes[6] != '1' && rxBytes[6] != '2') return;
             int pntr = 7;
             Imp.IsEnable = rxBytes[pntr++];
@@ -1038,22 +1038,11 @@ namespace Pulse_PLC_Tools_2
             return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_DateTime(byte[] bytes_buff)
+        private void CMD_Read_DateTime(byte[] rxBytes)
         {
-            
             try
             {
-                DateTime datetime_ = new DateTime((int)(DateTime.Now.Year / 100) * 100 + bytes_buff[11], bytes_buff[10], bytes_buff[9], bytes_buff[8], bytes_buff[7], bytes_buff[6]);
-                //mainForm.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
-                //    mainForm.textBox_Date_in_device.Text = datetime_.ToString("dd.MM.yy");
-                //    mainForm.textBox_Time_in_device.Text = datetime_.ToString("HH:mm:ss");
-                //    System.TimeSpan diff = datetime_.Subtract(DateTime.Now);
-                //    mainForm.textBox_Time_difference.Text = diff.ToString("g");
-                //    mainForm.textBox_Date_in_pc.Text = DateTime.Now.ToString("dd.MM.yy");
-                //    mainForm.textBox_Time_in_pc.Text = DateTime.Now.ToString("HH:mm:ss");
-                //    //Покрасим пункт меню в зеленый
-                //    mainForm.treeView_DateTime.Foreground = Brushes.Green;
-                //}));
+                DataContainer.Data = new DateTime((int)(DateTime.Now.Year / 100) * 100 + rxBytes[11], rxBytes[10], rxBytes[9], rxBytes[8], rxBytes[7], rxBytes[6]);
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Время/Дата успешно прочитаны" + PingStr() });
             }
             catch (Exception)
@@ -1065,20 +1054,20 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Запрос ЗАПИСЬ ВРЕМЕНИ И ДАТЫ
-        private bool CMD_Write_DateTime()
+        private bool CMD_Write_DateTime(DateTime dateTime)
         {
             Start_Add_Tx(Commands.Write_DateTime);
             //Данные
-            Add_Tx((byte)DateTime.Now.Second);
-            Add_Tx((byte)DateTime.Now.Minute);
-            Add_Tx((byte)DateTime.Now.Hour);
-            Add_Tx((byte)DateTime.Now.Day);
-            Add_Tx((byte)DateTime.Now.Month);
-            int year_ = DateTime.Now.Year;
+            Add_Tx((byte)dateTime.Second);
+            Add_Tx((byte)dateTime.Minute);
+            Add_Tx((byte)dateTime.Hour);
+            Add_Tx((byte)dateTime.Day);
+            Add_Tx((byte)dateTime.Month);
+            int year_ = dateTime.Year;
             while (year_ >= 100) year_ -= 100;
             Add_Tx((byte)year_);
 
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись даты/времени (" + DateTime.Now + ")" });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись даты/времени (" + dateTime + ")" });
             return Request_Start();
         }
         //Обработка ответа

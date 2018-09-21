@@ -18,6 +18,9 @@ namespace Pulse_PLC_Tools_2
 
     public class MainVM : BindableBase
     {
+        //Data
+        ImpParams imp1;
+        ImpParams imp2;
         //Messages and Log
         private FlowDocument logContent;
         private FlowDocument logExContent;
@@ -30,8 +33,8 @@ namespace Pulse_PLC_Tools_2
 
         public ObservableCollection<string> SerialNumList { get; }
         //Data
-        public ImpParams Imp1 { get; set; }
-        public ImpParams Imp2 { get; set; }
+        public ImpParams Imp1 { get => imp1; set { imp1 = value; RaisePropertyChanged(nameof(Imp1)); } }
+        public ImpParams Imp2 { get => imp2; set { imp2 = value; RaisePropertyChanged(nameof(Imp2)); } }
         public DeviceMainParams Device { get; set; }
         public ObservableCollection<DataGridRow_PLC> TablePLC { get; }
         //Device events journals
@@ -54,7 +57,7 @@ namespace Pulse_PLC_Tools_2
 
         //Model
         public LinkManager LinkManager { get; }
-        ProtocolManager ProtocolManager { get; }
+        public ProtocolManager ProtocolManager { get; }
         LogManager LogManager { get; }
 
         //Commands
@@ -174,8 +177,21 @@ namespace Pulse_PLC_Tools_2
         {
             if (e.MessageType == MessageType.ToolBarInfo) { ToolBarText = e.MessageString; return; }
             if (e.MessageType == MessageType.MsgBox) { MessageBox.Show(e.MessageString); return; }
-            if (e.MessageType == MessageType.SendBytes || e.MessageType == MessageType.SendBytes) { LogManager.Add_Line_Bytes(e.Data, e.Length, e.MessageType, LinkManager.Link.ConnectionString); return; }
+            if (e.MessageType == MessageType.SendBytes || e.MessageType == MessageType.ReceiveBytes) { LogManager.Add_Line_Bytes(e.Data, e.Length, e.MessageType, LinkManager.Link.ConnectionString); return; }
             LogManager.Add_Line_String(e.MessageString, e.MessageType);
         }
+
+        //Канал связи был подключен
+        public void Link_Connected(object sender, EventArgs e)
+        {
+            ProtocolManager.Link_Connected();
+            VM_Link.IsConnected = true;
+        }
+        //Канал связи был отключен
+        public void Link_Disconnected(object sender, EventArgs e)
+        {
+            VM_Link.IsConnected = false;
+        }
+        
     }
 }

@@ -6,10 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Pulse_PLC_Tools_2
 {
-    class ProtocolManager
+    public class ProtocolManager
     {
         CommandBuffer CommandManager;
         PulsePLCv2Protocol Protocol;
@@ -22,6 +23,7 @@ namespace Pulse_PLC_Tools_2
         public ProtocolManager(MainVM mainVM, SynchronizationContext context)
         {
             CommandManager = new CommandBuffer();
+            CommandManager.Message += mainVM.MessageInput;
             Protocol = new PulsePLCv2Protocol();
             Protocol.Message += mainVM.MessageInput;    //Обработчик сообщений (для лога)
             Protocol.CommandEnd += Protocol_CommandEnd; //Получение данных из ответов на команды
@@ -30,6 +32,11 @@ namespace Pulse_PLC_Tools_2
             LinkManager = mainVM.LinkManager;
             DeviceParams = mainVM.Device;
             Main_VM = mainVM;
+        }
+        //Канал связи был открыт
+        public void Link_Connected()
+        {
+            Send_SearchDevices();
         }
 
         private void Protocol_AccessEnd(object sender, EventArgs e)
@@ -84,48 +91,14 @@ namespace Pulse_PLC_Tools_2
             }
             if (cmd == PulsePLCv2Protocol.Commands.Read_IMP)
             {
-                ImpParams impFrom = ((ImpParamsForProtocol)data).Imp;
-                ImpParams impTo = ((ImpParamsForProtocol)data).Num == ImpNum.IMP1 ? Main_VM.Imp1 : Main_VM.Imp2;
-                impTo.IsEnable = impFrom.IsEnable;
-                if (impTo.IsEnable != 0)
-                {
-                    impTo.Adrs_PLC = impFrom.Adrs_PLC;
-                    //Тип протокола
-                    impTo.Ascue_protocol = impFrom.Ascue_protocol;
-                    //Адрес аскуэ
-                    impTo.Ascue_adrs = impFrom.Ascue_adrs;
-                    //Пароль для аскуэ (6)
-                    impTo.Ascue_pass[0] = impFrom.Ascue_pass[0];
-                    impTo.Ascue_pass[1] = impFrom.Ascue_pass[1];
-                    impTo.Ascue_pass[2] = impFrom.Ascue_pass[2];
-                    impTo.Ascue_pass[3] = impFrom.Ascue_pass[3];
-                    impTo.Ascue_pass[4] = impFrom.Ascue_pass[4];
-                    impTo.Ascue_pass[5] = impFrom.Ascue_pass[5];
-                    //Эмуляция переполнения
-                    impTo.Perepoln = impFrom.Perepoln;
-                    //Передаточное число
-                    impTo.A = impFrom.A;
-                    //Тарифы
-                    impTo.T_qty = impFrom.T_qty;
-                    impTo.T1_Time_1 = impFrom.T1_Time_1;
-                    impTo.T3_Time_1 = impFrom.T3_Time_1;
-                    impTo.T1_Time_2 = impFrom.T1_Time_2;
-                    impTo.T3_Time_2 = impFrom.T3_Time_2;
-                    impTo.T2_Time = impFrom.T2_Time;
-                    //Показания - Текущие
-                    impTo.E_T1 = impFrom.E_T1;
-                    impTo.E_T2 = impFrom.E_T2;
-                    impTo.E_T3 = impFrom.E_T3;
-                    impTo.E_T1_Start = impFrom.E_T1_Start;
-                    impTo.E_T2_Start = impFrom.E_T2_Start;
-                    impTo.E_T3_Start = impFrom.E_T3_Start;
-                    //Максимальная мощность
-                    impTo.Max_Power = impFrom.Max_Power;
-                }
+                if(((ImpParamsForProtocol)data).Num == ImpNum.IMP1)
+                    Main_VM.Imp1 = ((ImpParamsForProtocol)data).Imp;
+                else
+                    Main_VM.Imp2 = ((ImpParamsForProtocol)data).Imp;
             }
             if (cmd == PulsePLCv2Protocol.Commands.Read_DateTime)
             {
-
+                DeviceParams.DeviceDateTime = (DateTime)data;
             }
 
             
@@ -147,7 +120,10 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_ReadAllParams()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_DateTime, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_Main_Params, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_WriteAllParams()
         {
@@ -157,11 +133,15 @@ namespace Pulse_PLC_Tools_2
         #region DateTime
         public void Send_ReadDateTime()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_DateTime, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_WriteDateTime()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_DateTime, DateTime.Now, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_CorrectDateTime()
         {
@@ -177,21 +157,42 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_WriteMainParams()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_Main_Params, DeviceParams, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_ClearErrors()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Clear_Errors, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_WritePass()
         {
+            string p_w = DeviceParams.PassWrite_View, p_w_hex = "\nhex: ";
+            for (int i = 0; i < 6; i++) { if (i < p_w.Length) p_w_hex += "0x" + Convert.ToByte(p_w[i]).ToString("X") + " "; else p_w_hex += "0xFF "; }
+            p_w += " (" + p_w.Length + " симв)";
+            if (!DeviceParams.NewPassWrite) { p_w = "Без изменений"; p_w_hex = ""; }
+            string p_r = DeviceParams.PassRead_View, p_r_hex = "\nhex: ";
+            for (int i = 0; i < 6; i++) { if (i < p_r.Length) p_r_hex += "0x" + Convert.ToByte(p_r[i]).ToString("X") + " "; else p_r_hex += "0xFF "; }
+            p_r += " (" + p_r.Length + " симв)";
+            if (!DeviceParams.NewPassRead) { p_r = "Без изменений"; p_r_hex = ""; }
 
+            if (MessageBox.Show("Записать новые пароли?\n\nПароль на запись: " + p_w + "" + p_w_hex +
+                "\n\nПароль на чтение: " + p_r + p_r_hex, "Запись новых паролей", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Pass_Write, DeviceParams, 0);
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+            }
         }
         #endregion
         #region Imps params
         public void Send_ReadImp1()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_IMP, ImpNum.IMP1, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_WriteImp1()
         {
@@ -199,7 +200,9 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_ReadImp2()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_IMP, ImpNum.IMP2, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_WriteImp2()
         {

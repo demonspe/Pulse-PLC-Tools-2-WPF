@@ -140,7 +140,8 @@ namespace Pulse_PLC_Tools_2
                 ascue_pass = new byte[6] { 0, 0, 0, 0, 0, 0 };
                 for (int i = 0; i < 6; i++)
                 {
-                    if (char.IsDigit(ascue_pass_string[i])) ascue_pass[i] = Convert.ToByte(ascue_pass_string[i]);
+                    if (i < ascue_pass_string.Length)
+                        if (char.IsDigit(ascue_pass_string[i])) ascue_pass[i] = Convert.ToByte(ascue_pass_string[i]);
                 }
                 RaisePropertyChanged(nameof(Ascue_pass));
                 RaisePropertyChanged(nameof(Ascue_pass_View));
@@ -148,6 +149,11 @@ namespace Pulse_PLC_Tools_2
         }
         public byte Ascue_protocol { get => ascue_protocol; set { ascue_protocol = value; RaisePropertyChanged(nameof(Ascue_protocol)); } }
         public ushort Max_Power { get => max_Power; set { max_Power = value; RaisePropertyChanged(nameof(Max_Power)); } }
+
+        public void UpdateAllProps()
+        {
+            RaisePropertyChanged(null);
+        }
 
         public ImpParams()
         {

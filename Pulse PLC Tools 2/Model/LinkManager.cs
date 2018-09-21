@@ -14,12 +14,14 @@ namespace Pulse_PLC_Tools_2
         public ILink Link { get; set; }
         SynchronizationContext context;
         LinkVM linkViewModel;
+        MainVM mainVM;
         EventHandler<MessageDataEventArgs> messageInputHandler;
 
         public event EventHandler<MessageDataEventArgs> Message;
 
         public LinkManager(MainVM mainVM, SynchronizationContext context)
         {
+            this.mainVM = mainVM;
             Message += mainVM.MessageInput;
             messageInputHandler = mainVM.MessageInput;
             Link = new LinkCOM();
@@ -41,8 +43,8 @@ namespace Pulse_PLC_Tools_2
                     }
                     Link = new LinkCOM(linkViewModel.SelectedComPort);
                     ((LinkCOM)Link).Message += messageInputHandler;
-                    Link.Connected += Link_Connected;
-                    Link.Disconnected += Link_Disconnected;
+                    Link.Connected += mainVM.Link_Connected;
+                    Link.Disconnected += mainVM.Link_Disconnected;
                     Link.Connect();
                     break;
                 case TypeOfLink.TCP:
@@ -56,24 +58,15 @@ namespace Pulse_PLC_Tools_2
                     Link = new LinkGSM(linkViewModel.SelectedComPort, 20000);
                     ((LinkGSM)Link).PhoneNumber = linkViewModel.PhoneNumber;
                     ((LinkGSM)Link).Message += messageInputHandler;
-                    Link.Connected += Link_Connected;
+                    Link.Connected += mainVM.Link_Connected;
+                    Link.Disconnected += mainVM.Link_Disconnected;
                     Link.Connect();
                     break;
                 default:
                     break;
             }
         }
-
-        private void Link_Disconnected(object sender, EventArgs e)
-        {
-            linkViewModel.IsConnected = false;
-        }
-
-        private void Link_Connected(object sender, EventArgs e)
-        {
-            linkViewModel.IsConnected = true;
-        }
-
+        
         public void CloseLink()
         {
             Link?.Disconnect();
