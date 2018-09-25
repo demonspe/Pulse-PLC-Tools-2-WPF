@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Pulse_PLC_Tools_2
 {
+    public enum ImpNum : int { IMP1 = 1, IMP2 }
     public enum ImpOverflowType: byte { Disable = 0, Overflow_5_Digits = 5, Overflow_6_Digits = 6 }
     public enum ImpNumOfTarifs: byte { One = 1, Two = 2, Three = 3 }
     public enum ImpAscueProtocolType : byte { PulsePLC = 0, Mercury230ART = 1 }
@@ -18,17 +19,17 @@ namespace Pulse_PLC_Tools_2
             this.hours = 0;
             this.minutes = 0;
         }
-        public ImpTime(int hours, int minutes)
+        public ImpTime(byte hours, byte minutes)
         {
             this.hours = hours;
             this.minutes = minutes;
         }
 
-        private int hours;
-        private int minutes;
+        private byte hours;
+        private byte minutes;
 
         public int TimeInMinutes { get => hours * 60 + minutes; }
-        public int Hours { get => hours;
+        public byte Hours { get => hours;
             set
             {
                 hours = value;
@@ -38,7 +39,7 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(TimeInMinutes));
             }
         }
-        public int Minutes { get => minutes;
+        public byte Minutes { get => minutes;
             set
             {
                 minutes = value;
@@ -47,6 +48,159 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(Minutes));
                 RaisePropertyChanged(nameof(TimeInMinutes));
             }
+        }
+    }
+
+    public class ImpEnergyValue : BindableBase
+    {
+        public ImpEnergyValue()
+        {
+            Value_Wt = 0;
+        }
+        public ImpEnergyValue(uint energyInWth)
+        {
+            Value_Wt = energyInWth;
+        }
+        private uint e; //Энергия в ваттах
+        private double e_kWt; //Энергия в киловатах
+
+        public uint Value_Wt
+        {
+            get => e;
+            set
+            {
+                if (value > 3999999999)
+                    e = 3999999999;
+                else
+                    e = value;
+                e_kWt = (double)e / 1000;
+                RaisePropertyChanged(nameof(Value_Wt));
+                RaisePropertyChanged(nameof(Value_kWt));
+            }
+        }
+        public double Value_kWt
+        {
+            get => e_kWt;
+            set
+            {
+                if (value > (double)0xFFFFFFFF / 1000)
+                    e_kWt = 3999999.999;
+                else
+                    e_kWt = value;
+                e = Convert.ToUInt32(e_kWt * 1000);
+                RaisePropertyChanged(nameof(Value_Wt));
+                RaisePropertyChanged(nameof(Value_kWt));
+            }
+        }
+    }
+
+    public class ImpEnergyGroup : BindableBase
+    {
+        private bool isCorrect;
+        private ImpEnergyValue e_T1_Value;
+        private ImpEnergyValue e_T2_Value;
+        private ImpEnergyValue e_T3_Value;
+
+        public bool IsCorrect
+        {
+            get => isCorrect;
+            set
+            {
+                isCorrect = value;
+                RaisePropertyChanged(nameof(IsCorrect));
+                RaisePropertyChanged(nameof(E_Summ_View));
+                RaisePropertyChanged(nameof(E_T1_View));
+                RaisePropertyChanged(nameof(E_T2_View));
+                RaisePropertyChanged(nameof(E_T3_View));
+            }
+        }
+        public ImpEnergyValue E_T1_Value
+        {
+            get => e_T1_Value;
+            set
+            {
+                e_T1_Value = value;
+                RaisePropertyChanged(nameof(E_T1_Value));
+                RaisePropertyChanged(nameof(E_T1_View));
+                RaisePropertyChanged(nameof(E_Summ_View));
+            }
+        }
+        public ImpEnergyValue E_T2_Value
+        {
+            get => e_T2_Value;
+            set
+            {
+                e_T2_Value = value;
+                RaisePropertyChanged(nameof(E_T2_Value));
+                RaisePropertyChanged(nameof(E_T2_View));
+                RaisePropertyChanged(nameof(E_Summ_View));
+            }
+        }
+        public ImpEnergyValue E_T3_Value
+        {
+            get => e_T3_Value;
+            set
+            {
+                e_T3_Value = value;
+                RaisePropertyChanged(nameof(E_T3_Value));
+                RaisePropertyChanged(nameof(E_T3_View));
+                RaisePropertyChanged(nameof(E_Summ_View));
+            }
+        }
+        public string E_T1_View { get => (IsCorrect && E_T1_Value.Value_Wt < 0xFFFFFFFF) ? E_T1_Value.Value_kWt.ToString() : "-"; }
+        public string E_T2_View { get => (IsCorrect && E_T2_Value.Value_Wt < 0xFFFFFFFF) ? E_T2_Value.Value_kWt.ToString() : "-"; }
+        public string E_T3_View { get => (IsCorrect && E_T3_Value.Value_Wt < 0xFFFFFFFF) ? E_T3_Value.Value_kWt.ToString() : "-"; }
+        public string E_Summ_View
+        {
+            get
+            {
+                if (IsCorrect)
+                {
+                    double summ = 0;
+                    if (E_T1_Value.Value_Wt < 0xFFFFFFFF) summ += E_T1_Value.Value_kWt;
+                    if (E_T2_Value.Value_Wt < 0xFFFFFFFF) summ += E_T2_Value.Value_kWt;
+                    if (E_T3_Value.Value_Wt < 0xFFFFFFFF) summ += E_T3_Value.Value_kWt;
+                    return summ.ToString();
+                }
+                else return "-";
+            }
+        }
+
+        public ImpEnergyGroup(bool isCorrect)
+        {
+            IsCorrect = isCorrect;
+            E_T1_Value = new ImpEnergyValue(0);
+            E_T2_Value = new ImpEnergyValue(0);
+            E_T3_Value = new ImpEnergyValue(0);
+
+            E_T1_Value.PropertyChanged += (s, a) => {
+                RaisePropertyChanged(nameof(E_Summ_View));
+                RaisePropertyChanged(nameof(E_T1_View));
+            };
+            E_T2_Value.PropertyChanged += (s, a) => {
+                RaisePropertyChanged(nameof(E_Summ_View));
+                RaisePropertyChanged(nameof(E_T2_View));
+            };
+            E_T3_Value.PropertyChanged += (s, a) => {
+                RaisePropertyChanged(nameof(E_Summ_View));
+                RaisePropertyChanged(nameof(E_T3_View));
+            };
+        }
+    }
+
+    public class ImpExParams
+    {
+        public byte CurrentTarif { get; set; }
+        public ushort ImpCounter { get; set; }
+        public uint TimeMsFromLastImp { get; set; }
+        public uint CurrentPower { get; set; }
+
+        public ImpExParams()
+        {
+            CurrentTarif = 1;
+            ImpCounter = 0;
+            TimeMsFromLastImp = 0;
+            CurrentPower = 0;
         }
     }
 
@@ -68,14 +222,8 @@ namespace Pulse_PLC_Tools_2
         public byte IsEnable { get => isEnable; set { isEnable = value; RaisePropertyChanged(nameof(IsEnable)); } }
         public byte Adrs_PLC { get => adrs_PLC; set { adrs_PLC = value; RaisePropertyChanged(nameof(Adrs_PLC)); } }
         public ushort A { get => a; set { a = value; RaisePropertyChanged(nameof(A)); } }
-        public ImpEnergyValue E_T1 { get; set; }
-        public ImpEnergyValue E_T2 { get; set; }
-        public ImpEnergyValue E_T3 { get; set; }
-        public double E_Tsum_kWt { get => E_T1.Value_kWt + E_T2.Value_kWt + E_T3.Value_kWt; }
-        public ImpEnergyValue E_T1_Start { get; set; }
-        public ImpEnergyValue E_T2_Start { get; set; }
-        public ImpEnergyValue E_T3_Start { get; set; }
-        public double E_Tsum_Start_kWt { get => E_T1_Start.Value_kWt + E_T2_Start.Value_kWt + E_T3_Start.Value_kWt; }
+        public ImpEnergyGroup E_Current { get; set; }
+        public ImpEnergyGroup E_StartDay { get; set; }
         public ImpOverflowType Perepoln { get => perepoln;
             set {
                 perepoln = value;
@@ -141,7 +289,7 @@ namespace Pulse_PLC_Tools_2
                 for (int i = 0; i < 6; i++)
                 {
                     if (i < ascue_pass_string.Length)
-                        if (char.IsDigit(ascue_pass_string[i])) ascue_pass[i] = Convert.ToByte(ascue_pass_string[i]);
+                        if (char.IsDigit(ascue_pass_string[i])) ascue_pass[i] = Convert.ToByte(ascue_pass_string.Substring(i, 1));
                 }
                 RaisePropertyChanged(nameof(Ascue_pass));
                 RaisePropertyChanged(nameof(Ascue_pass_View));
@@ -171,19 +319,8 @@ namespace Pulse_PLC_Tools_2
             IsEnable = 0;
             A = 1600;
 
-            E_T1 = new ImpEnergyValue();
-            E_T2 = new ImpEnergyValue();
-            E_T3 = new ImpEnergyValue();
-            E_T1.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_kWt)); };
-            E_T2.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_kWt)); };
-            E_T3.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_kWt)); };
-
-            E_T1_Start = new ImpEnergyValue();
-            E_T2_Start = new ImpEnergyValue();
-            E_T3_Start = new ImpEnergyValue();
-            E_T1_Start.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_Start_kWt)); };
-            E_T2_Start.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_Start_kWt)); };
-            E_T3_Start.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Tsum_Start_kWt)); };
+            E_Current = new ImpEnergyGroup(true);
+            E_StartDay = new ImpEnergyGroup(true);
 
             Perepoln = ImpOverflowType.Disable;
             T_qty = ImpNumOfTarifs.One;

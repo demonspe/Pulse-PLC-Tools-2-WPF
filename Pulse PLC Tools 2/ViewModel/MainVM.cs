@@ -32,11 +32,11 @@ namespace Pulse_PLC_Tools_2
 
 
         public ObservableCollection<string> SerialNumList { get; }
+
         //Data
         public ImpParams Imp1 { get => imp1; set { imp1 = value; RaisePropertyChanged(nameof(Imp1)); } }
         public ImpParams Imp2 { get => imp2; set { imp2 = value; RaisePropertyChanged(nameof(Imp2)); } }
         public DeviceMainParams Device { get; set; }
-        public ObservableCollection<DataGridRow_PLC> TablePLC { get; }
         //Device events journals
         public ObservableCollection<DataGridRow_Log> JournalPower { get; }
         public ObservableCollection<DataGridRow_Log> JournalConfig { get; }
@@ -48,12 +48,13 @@ namespace Pulse_PLC_Tools_2
         public Visibility LogVisible { get => logVisible; set { logVisible = value; RaisePropertyChanged(nameof(LogVisible)); } }
         public Visibility LogExVisible { get => logExVisible; set { logExVisible = value; RaisePropertyChanged(nameof(LogExVisible)); } }
         public string ToolBarText { get => toolBarText; set { toolBarText = value; RaisePropertyChanged(nameof(ToolBarText)); } }
-        
+
         //Navigate
         public int CurrentPage { get => currentPage; set { currentPage = value; RaisePropertyChanged(nameof(CurrentPage)); } }
 
         //VM
         public LinkVM VM_Link { get; }
+        public PLCTableVM VM_PLCTable { get; }
 
         //Model
         public LinkManager LinkManager { get; }
@@ -61,6 +62,8 @@ namespace Pulse_PLC_Tools_2
         LogManager LogManager { get; }
 
         //Commands
+        
+        //Log
         public DelegateCommand ShowLogSimple { get; }
         public DelegateCommand ShowLogExpert { get; }
         public DelegateCommand ClearLog { get; }
@@ -93,17 +96,18 @@ namespace Pulse_PLC_Tools_2
         public MainVM()
         {
             SerialNumList = new ObservableCollection<string>();
+
             //Контейнеры для данных
             Imp1 = new ImpParams(1);
             Imp2 = new ImpParams(2);
             Device = new DeviceMainParams();
-            TablePLC = new ObservableCollection<DataGridRow_PLC>();
-            FillTablePLC();
+
             //Журналы событий
             JournalPower = new ObservableCollection<DataGridRow_Log>();
             JournalConfig = new ObservableCollection<DataGridRow_Log>();
             JournalInterfaces = new ObservableCollection<DataGridRow_Log>();
             JournalRequestsPLC = new ObservableCollection<DataGridRow_Log>();
+
             //Log
             Log = new FlowDocument();
             LogEx = new FlowDocument();
@@ -111,9 +115,11 @@ namespace Pulse_PLC_Tools_2
             LogExVisible = Visibility.Hidden;
             LogManager = new LogManager(Log, LogEx, SynchronizationContext.Current);
             ToolBarText = "Привет";
+
             //VM
             VM_Link = new LinkVM();
-            
+            VM_PLCTable = new PLCTableVM();
+
             //Model
             LinkManager = new LinkManager(this, SynchronizationContext.Current);
             ProtocolManager = new ProtocolManager(this, SynchronizationContext.Current);
@@ -165,13 +171,7 @@ namespace Pulse_PLC_Tools_2
         {
             CurrentPage = (int)page;
         }
-
-        void FillTablePLC()
-        {
-            for (int i = 0; i < 250; i++)
-                TablePLC.Add(new DataGridRow_PLC((byte)(i + 1), ImpAscueProtocolType.Mercury230ART));
-        }
-
+        
         //Обработчик события сообщения
         public void MessageInput(object sender, MessageDataEventArgs e)
         {

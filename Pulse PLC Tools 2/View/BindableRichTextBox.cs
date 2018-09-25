@@ -6,9 +6,18 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Interactivity;
 
 namespace Pulse_PLC_Tools_2
 {
+    public class ScrollToBottomAction : TriggerAction<RichTextBox>
+    {
+        protected override void Invoke(object parameter)
+        {
+            AssociatedObject.ScrollToEnd();
+        }
+    }
+
     public class BindableRichTextBox : RichTextBox
     {
         public static readonly DependencyProperty DocumentProperty =

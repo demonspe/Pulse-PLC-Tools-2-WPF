@@ -66,6 +66,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\Helpers.cs" />
     <Compile Include="Model\LinkManager.cs" />
     <Compile Include="Model\BLProtocolManager.cs" />
     <Compile Include="Model\MessageLodManager.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="Model\LinkLibrary\IProtocol.cs" />
     <Compile Include="Model\LinkLibrary\LinkCOM.cs" />
     <Compile Include="Model\LinkLibrary\LinkGSM.cs" />
+    <Compile Include="ViewModel\PLCTableVM.cs" />
     <Compile Include="View\BindableRichTextBox.cs" />
     <Compile Include="View\DebugLog.xaml.cs">
       <DependentUpon>DebugLog.xaml</DependentUpon>

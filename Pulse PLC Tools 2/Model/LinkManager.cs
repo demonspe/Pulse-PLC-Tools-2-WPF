@@ -28,7 +28,7 @@ namespace Pulse_PLC_Tools_2
             this.context = context;
             linkViewModel = mainVM.VM_Link;
             //Запускаем поток для сканирования COM портов
-            ThreadPool.QueueUserWorkItem(Get_COM_List_Handler, linkViewModel.ComPortList);
+            ThreadPool.QueueUserWorkItem(Get_COM_List_Handler, linkViewModel);
         }
 
         public void OpenLink()
@@ -73,15 +73,20 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Чтение списка COM портов в системe
-        void Get_COM_List_Handler(object ComPortList)
+        void Get_COM_List_Handler(object link_VM)
         {
             while (true)
             {
                 string[] myPortList = System.IO.Ports.SerialPort.GetPortNames();
-                context.Send((list) => {
-                    ((ObservableCollection<string>)list).Clear();
-                    myPortList.ToList().ForEach(item => ((ObservableCollection<string>)list).Add(item));
-                }, ComPortList);
+                context.Send((linkVM) => {
+                    string selectedComPort = ((LinkVM)linkVM).SelectedComPort;
+                    ((LinkVM)linkVM).ComPortList.Clear();
+                    myPortList.ToList().ForEach(item => ((LinkVM)linkVM).ComPortList.Add(item));
+                    ((LinkVM)linkVM).SelectedComPort = selectedComPort;
+                    if (((LinkVM)linkVM).ComPortList.Count > 0 && ((LinkVM)linkVM).SelectedComPort == string.Empty)
+                        ((LinkVM)linkVM).SelectedComPort = ((LinkVM)linkVM).ComPortList[0];
+                    if (((LinkVM)linkVM).ComPortList.Count == 0) ((LinkVM)linkVM).SelectedComPort = "";
+                }, link_VM);
 
                 Thread.Sleep(500);  //Проверка каналов каждые 500 мс
             }

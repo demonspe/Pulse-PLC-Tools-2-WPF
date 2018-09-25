@@ -76,7 +76,11 @@ namespace Pulse_PLC_Tools_2
         }
         public string Serial_View
         {
-            get { return serial_bytes[0].ToString("00") + serial_bytes[1].ToString("00") + serial_bytes[2].ToString("00") + serial_bytes[3].ToString("00"); }
+            get
+            {
+                string serial = serial_bytes[0].ToString("00") + serial_bytes[1].ToString("00") + serial_bytes[2].ToString("00") + serial_bytes[3].ToString("00");
+                if (serial == "00000000") return string.Empty; else return serial;
+            }
             set
             {
                 if (value == null || value == string.Empty) return;

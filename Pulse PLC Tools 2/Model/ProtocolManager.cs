@@ -41,7 +41,7 @@ namespace Pulse_PLC_Tools_2
 
         private void Protocol_AccessEnd(object sender, EventArgs e)
         {
-            //Доступ закрыт изменить значки в татус баре
+            //Доступ закрыт изменить значки в cтатус баре
             //
             //
         }
@@ -51,57 +51,6 @@ namespace Pulse_PLC_Tools_2
             if (!e.Status || e.DataObject == null) return;
             //Получим данные и отправим их в наше View
             context.Post(GetProtocolData, e.DataObject);
-        }
-
-        void GetProtocolData(object DataObject)
-        {
-            ProtocolDataContainer dataContainer = (ProtocolDataContainer)DataObject;
-            object data = dataContainer.Data;
-            if (dataContainer.ProtocolName != "PulsePLCv2" || data == null) return;
-            PulsePLCv2Protocol.Commands cmd = (PulsePLCv2Protocol.Commands)dataContainer.CommandCode;
-
-            if (cmd == PulsePLCv2Protocol.Commands.Search_Devices)
-            {
-                Main_VM.SerialNumList.Clear();
-                ((List<string>)data).ForEach(str => Main_VM.SerialNumList.Add(str));
-            }
-
-            if(cmd == PulsePLCv2Protocol.Commands.Check_Pass)
-            {
-                AccessType access = (AccessType)data;
-                //Отобразить во View
-                //
-            }
-
-            if (cmd == PulsePLCv2Protocol.Commands.Read_Main_Params)
-            {
-                DeviceMainParams device = (DeviceMainParams)data;
-                //Версии
-                DeviceParams.VersionFirmware = device.VersionFirmware;
-                DeviceParams.VersionEEPROM = device.VersionEEPROM;
-                //Режимы работы
-                DeviceParams.WorkMode = device.WorkMode;
-                DeviceParams.BatteryMode = device.BatteryMode;
-                DeviceParams.RS485_WorkMode = device.RS485_WorkMode;
-                DeviceParams.Bluetooth_WorkMode = device.Bluetooth_WorkMode;
-                //Ошибки
-                DeviceParams.ErrorsByte = device.ErrorsByte;
-                //Покрасим пункт меню в зеленый
-                //
-            }
-            if (cmd == PulsePLCv2Protocol.Commands.Read_IMP)
-            {
-                if(((ImpParamsForProtocol)data).Num == ImpNum.IMP1)
-                    Main_VM.Imp1 = ((ImpParamsForProtocol)data).Imp;
-                else
-                    Main_VM.Imp2 = ((ImpParamsForProtocol)data).Imp;
-            }
-            if (cmd == PulsePLCv2Protocol.Commands.Read_DateTime)
-            {
-                DeviceParams.DeviceDateTime = (DateTime)data;
-            }
-
-            
         }
 
         PulsePLCv2LoginPass GetLoginPass()
@@ -123,11 +72,18 @@ namespace Pulse_PLC_Tools_2
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_DateTime, null, 0);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_Main_Params, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_IMP, ImpNum.IMP1, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_IMP, ImpNum.IMP2, 0);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_WriteAllParams()
         {
-
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_DateTime, DateTime.Now, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_Main_Params, DeviceParams, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_IMP, new ImpParamsForProtocol(Main_VM.Imp1, ImpNum.IMP1), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_IMP, new ImpParamsForProtocol(Main_VM.Imp2, ImpNum.IMP2), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         #endregion
         #region DateTime
@@ -196,7 +152,10 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_WriteImp1()
         {
-
+            ImpParamsForProtocol param = new ImpParamsForProtocol(Main_VM.Imp1, ImpNum.IMP1);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_IMP, param, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         public void Send_ReadImp2()
         {
@@ -206,8 +165,67 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_WriteImp2()
         {
+            ImpParamsForProtocol param = new ImpParamsForProtocol(Main_VM.Imp2, ImpNum.IMP2);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_IMP, param, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
 
         }
         #endregion
+
+        void GetProtocolData(object DataObject)
+        {
+            ProtocolDataContainer dataContainer = (ProtocolDataContainer)DataObject;
+            object data = dataContainer.Data;
+            if (dataContainer.ProtocolName != "PulsePLCv2" || data == null) return;
+            PulsePLCv2Protocol.Commands cmd = (PulsePLCv2Protocol.Commands)dataContainer.CommandCode;
+
+            if (cmd == PulsePLCv2Protocol.Commands.Search_Devices)
+            {
+                Main_VM.SerialNumList.Clear();
+                ((List<string>)data).ForEach(str => Main_VM.SerialNumList.Add(str));
+                if (Main_VM.SerialNumList.Count > 0 && Main_VM.Device.Serial_View == string.Empty) Main_VM.Device.Serial_View = Main_VM.SerialNumList[0];
+            }
+
+            if (cmd == PulsePLCv2Protocol.Commands.Check_Pass)
+            {
+                AccessType access = (AccessType)data;
+                //Отобразить во View
+                //
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_Main_Params)
+            {
+                DeviceMainParams device = (DeviceMainParams)data;
+                //Версии
+                DeviceParams.VersionFirmware = device.VersionFirmware;
+                DeviceParams.VersionEEPROM = device.VersionEEPROM;
+                //Режимы работы
+                DeviceParams.WorkMode = device.WorkMode;
+                DeviceParams.BatteryMode = device.BatteryMode;
+                DeviceParams.RS485_WorkMode = device.RS485_WorkMode;
+                DeviceParams.Bluetooth_WorkMode = device.Bluetooth_WorkMode;
+                //Ошибки
+                DeviceParams.ErrorsByte = device.ErrorsByte;
+                //Покрасим пункт меню в зеленый
+                //
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_IMP)
+            {
+                if (((ImpParamsForProtocol)data).Num == ImpNum.IMP1)
+                    Main_VM.Imp1 = ((ImpParamsForProtocol)data).Imp;
+                else
+                    Main_VM.Imp2 = ((ImpParamsForProtocol)data).Imp;
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_DateTime)
+            {
+                DeviceParams.DeviceDateTime = (DateTime)data;
+            }
+            if(cmd == PulsePLCv2Protocol.Commands.Read_IMP_extra)
+            {
+                ImpExParamsForProtocol exParams = (ImpExParamsForProtocol)data;
+
+            }
+
+        }
     }
 }

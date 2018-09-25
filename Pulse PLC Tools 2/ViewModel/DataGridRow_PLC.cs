@@ -10,100 +10,6 @@ namespace Pulse_PLC_Tools_2
 {
     public enum PLCProtocolType : byte { Undefined = 0, PLCv1 = 11, PLCv2 = 22 }
 
-    public class ImpEnergyValue : BindableBase
-    {
-        public ImpEnergyValue()
-        {
-            Value_Wt = 0;
-        }
-        public ImpEnergyValue(uint energyInWth)
-        {
-            Value_Wt = energyInWth;
-        }
-        private uint e; //Энергия в ваттах
-        private double e_kWt; //Энергия в киловатах
-
-        public uint Value_Wt
-        {
-            get => e;
-            set
-            {
-                e = value;
-                e_kWt = (double)e / 1000;
-                RaisePropertyChanged(nameof(Value_Wt));
-                RaisePropertyChanged(nameof(Value_kWt));
-            }
-        }
-        public double Value_kWt
-        {
-            get => e_kWt;
-            set
-            {
-                e_kWt = value;
-                e = Convert.ToUInt32(e_kWt * 1000);
-                RaisePropertyChanged(nameof(Value_Wt));
-                RaisePropertyChanged(nameof(Value_kWt));
-            }
-        }
-    }
-
-    public class ImpEnergyGroup : BindableBase
-    {
-        private bool isCorrect;
-
-        public bool IsCorrect { get => isCorrect;
-            set { isCorrect = value;
-                RaisePropertyChanged(nameof(IsCorrect));
-                RaisePropertyChanged(nameof(E_Summ_View));
-                RaisePropertyChanged(nameof(E_T1_View));
-                RaisePropertyChanged(nameof(E_T2_View));
-                RaisePropertyChanged(nameof(E_T3_View));
-            } }
-        public ImpEnergyValue E_T1_Value { get; set; }
-        public ImpEnergyValue E_T2_Value { get; set; }
-        public ImpEnergyValue E_T3_Value { get; set; }
-        public string E_T1_View { get => (IsCorrect && E_T1_Value.Value_Wt < 0xFFFFFFFF) ? E_T1_Value.Value_kWt.ToString() : "-"; }
-        public string E_T2_View { get => (IsCorrect && E_T2_Value.Value_Wt < 0xFFFFFFFF) ? E_T2_Value.Value_kWt.ToString() : "-"; }
-        public string E_T3_View { get => (IsCorrect && E_T3_Value.Value_Wt < 0xFFFFFFFF) ? E_T3_Value.Value_kWt.ToString() : "-"; }
-        public string E_Summ_View {
-            get
-            {
-                if (IsCorrect)
-                {
-                    double summ = 0;
-                    if (E_T1_Value.Value_Wt < 0xFFFFFFFF) summ += E_T1_Value.Value_kWt;
-                    if (E_T2_Value.Value_Wt < 0xFFFFFFFF) summ += E_T2_Value.Value_kWt;
-                    if (E_T3_Value.Value_Wt < 0xFFFFFFFF) summ += E_T3_Value.Value_kWt;
-                    return summ.ToString();
-                }
-                else return "-";
-            }
-        }
-
-        public ImpEnergyGroup()
-        {
-            E_T1_Value = new ImpEnergyValue(0);
-            E_T2_Value = new ImpEnergyValue(0);
-            E_T3_Value = new ImpEnergyValue(0);
-            //E_T1_Value.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_T1_Value)); RaisePropertyChanged(nameof(E_T1_View)); RaisePropertyChanged(nameof(E_Summ_View)); };
-            //E_T2_Value.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_T2_Value)); RaisePropertyChanged(nameof(E_T2_View)); RaisePropertyChanged(nameof(E_Summ_View)); };
-            //E_T2_Value.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_T3_Value)); RaisePropertyChanged(nameof(E_T3_View)); RaisePropertyChanged(nameof(E_Summ_View)); };
-
-            E_T1_Value.PropertyChanged += (s, a) => {
-                RaisePropertyChanged(nameof(E_Summ_View));
-                RaisePropertyChanged(nameof(E_T1_View));
-            };
-            E_T2_Value.PropertyChanged += (s, a) => {
-                RaisePropertyChanged(nameof(E_Summ_View));
-                RaisePropertyChanged(nameof(E_T2_View));
-            };
-            E_T3_Value.PropertyChanged += (s, a) => {
-                RaisePropertyChanged(nameof(E_Summ_View));
-                RaisePropertyChanged(nameof(E_T3_View));
-            };
-        }
-    }
-
     public class DataGridRow_PLC : BindableBase
     {
         //Проверить содержит ли строка только цифры
@@ -284,12 +190,27 @@ namespace Pulse_PLC_Tools_2
         //-----
         //Начало года
         //-----
+        public DataGridRow_PLC()
+        {
+            SetDefault();
+        }
+        public DataGridRow_PLC(byte adrsPLC)
+        {
+            SetDefault();
+            Adrs_PLC = adrsPLC;
+        }
+        public DataGridRow_PLC(byte adrsPLC, bool enable)
+        {
+            SetDefault();
+            Adrs_PLC = adrsPLC;
+            IsEnable = enable;
+        }
 
-        public DataGridRow_PLC(byte adrsPLC, ImpAscueProtocolType ascueProtocolType)
+        void SetDefault()
         {
             LastPLCRequestTime = DateTime.MinValue;
             IsEnable = false;
-            Adrs_PLC = adrsPLC;
+            Adrs_PLC = 1;
             Serial_View = "0"; //to fill 0
             steps = new byte[5] { 0, 0, 0, 0, 0 };
             N = 0;
@@ -298,7 +219,7 @@ namespace Pulse_PLC_Tools_2
             S3 = 0;
             S4 = 0;
             S5 = 0;
-            Protocol_ASCUE = ascueProtocolType;
+            Protocol_ASCUE = ImpAscueProtocolType.PulsePLC;
             Adrs_ASCUE = 0;
             Pass_ASCUE_View = "111111";
             LastPLCRequestStatus = false;
@@ -306,11 +227,10 @@ namespace Pulse_PLC_Tools_2
             Quality = 100;
             TypePLC = PLCProtocolType.Undefined;
             ErrorsByte = 0;
-            E_Current = new ImpEnergyGroup();
-            E_StartDay = new ImpEnergyGroup();
+            E_Current = new ImpEnergyGroup(false);
+            E_StartDay = new ImpEnergyGroup(false);
             E_Current.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Current)); };
             E_StartDay.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_StartDay)); };
         }
-
     }
 }

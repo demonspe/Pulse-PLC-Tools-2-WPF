@@ -22,7 +22,7 @@ namespace Pulse_PLC_Tools_2
         private bool isConnected;
 
         public ObservableCollection<string> ComPortList { get; }
-        public string SelectedComPort { get => comPortName; set { if (value != "") { comPortName = value; RaisePropertyChanged(nameof(SelectedComPort)); } } }
+        public string SelectedComPort { get => comPortName; set { comPortName = value; RaisePropertyChanged(nameof(SelectedComPort)); } }
         public string IP_Address { get => ipAddress; set { ipAddress = value; RaisePropertyChanged(nameof(IP_Address)); } }
         public ushort TCP_Port { get => tcpPort; set { tcpPort = value; RaisePropertyChanged(nameof(IP_Address)); } }
         public string PhoneNumber { get => phoneNumber; set { phoneNumber = value; RaisePropertyChanged(nameof(PhoneNumber)); } }
@@ -46,7 +46,7 @@ namespace Pulse_PLC_Tools_2
         {
             VisibilityLinesGSMCOM = Visibility.Hidden;
             ComPortList = new ObservableCollection<string>();
-            
+            SelectedComPort = "";
             IP_Address = "192.168.1.59";
             TCP_Port = 11111;
             PhoneNumber = "89271112233";
