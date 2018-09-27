@@ -90,8 +90,26 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_WriteImp1 { get; }
         public DelegateCommand Send_ReadImp2 { get; }   //Imp2
         public DelegateCommand Send_WriteImp2 { get; }
-        public DelegateCommand Send_ReadEnableTablePLC { get; } //PLC Table
-
+        //PLC Table
+        public DelegateCommand Send_ReadEnableRows { get; }
+        public DelegateCommand Send_ReadSelectedRows { get; }
+        public DelegateCommand Send_WriteSelectedRows { get; }
+        public DelegateCommand Send_Request_PLCv1 { get; }
+        public DelegateCommand Send_Request_Time { get; }
+        public DelegateCommand Send_Request_Serial { get; }
+        public DelegateCommand Send_Request_E_Current { get; }
+        public DelegateCommand Send_Request_E_StartDay { get; }
+        public DelegateCommand EnableSelected { get; }
+        public DelegateCommand DisableSelected { get; }
+        public DelegateCommand ClearPLCTable { get; }
+        //Data E Table
+        public DelegateCommand Send_Read_E_Enabled { get; }
+        public DelegateCommand Send_Read_E_Selected { get; }
+        //Journals
+        public DelegateCommand Send_ReadJournal_Interface { get; }
+        public DelegateCommand Send_ReadJournal_Config { get; }
+        public DelegateCommand Send_ReadJournal_Power { get; }
+        public DelegateCommand Send_ReadJournal_RequestsPLC { get; }
 
         public MainVM()
         {
@@ -154,7 +172,26 @@ namespace Pulse_PLC_Tools_2
             Send_WriteImp1 = new DelegateCommand(ProtocolManager.Send_WriteImp1);
             Send_ReadImp2 = new DelegateCommand(ProtocolManager.Send_ReadImp2);
             Send_WriteImp2 = new DelegateCommand(ProtocolManager.Send_WriteImp2);
-
+            //PLC Table
+            Send_ReadEnableRows = new DelegateCommand(ProtocolManager.Send_ReadEnableRowsAdrss);
+            Send_ReadSelectedRows = new DelegateCommand(ProtocolManager.Send_ReadSelectedRows);
+            Send_WriteSelectedRows = new DelegateCommand(ProtocolManager.Send_WriteSelectedRows);
+            Send_Request_PLCv1 = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.PLCv1); });
+            Send_Request_Time = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.Time_Synchro); });
+            Send_Request_Serial = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.Serial_Num); });
+            Send_Request_E_Current = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.E_Current); });
+            Send_Request_E_StartDay = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.E_Start_Day); });
+            EnableSelected = new DelegateCommand(VM_PLCTable.EnableSelected);
+            DisableSelected = new DelegateCommand(VM_PLCTable.DisableSelected);
+            ClearPLCTable = new DelegateCommand(VM_PLCTable.ResetTable);
+            //Data E Table
+            Send_Read_E_Enabled = new DelegateCommand(ProtocolManager.Send_Read_E_Enabled);
+            Send_Read_E_Selected = new DelegateCommand(ProtocolManager.Send_Read_E_Selected);
+            //Journals
+            Send_ReadJournal_Interface = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.INTERFACES));
+            Send_ReadJournal_Config = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.CONFIG));
+            Send_ReadJournal_Power = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.POWER));
+            Send_ReadJournal_RequestsPLC = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.REQUESTS));
 
             //Start page
             GoToPage(TabPages.Link);

@@ -27,21 +27,21 @@
             </i:Interaction.Triggers>
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Прочитать (Ctrl+R)" />
-                    <MenuItem Header="Записать" />
+                    <MenuItem Header="Прочитать (Ctrl+R)" Command="{Binding Send_ReadSelectedRows}"/>
+                    <MenuItem Header="Записать" Command="{Binding Send_WriteSelectedRows}"/>
                     <Separator/>
-                    <MenuItem Header="Включить" />
-                    <MenuItem Header="Отключить" />
+                    <MenuItem Header="Включить" Command="{Binding EnableSelected}"/>
+                    <MenuItem Header="Отключить" Command="{Binding DisableSelected}"/>
                     <Separator/>
                     <MenuItem Header="Запрос по PLC">
-                        <MenuItem Header="Проверка связи (Ctrl+P)" />
-                        <MenuItem Header="Синхронизация времени"/>
-                        <MenuItem Header="Серийный номер" />
-                        <MenuItem Header="Показания - Текущие" />
-                        <MenuItem Header="Показания - На начало суток" />
+                        <MenuItem Header="Проверка связи (Ctrl+P)" Command="{Binding Send_Request_PLCv1}"/>
+                        <MenuItem Header="Синхронизация времени" Command="{Binding Send_Request_Time}"/>
+                        <MenuItem Header="Серийный номер" Command="{Binding Send_Request_Serial}"/>
+                        <MenuItem Header="Показания - Текущие" Command="{Binding Send_Request_E_Current}"/>
+                        <MenuItem Header="Показания - На начало суток" Command="{Binding Send_Request_E_StartDay}"/>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem Header="Очистить таблицу" />
+                    <MenuItem Header="Очистить таблицу" Command="{Binding ClearPLCTable}"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.CellStyle>
@@ -67,7 +67,7 @@
                 <DataGridTextColumn Binding="{Binding Adrs_ASCUE}"  Header="Адрес АСУЭ" Width="11*" CanUserSort="False"/>
                 <DataGridTextColumn Binding="{Binding Pass_ASCUE_View}"  Header="Пароль АСУЭ" Width="12*" CanUserSort="False"/>
                 <DataGridCheckBoxColumn  Binding="{Binding LastPLCRequestStatus}"  Header="Связь" Width="6*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding LastPLCRequestTime_View}"  Header="Успешная связь" Width="14*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding LastPLCRequestTime, StringFormat='dd.MM.yy HH:mm:ss'}"  Header="Успешная связь" Width="14*" IsReadOnly="True" CanUserSort="False"/>
                 <DataGridTextColumn Binding="{Binding Quality}"  Header="Качество" Width="8*" IsReadOnly="True" CanUserSort="False"/>
                 <DataGridTextColumn Binding="{Binding TypePLC_View}"  Header="Тип" Width="6*" IsReadOnly="False" CanUserSort="False"/>
                 <DataGridTextColumn Binding="{Binding ErrorsByte_View}"  Header="Флаги ошибок" Width="16*" IsReadOnly="True" CanUserSort="False"/>
@@ -75,7 +75,7 @@
         </DataGrid>
         <Button Content="Прочитать все" HorizontalAlignment="Left" Margin="428,10,0,0" VerticalAlignment="Top" Width="110" Height="30"/>
         <Button Content="Записать все" HorizontalAlignment="Left" Margin="543,10,0,0" VerticalAlignment="Top" Width="110" Height="30"/>
-        <Button Content="Прочитать включенные" HorizontalAlignment="Left" Margin="221,10,0,0" VerticalAlignment="Top" Width="156" Height="30"/> 
+        <Button Content="Прочитать включенные" Command="{Binding Send_ReadEnableRows}" HorizontalAlignment="Left" Margin="221,10,0,0" VerticalAlignment="Top" Width="156" Height="30"/> 
         <TextBlock HorizontalAlignment="Left" Margin="882,10,0,0" TextWrapping="Wrap" Text="Выбрано строк: " VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="980,10,0,0" TextWrapping="Wrap" Text="{Binding VM_PLCTable.CountSelectedRows}" VerticalAlignment="Top"/>
     </Grid>

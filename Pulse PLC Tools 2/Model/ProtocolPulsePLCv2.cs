@@ -16,7 +16,6 @@ namespace Pulse_PLC_Tools_2
 {
     public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day } //Добавить начало месяца и тд
     public enum Journal_type : int { POWER = 1, CONFIG, INTERFACES, REQUESTS }
-
     public enum AccessType : int { No_Access, Read, Write }
 
     public class PulsePLCv2LoginPass
@@ -48,7 +47,6 @@ namespace Pulse_PLC_Tools_2
             PassString = Encoding.Default.GetString(Pass).Trim(Convert.ToChar(255));
         }
     }
-
     public class ImpParamsForProtocol
     {
         public ImpParams Imp { get; }
@@ -60,7 +58,6 @@ namespace Pulse_PLC_Tools_2
             Num = num;
         }
     }
-
     public class ImpExParamsForProtocol
     {
         public ImpExParams ImpEx { get; }
@@ -70,6 +67,27 @@ namespace Pulse_PLC_Tools_2
         {
             ImpEx = impEx;
             Num = num;
+        }
+    }
+    public class JournalForProtocol
+    {
+        public List<DataGridRow_Log> Events { get; }
+        public Journal_type Type { get; }
+
+        public JournalForProtocol(Journal_type type)
+        {
+            Events = new List<DataGridRow_Log>();
+            Type = type;
+        }
+    }
+    public class PLCRequestParamsForProtocol
+    {
+        public PLC_Request Type { get; }
+        public DataGridRow_PLC Device { get; set; }
+
+        public PLCRequestParamsForProtocol(PLC_Request type)
+        {
+            Type = type;
         }
     }
 
@@ -88,7 +106,6 @@ namespace Pulse_PLC_Tools_2
     }
 
     
-
     public class PulsePLCv2Protocol : IProtocol, IMessage
     {
         public string ProtocolName { get => "PulsePLCv2"; }
@@ -127,7 +144,6 @@ namespace Pulse_PLC_Tools_2
             Write_IMP,
             Read_PLC_Table,
             Read_PLC_Table_En,
-            Read_E_Data,
             Write_PLC_Table,
             Read_E_Current,
             Read_E_Start_Day,
@@ -192,7 +208,7 @@ namespace Pulse_PLC_Tools_2
             CommandProps.Add(Commands.EEPROM_Burn,      new CommandProperties() { Code = "Sb", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Clear_Errors,     new CommandProperties() { Code = "Sc", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Reboot,           new CommandProperties() { Code = "Sr", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Request_PLC,      new CommandProperties() { Code = "SR", MinLength = 0, Timeout = 15000 });
+            CommandProps.Add(Commands.Request_PLC,      new CommandProperties() { Code = "SR", MinLength = 0, Timeout = 60000 });
             //Чтение                                                                           
             CommandProps.Add(Commands.Search_Devices,   new CommandProperties() { Code = "RL", MinLength = 0, Timeout = 500 });
             CommandProps.Add(Commands.Read_Journal,     new CommandProperties() { Code = "RJ", MinLength = 0, Timeout = 200 });
@@ -228,14 +244,15 @@ namespace Pulse_PLC_Tools_2
             //Доступ - Чтение
             if (access != AccessType.Read && access != AccessType.Write) {
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к данным устройства. Сначала авторизуйтесь." }); return false; }
-            if (CurrentCommand == Commands.Read_Journal)       return CMD_Read_Journal((Journal_type)param);
-            if (CurrentCommand == Commands.Read_DateTime)      return CMD_Read_DateTime();
-            if (CurrentCommand == Commands.Read_Main_Params)   return CMD_Read_Main_Params();
-            if (CurrentCommand == Commands.Read_IMP)           return CMD_Read_Imp_Params((ImpNum)param);
-            if (CurrentCommand == Commands.Read_IMP_extra)     return CMD_Read_Imp_Extra_Params((ImpNum)param);
-            if (CurrentCommand == Commands.Read_PLC_Table || CurrentCommand == Commands.Read_PLC_Table_En || CurrentCommand == Commands.Read_E_Data) return CMD_Read_PLC_Table((List<DataGridRow_PLC>)param);
-            if (CurrentCommand == Commands.Read_E_Current)     return CMD_Read_E_Current((byte)param);
-            if (CurrentCommand == Commands.Read_E_Start_Day)   return CMD_Read_E_Start_Day((byte)param);
+            if (CurrentCommand == Commands.Read_Journal)        return CMD_Read_Journal((Journal_type)param);
+            if (CurrentCommand == Commands.Read_DateTime)       return CMD_Read_DateTime();
+            if (CurrentCommand == Commands.Read_Main_Params)    return CMD_Read_Main_Params();
+            if (CurrentCommand == Commands.Read_IMP)            return CMD_Read_Imp_Params((ImpNum)param);
+            if (CurrentCommand == Commands.Read_IMP_extra)      return CMD_Read_Imp_Extra_Params((ImpNum)param);
+            if (CurrentCommand == Commands.Read_PLC_Table_En)   return CMD_Read_PLC_Table(new List<DataGridRow_PLC>());
+            if (CurrentCommand == Commands.Read_PLC_Table)      return CMD_Read_PLC_Table((List<DataGridRow_PLC>)param);
+            if (CurrentCommand == Commands.Read_E_Current)      return CMD_Read_E_Current((byte)param);
+            if (CurrentCommand == Commands.Read_E_Start_Day)    return CMD_Read_E_Start_Day((byte)param);
             //Доступ - Запись
             if (access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
             if (CurrentCommand == Commands.Bootloader)         return CMD_BOOTLOADER();
@@ -248,8 +265,8 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Write_DateTime)     return CMD_Write_DateTime((DateTime)param);
             if (CurrentCommand == Commands.Write_Main_Params)  return CMD_Write_Main_Params((DeviceMainParams)param);
             if (CurrentCommand == Commands.Write_IMP)          return CMD_Write_Imp_Params((ImpParamsForProtocol)param);
-            if (CurrentCommand == Commands.Write_PLC_Table)    return CMD_Write_PLC_Table((byte[])param);
-            if (CurrentCommand == Commands.Request_PLC)        return CMD_Request_PLC((byte[])param);
+            if (CurrentCommand == Commands.Write_PLC_Table)    return CMD_Write_PLC_Table((List<DataGridRow_PLC>)param);
+            if (CurrentCommand == Commands.Request_PLC)        return CMD_Request_PLC((PLCRequestParamsForProtocol)param);
             return false;
         }
 
@@ -284,7 +301,7 @@ namespace Pulse_PLC_Tools_2
                     if (Check(CMD_Name, Commands.EEPROM_Burn))      { CMD_EEPROM_BURN(rxBytes);         return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.EEPROM_Read_Byte)) { CMD_EEPROM_Read_Byte(rxBytes);    return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Clear_Errors))     { CMD_Clear_Errors(rxBytes);        return HandleResult.Ok; }
-                    if (Check(CMD_Name, Commands.Request_PLC))      { CMD_Request_PLC(rxBytes, length); return HandleResult.Ok; }
+                    if (Check(CMD_Name, Commands.Request_PLC))      { CMD_Request_PLC(rxBytes); return HandleResult.Ok; }
                 }
                 //Команды чтения
                 if (CMD_Type == 'R')
@@ -296,12 +313,11 @@ namespace Pulse_PLC_Tools_2
                     if (Check(CMD_Name, Commands.Read_IMP))         { CMD_Read_Imp_Params(rxBytes);     return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Read_IMP_extra))   { CMD_Read_Imp_Extra_Params(rxBytes); return HandleResult.Ok; }
                     if (CMD_Name == 'P' && (CurrentCommand == Commands.Read_PLC_Table ||
-                                            CurrentCommand == Commands.Read_PLC_Table_En ||
-                                            CurrentCommand == Commands.Read_E_Data)) { CMD_Read_PLC_Table(rxBytes); return HandleResult.Ok; }
+                                            CurrentCommand == Commands.Read_PLC_Table_En)) { CMD_Read_PLC_Table(rxBytes); return HandleResult.Ok; }
                     if (CMD_Name == 'E')
                     {
-                        if (Check(rxBytes[6], Commands.Read_E_Current)) { CMD_Read_E(rxBytes);      return HandleResult.Ok; }
-                        if (Check(rxBytes[6], Commands.Read_E_Start_Day)) { CMD_Read_E(rxBytes);    return HandleResult.Ok; }
+                        if (Check(rxBytes[6], Commands.Read_E_Current)) { CMD_Read_E_Handle(rxBytes);      return HandleResult.Ok; }
+                        if (Check(rxBytes[6], Commands.Read_E_Start_Day)) { CMD_Read_E_Handle(rxBytes);    return HandleResult.Ok; }
                     }
                 }
                 //Команды записи
@@ -735,33 +751,33 @@ namespace Pulse_PLC_Tools_2
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
-                Imp.E_Current.E_T1_Value.Value_Wt = E;
+                Imp.E_Current.E_T1.Value_Wt = E;
                 E = rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
-                Imp.E_Current.E_T2_Value.Value_Wt = E;
+                Imp.E_Current.E_T2.Value_Wt = E;
                 E = rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
-                Imp.E_Current.E_T3_Value.Value_Wt = E;
+                Imp.E_Current.E_T3.Value_Wt = E;
                 //Показания - На начало суток (12)
                 E = rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
-                Imp.E_StartDay.E_T1_Value.Value_Wt = E;
+                Imp.E_StartDay.E_T1.Value_Wt = E;
                 E = rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
-                Imp.E_StartDay.E_T2_Value.Value_Wt = E;
+                Imp.E_StartDay.E_T2.Value_Wt = E;
                 E = rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
                 E = (E << 8) + rxBytes[pntr++];
-                Imp.E_StartDay.E_T3_Value.Value_Wt = E;
+                Imp.E_StartDay.E_T3.Value_Wt = E;
                 //Максимальная мощность
                 Imp.Max_Power = (UInt16)(rxBytes[pntr++] << 8);
                 Imp.Max_Power += rxBytes[pntr++];
@@ -849,9 +865,9 @@ namespace Pulse_PLC_Tools_2
                 Add_Tx(Imp_.T2_Time.Hours);
                 Add_Tx(Imp_.T2_Time.Minutes);
                 //Показания (12)
-                Add_Tx(Imp_.E_Current.E_T1_Value.Value_Wt);
-                Add_Tx(Imp_.E_Current.E_T2_Value.Value_Wt);
-                Add_Tx(Imp_.E_Current.E_T3_Value.Value_Wt);
+                Add_Tx(Imp_.E_Current.E_T1.Value_Wt);
+                Add_Tx(Imp_.E_Current.E_T2.Value_Wt);
+                Add_Tx(Imp_.E_Current.E_T3.Value_Wt);
                 //Максимальная нагрузка
                 Add_Tx(Imp_.Max_Power);
                 //Резервные параметры (на будущее)
@@ -889,11 +905,17 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private void CMD_Read_Journal(byte[] bytes_buff)
         {
-            object dataGrid_journal = null;
-            //if (bytes_buff[6] == '1') dataGrid_journal = mainForm.dataGrid_Log_Power;
-            //if (bytes_buff[6] == '2') dataGrid_journal = mainForm.dataGrid_Log_Config;
-            //if (bytes_buff[6] == '3') dataGrid_journal = mainForm.dataGrid_Log_Interfaces;
-            //if (bytes_buff[6] == '4') dataGrid_journal = mainForm.dataGrid_Log_Requests;
+            JournalForProtocol events = null;
+            if (bytes_buff[6] == '1') events = new JournalForProtocol(Journal_type.POWER);
+            if (bytes_buff[6] == '2') events = new JournalForProtocol(Journal_type.CONFIG);
+            if (bytes_buff[6] == '3') events = new JournalForProtocol(Journal_type.INTERFACES);
+            if (bytes_buff[6] == '4') events = new JournalForProtocol(Journal_type.REQUESTS);
+            if(events == null)
+            {
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неопределенный тип журнала" + PingStr() });
+                return;
+            }
+                
             int events_count = bytes_buff[7];
             for (int i = 0; i < events_count; i++)
             {
@@ -967,9 +989,10 @@ namespace Pulse_PLC_Tools_2
                     }
                 }
                 DataGridRow_Log row = new DataGridRow_Log {Num = (i + 1).ToString(), Date = date_string, Time = time_string, Name = event_name };
-                //mainForm.DataGrid_Log_Add_Row((DataGrid)dataGrid_journal, row);
+                events.Events.Add(row);
             }
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Журнал успешно прочитан" + PingStr() });
+            DataContainer.Data = events;
         }
         #endregion
 
@@ -1025,19 +1048,18 @@ namespace Pulse_PLC_Tools_2
 
         #region Таблица PLC
         //Запрос ЧТЕНИЕ Таблицы PLC - Активные адреса
-        private bool CMD_Read_PLC_Table(List<DataGridRow_PLC> selectedRows)
+        private bool CMD_Read_PLC_Table(List<DataGridRow_PLC> listRows)
         {
             Start_Add_Tx(Commands.Read_PLC_Table);
             //Данные
-            byte count_ = selectedRows == null ? (byte)0 : (byte)selectedRows.Count;
+            byte count_ = listRows == null ? (byte)0 : (byte)listRows.Count;
             if(count_ > 10)
             {
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка - Нельзя прочитать больше 10 адресов за 1 раз" });
                 return false;
             }
-
             Add_Tx(count_);
-            selectedRows.ForEach((item) => Add_Tx(item.Adrs_PLC));
+            listRows.ForEach((item) => Add_Tx(item.Adrs_PLC));
             
             //Отправляем запрос
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение таблицы PLC - Активные адреса" });
@@ -1055,6 +1077,7 @@ namespace Pulse_PLC_Tools_2
                 {
                     rows.Add(new DataGridRow_PLC(rxBytes[8 + i]));
                 }
+                DataContainer.Data = rows;
                 //Сообщение
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Найдено " + rows.Count + " активных адресов" + PingStr() });
             }
@@ -1064,12 +1087,11 @@ namespace Pulse_PLC_Tools_2
                 count_adrs = rxBytes[pntr++];
                 int active_adrss = 0; //количество включенных адресов
                 string active_adrss_str = "";
+                List<DataGridRow_PLC> list = new List<DataGridRow_PLC>();
                 for (int i = 1; i <= count_adrs; i++)
                 {
-                    byte adrs_plc = rxBytes[pntr++];
-                    bool is_en = (rxBytes[pntr++] == 0) ? false : true;
-                    DataGridRow_PLC row = new DataGridRow_PLC(adrs_plc);
-                    row.IsEnable = is_en;
+                    DataGridRow_PLC row = new DataGridRow_PLC(rxBytes[pntr++]);
+                    row.IsEnable = (rxBytes[pntr++] == 0) ? false : true;
                     //Статус связи
                     row.LastPLCRequestStatus = (rxBytes[pntr++] == 0) ? false : true;
                     //Дата последней успешной связи
@@ -1079,90 +1101,83 @@ namespace Pulse_PLC_Tools_2
                     byte Hours = rxBytes[pntr++];
                     byte Minutes = rxBytes[pntr++];
                     DateTime dateTime = DateTime.MinValue;
-                    if (DateTime.TryParse(Day + "." + Month + "." + Day + " " + Hours + ":" + Minutes + ":00", out dateTime)) row.LastPLCRequestTime = dateTime;
+                    if (DateTime.TryParse(Day + "." + Month + "." + Year + " " + Hours + ":" + Minutes + ":00", out dateTime)) row.LastPLCRequestTime = dateTime;
                     //Тип протокола PLC
                     row.TypePLC = (PLCProtocolType)rxBytes[pntr++];
                     //Качество связи
                     row.Quality = rxBytes[pntr++];
                     if (row.IsEnable)
                     {
-                    //    active_adrss++;
-                    //    if(active_adrss > 1) active_adrss_str += ", ";
-                    //    active_adrss_str += adrs_plc;
-                    //    //Серийный номер
-                    //    mainForm.plc_table[adrs_plc - 1].serial_bytes[0] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].serial_bytes[1] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].serial_bytes[2] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].serial_bytes[3] = bytes_buff[pntr++];
-                    //    //Ретрансляция
-                    //    mainForm.plc_table[adrs_plc - 1].N = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].S1 = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].S2 = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].S3 = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].S4 = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].S5 = bytes_buff[pntr++];
-                    //    //Тип протокола
-                    //    mainForm.plc_table[adrs_plc - 1].Protocol_ASCUE = bytes_buff[pntr++];
-                    //    //Адрес аскуэ
-                    //    mainForm.plc_table[adrs_plc - 1].Adrs_ASCUE = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].Adrs_ASCUE = (UInt16)((mainForm.plc_table[adrs_plc - 1].Adrs_ASCUE<<8) + bytes_buff[pntr++]);
-                    //    //Пароль аскуэ
-                    //    mainForm.plc_table[adrs_plc - 1].pass_bytes[0] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].pass_bytes[1] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].pass_bytes[2] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].pass_bytes[3] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].pass_bytes[4] = bytes_buff[pntr++];
-                    //    mainForm.plc_table[adrs_plc - 1].pass_bytes[5] = bytes_buff[pntr++];
+                        //For message
+                        active_adrss++;
+                        if (active_adrss > 1) active_adrss_str += ", ";
+                        active_adrss_str += row.Adrs_PLC;
 
-                    //    //Байт ошибок
-                    //    mainForm.plc_table[adrs_plc - 1].errors_byte = bytes_buff[pntr++];
+                        //Params
+                        //Серийный номер
+                        row.Serial = new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] };
+                        //Ретрансляция
+                        row.N = rxBytes[pntr++];
+                        row.S1 = rxBytes[pntr++];
+                        row.S2 = rxBytes[pntr++];
+                        row.S3 = rxBytes[pntr++];
+                        row.S4 = rxBytes[pntr++];
+                        row.S5 = rxBytes[pntr++];
+                        //Тип протокола
+                        row.Protocol_ASCUE = (ImpAscueProtocolType)rxBytes[pntr++];
+                        //Адрес аскуэ
+                        row.Adrs_ASCUE = rxBytes[pntr++];
+                        row.Adrs_ASCUE = (UInt16)((row.Adrs_ASCUE<<8) + rxBytes[pntr++]);
+                        //Пароль аскуэ
+                        row.Pass_ASCUE = new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] };
+                        //Байт ошибок
+                        row.ErrorsByte = rxBytes[pntr++];
                     }
+                    list.Add(row);
                 }
+                DataContainer.Data = list;
                 //Сообщение
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано " + count_adrs + " адресов, из них " + active_adrss + " вкл. [" + active_adrss_str + "]" + PingStr() });
             }
-            
-            //Отобразим
-            //mainForm.PLC_Table_Refresh();
-            
         }
         //Запрос ЗАПИСЬ в Таблицу PLC
-        private bool CMD_Write_PLC_Table(byte[] adrs_massiv)
+        private bool CMD_Write_PLC_Table(List<DataGridRow_PLC> listRows)
         {
+            if (listRows == null) return false;
             Start_Add_Tx(Commands.Write_PLC_Table);
-            //Данные
-            byte count_ = adrs_massiv[0];
-            Add_Tx(count_);
-            
-            for (byte i = 0; i < count_; i++)
+            if (listRows.Count > 10)
             {
-                byte adrs_plc = adrs_massiv[i+1];
-                Add_Tx(adrs_plc);
-                adrs_plc--; //Адреса строк начинаются с 0
-                //Add_Tx((mainForm.plc_table[adrs_plc].Enable) ? (byte)1 : (byte)0);
-                //if(mainForm.plc_table[adrs_plc].Enable)
-                //{
-                //    //Серийный номер (4 байта)
-                //    Add_Tx(mainForm.plc_table[adrs_plc].serial_bytes, 4);
-                //    //Ретрансляция (6 байт)
-                //    Add_Tx(mainForm.plc_table[adrs_plc].N);
-                //    Add_Tx(mainForm.plc_table[adrs_plc].S1);
-                //    Add_Tx(mainForm.plc_table[adrs_plc].S2);
-                //    Add_Tx(mainForm.plc_table[adrs_plc].S3);
-                //    Add_Tx(mainForm.plc_table[adrs_plc].S4);
-                //    Add_Tx(mainForm.plc_table[adrs_plc].S5);
-                //    //Тип протокола аскуэ (1 байт)
-                //    Add_Tx(mainForm.plc_table[adrs_plc].Protocol_ASCUE);
-                //    //Адрес аскуэ (2 байт)
-                //    Add_Tx((byte)(mainForm.plc_table[adrs_plc].Adrs_ASCUE>>8));
-                //    Add_Tx((byte)mainForm.plc_table[adrs_plc].Adrs_ASCUE);
-                //    //Пароль аскуэ (6 байт)
-                //    Add_Tx(mainForm.plc_table[adrs_plc].pass_bytes, 6);
-                //    //Версия PLC
-                //    Add_Tx(mainForm.plc_table[adrs_plc].type);
-                //    //Байт ошибок
-                //    //Статус связи
-                //}
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка - Нельзя записать больше 10 адресов за 1 раз" });
+                return false;
+            }
+            //Add data to message
+            Add_Tx((byte)listRows.Count);
+            for (byte i = 0; i < listRows.Count; i++)
+            {
+                Add_Tx(listRows[i].Adrs_PLC);
+                Add_Tx(listRows[i].IsEnable ? (byte)1 : (byte)0);
+                if(listRows[i].IsEnable)
+                {
+                    //Серийный номер (4 байта)
+                    Add_Tx(listRows[i].Serial, 4);
+                    //Ретрансляция (6 байт)
+                    Add_Tx(listRows[i].N);
+                    Add_Tx(listRows[i].S1);
+                    Add_Tx(listRows[i].S2);
+                    Add_Tx(listRows[i].S3);
+                    Add_Tx(listRows[i].S4);
+                    Add_Tx(listRows[i].S5);
+                    //Тип протокола аскуэ (1 байт)
+                    Add_Tx((byte)listRows[i].Protocol_ASCUE);
+                    //Адрес аскуэ (2 байт)
+                    Add_Tx(listRows[i].Adrs_ASCUE);
+                    //Пароль аскуэ (6 байт)
+                    Add_Tx(listRows[i].Pass_ASCUE, 6);
+                    //Версия PLC
+                    Add_Tx((byte)listRows[i].TypePLC);
+                    //Errors byte (only for read)
+                    //Last link state (only for read)
+                }
             }
 
             //Отправляем запрос
@@ -1170,10 +1185,10 @@ namespace Pulse_PLC_Tools_2
             return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Write_PLC_Table(byte[] bytes_buff, int count)
+        private void CMD_Write_PLC_Table(byte[] rxBytes)
         {
-            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Строки успешно записаны в PLC таблицу" + PingStr() });
-            if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи в PLC таблицу." + PingStr() });
+            if (rxBytes[6] == 'O' && rxBytes[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Строки успешно записаны в PLC таблицу" + PingStr() });
+            if (rxBytes[6] == 'e' && rxBytes[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи в PLC таблицу." + PingStr() });
         }
         #endregion
 
@@ -1200,93 +1215,81 @@ namespace Pulse_PLC_Tools_2
             return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Read_E(byte[] bytes_buff)
+        private void CMD_Read_E_Handle(byte[] bytes_buff)
         {
+            ImpEnergyGroup energy = new ImpEnergyGroup(true);
+            DataGridRow_PLC row = new DataGridRow_PLC(bytes_buff[7]);
             //Получаем данные
-            UInt32 E_T1, E_T2, E_T3;
-            bool E_Correct = false;
-            int adrs_PLC = bytes_buff[7];
-            int parametr = bytes_buff[8];
+            int parametr = bytes_buff[8]; //номер месяца
             int pntr = 9;
-            E_T1 = bytes_buff[pntr++];
-            E_T1 = (E_T1 << 8) + bytes_buff[pntr++];
-            E_T1 = (E_T1 << 8) + bytes_buff[pntr++];
-            E_T1 = (E_T1 << 8) + bytes_buff[pntr++];
-            E_T2 = bytes_buff[pntr++];
-            E_T2 = (E_T2 << 8) + bytes_buff[pntr++];
-            E_T2 = (E_T2 << 8) + bytes_buff[pntr++];
-            E_T2 = (E_T2 << 8) + bytes_buff[pntr++];
-            E_T3 = bytes_buff[pntr++];
-            E_T3 = (E_T3 << 8) + bytes_buff[pntr++];
-            E_T3 = (E_T3 << 8) + bytes_buff[pntr++];
-            E_T3 = (E_T3 << 8) + bytes_buff[pntr++];
+            energy.E_T1.Value_Wt =  new[] { bytes_buff[pntr++], bytes_buff[pntr++], bytes_buff[pntr++], bytes_buff[pntr++] }.ToUint32(false);
+            energy.E_T2.Value_Wt =  new[] { bytes_buff[pntr++], bytes_buff[pntr++], bytes_buff[pntr++], bytes_buff[pntr++] }.ToUint32(false);
+            energy.E_T3.Value_Wt =  new[] { bytes_buff[pntr++], bytes_buff[pntr++], bytes_buff[pntr++], bytes_buff[pntr++] }.ToUint32(false);
             //4 байта запас на 4й тариф
             pntr += 4;
-            E_Correct = (bytes_buff[pntr++] == 177) ? true : false;
+            energy.IsCorrect = (bytes_buff[pntr++] == 177) ? true : false;
 
-            //Вставляем данные в таблицу
             string type_E = "";
-            if(CurrentCommand == Commands.Read_E_Current)
+            if (CurrentCommand == Commands.Read_E_Current)
             {
-                type_E = "Последние показания";
-                //mainForm.plc_table[adrs_PLC - 1].E_Current_T1 = E_T1.ToString();
-                //mainForm.plc_table[adrs_PLC - 1].E_Current_T2 = E_T2.ToString();
-                //mainForm.plc_table[adrs_PLC - 1].E_Current_T3 = E_T3.ToString();
-                //mainForm.plc_table[adrs_PLC - 1].e_Current_Correct = E_Correct;
+                type_E = "Текущие показания";
+                row.E_Current = energy;
             }
             if (CurrentCommand == Commands.Read_E_Start_Day)
             {
                 type_E = "Начало суток";
-                //mainForm.plc_table[adrs_PLC - 1].E_StartDay_T1 = E_T1.ToString();
-                //mainForm.plc_table[adrs_PLC - 1].E_StartDay_T2 = E_T2.ToString();
-                //mainForm.plc_table[adrs_PLC - 1].E_StartDay_T3 = E_T3.ToString();
-                //mainForm.plc_table[adrs_PLC - 1].e_StartDay_Correct = E_Correct;
+                row.E_StartDay = energy;
             }
-
             //Сообщение
-            if (E_Correct)
+            if (energy.IsCorrect)
                 Message(this, new MessageDataEventArgs() {
                     MessageType = MessageType.Good,
-                    MessageString = "Прочитано - " + type_E + " " + adrs_PLC + ": T1 (" + (((float)E_T1) / 1000f).ToString() + "), T2 (" + (((float)E_T2) / 1000f).ToString() + "), T3 (" + (((float)E_T3) / 1000f).ToString() + ")" + PingStr()
+                    MessageString = "Прочитано - " + type_E + " " + row.Adrs_PLC + 
+                    ": T1 (" + energy.E_T1.Value_kWt + 
+                    "), T2 (" + energy.E_T2.Value_kWt + 
+                    "), T3 (" + energy.E_T3.Value_kWt + ")" + PingStr()
                 });
             else
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано - " + type_E + " " + adrs_PLC + ": Н/Д" + PingStr() });
-
-            //mainForm.PLC_Table_Refresh();
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано - " + type_E + " " + row.Adrs_PLC + ": Н/Д" + PingStr() });
+            //Put data
+            DataContainer.Data = row;
         }
         #endregion
 
         #region PLC запросы
         //Команда Отправка запроса PLC
-        private bool CMD_Request_PLC(byte[] param)
+        private bool CMD_Request_PLC(PLCRequestParamsForProtocol param)
         {
             Start_Add_Tx(Commands.Request_PLC);
+
             //Тип запроса по PLC 1б
+            Add_Tx((byte)param.Type);
             //Адрес устройства 1б
+            Add_Tx(param.Device.Adrs_PLC);
             //Ретрансляция Количество ступеней 1б 
+            Add_Tx(param.Device.N);
             //Адреса ступеней 5б
-            Add_Tx(param, 8);
+            Add_Tx(param.Device.Steps, 5);
 
             //Отправляем запрос
-            if (param[2] == 0)
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Ппрямой запрос PLC на " + param[0] });
+            if (param.Device.N == 0)
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Прямой запрос PLC на " + param.Device.Adrs_PLC });
             else
             {
                 string steps_ = "";
-                for (int i = 0; i < param[2]; i++) { steps_ += ", " + param[i+3]; }
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запрос PLC на " + param[1] + " через " + steps_ });
+                for (int i = 0; i < param.Device.N; i++) { steps_ += ", " + param.Device.Steps[i]; }
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запрос PLC на " + param.Device.Adrs_PLC + " через " + steps_ });
             }
-            int delay = 5000 * (param[2] + 1);
             return Request_Start();
         }
         //Обработка ответа
-        private void CMD_Request_PLC(byte[] bytes_buff, int count)
+        private void CMD_Request_PLC(byte[] rxBytes)
         {
             //Получаем данные
-            byte plc_cmd_code = bytes_buff[6];
-            bool request_status = (bytes_buff[7] == 0) ? false : true;
-            int adrs_PLC = bytes_buff[8];
-            int plc_type = bytes_buff[9];
+            PLC_Request plc_cmd_code = (PLC_Request)rxBytes[6];
+            bool request_status = (rxBytes[7] == 0) ? false : true;
+            int adrs_PLC = rxBytes[8];
+            int plc_type = rxBytes[9];
             
             string plc_v = "";
             if (plc_type == 11) plc_v = "PLCv1";
@@ -1295,45 +1298,48 @@ namespace Pulse_PLC_Tools_2
             //Сообщение
             if (request_status)
             {
-                if (plc_cmd_code == 0)
+                if (plc_cmd_code == PLC_Request.PLCv1)
                 {
-                    double E_ = (double)bytes_buff[13] * 256 * 256 * 256 + (double)bytes_buff[12] * 256 * 256 + (double)bytes_buff[11] * 256 + (double)bytes_buff[10];
-                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + ", Тип: " + plc_v + ", Тариф 1: " + (((double)E_) / 1000f).ToString() + " кВт" + PingStr() });
+                    ImpEnergyValue E_ = new ImpEnergyValue(new[] { rxBytes[10], rxBytes[11], rxBytes[12], rxBytes[13] }.ToUint32(true));
+                    Message(this, new MessageDataEventArgs() {
+                        MessageType = MessageType.Good,
+                        MessageString = "Прочитано №" + adrs_PLC + ", Тип: " + plc_v + ", Тариф 1: " + E_.Value_kWt + " кВт" + PingStr()
+                    });
                 }
-                if (plc_cmd_code == 1)
+                if (plc_cmd_code == PLC_Request.Time_Synchro)
                 {
                     string errors_string = "Ошибки: ";
-                    if ((bytes_buff[10] & 1) > 0) errors_string += "ОБ ";
-                    if ((bytes_buff[10] & 2) > 0) errors_string += "ББ ";
-                    if ((bytes_buff[10] & 4) > 0) errors_string += "П1 ";
-                    if ((bytes_buff[10] & 8) > 0) errors_string += "П2 ";
-                    if ((bytes_buff[10] & 16) > 0) errors_string += "ОП ";
-                    if ((bytes_buff[10] & 32) > 0) errors_string += "ОВ ";
+                    if ((rxBytes[10] & 1) > 0) errors_string += "ОБ ";
+                    if ((rxBytes[10] & 2) > 0) errors_string += "ББ ";
+                    if ((rxBytes[10] & 4) > 0) errors_string += "П1 ";
+                    if ((rxBytes[10] & 8) > 0) errors_string += "П2 ";
+                    if ((rxBytes[10] & 16) > 0) errors_string += "ОП ";
+                    if ((rxBytes[10] & 32) > 0) errors_string += "ОВ ";
                     //!! добавить ошибки ДОДЕЛАТЬStringMessage
                     if (errors_string == "Ошибки: ") errors_string = "Нет ошибок";
                     Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + " " + errors_string + PingStr() });
                 }
-                if (plc_cmd_code == 2)
+                if (plc_cmd_code == PLC_Request.Serial_Num)
                 {
-                    string serial_string = bytes_buff[10].ToString("00")+ bytes_buff[11].ToString("00")+ bytes_buff[12].ToString("00")+ bytes_buff[13].ToString("00");
+                    string serial_string = rxBytes[10].ToString("00")+ rxBytes[11].ToString("00")+ rxBytes[12].ToString("00")+ rxBytes[13].ToString("00");
                     Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + " Серийный номер: " + serial_string + PingStr() });
                 }
-                if (plc_cmd_code == 3 || plc_cmd_code == 4)
+                if (plc_cmd_code == PLC_Request.E_Current || plc_cmd_code == PLC_Request.E_Start_Day)
                 {
-                    double E_1 = (double)bytes_buff[13] * 256 * 256 * 256 + (double)bytes_buff[12] * 256 * 256 + (double)bytes_buff[11] * 256 + (double)bytes_buff[10];
-                    double E_2 = (double)bytes_buff[17] * 256 * 256 * 256 + (double)bytes_buff[16] * 256 * 256 + (double)bytes_buff[15] * 256 + (double)bytes_buff[14];
-                    double E_3 = (double)bytes_buff[21] * 256 * 256 * 256 + (double)bytes_buff[20] * 256 * 256 + (double)bytes_buff[19] * 256 + (double)bytes_buff[18];
+                    ImpEnergyGroup energy = new ImpEnergyGroup(true);
+                    energy.E_T1.Value_Wt = new[] { rxBytes[10], rxBytes[11], rxBytes[12], rxBytes[13] }.ToUint32(true);
+                    energy.E_T2.Value_Wt = new[] { rxBytes[14], rxBytes[15], rxBytes[16], rxBytes[17] }.ToUint32(true);
+                    energy.E_T3.Value_Wt = new[] { rxBytes[18], rxBytes[19], rxBytes[20], rxBytes[21] }.ToUint32(true);
 
                     Message(this, new MessageDataEventArgs() {
                         MessageType = MessageType.Good,
                         MessageString = "Прочитано №" + adrs_PLC +
-                        ", Тариф 1: " + (((float)E_1) / 1000f).ToString() + " кВт" +
-                        ", Тариф 2: " + (((float)E_2) / 1000f).ToString() + " кВт" +
-                        ", Тариф 3: " + (((float)E_3) / 1000f).ToString() + " кВт"});
+                        ", Тариф 1: " + energy.E_T1.Value_kWt + " кВт" +
+                        ", Тариф 2: " + energy.E_T2.Value_kWt + " кВт" +
+                        ", Тариф 3: " + energy.E_T3.Value_kWt + " кВт"});
                 }
             }
             else Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство №" + adrs_PLC + " не отвечает" + PingStr() });
-            //mainForm.PLC_Table_Refresh();
         }
         #endregion
     }

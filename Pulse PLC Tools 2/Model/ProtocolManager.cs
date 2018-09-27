@@ -12,27 +12,33 @@ namespace Pulse_PLC_Tools_2
 {
     public class ProtocolManager
     {
-        CommandBuffer CommandManager;
-        PulsePLCv2Protocol Protocol;
+        CommandBuffer CommandManager { get; set; }
+        PulsePLCv2Protocol Protocol { get; set; }
         //View
         SynchronizationContext context;
-        LinkManager LinkManager;
-        DeviceMainParams DeviceParams;
-        MainVM Main_VM;
+        MainVM Main_VM { get; set; }
+        PLCTableVM PLCTable_VM { get; }
+        LinkManager LinkManager { get; }
+        DeviceMainParams DeviceParams { get; }
 
         public ProtocolManager(MainVM mainVM, SynchronizationContext context)
         {
+            //Data from MainVM
+            this.context = context;
+            LinkManager = mainVM.LinkManager;
+            DeviceParams = mainVM.Device;
+            Main_VM = mainVM;
+            PLCTable_VM = Main_VM.VM_PLCTable;
+
+            //Private
             CommandManager = new CommandBuffer();
             CommandManager.Message += mainVM.MessageInput;
             Protocol = new PulsePLCv2Protocol();
             Protocol.Message += mainVM.MessageInput;    //Обработчик сообщений (для лога)
             Protocol.CommandEnd += Protocol_CommandEnd; //Получение данных из ответов на команды
             Protocol.AccessEnd += Protocol_AccessEnd;
-            this.context = context;
-            LinkManager = mainVM.LinkManager;
-            DeviceParams = mainVM.Device;
-            Main_VM = mainVM;
         }
+
         //Канал связи был открыт
         public void Link_Connected()
         {
@@ -172,11 +178,79 @@ namespace Pulse_PLC_Tools_2
 
         }
         #endregion
+        #region PLC Table
+        public void Send_ReadEnableRowsAdrss()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_PLC_Table_En, null, 0);
+        }
+        public void Send_ReadSelectedRows()
+        {
+            var rowsToRead = PLCTable_VM.SelectedRows.Split(10);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            rowsToRead.ForEach(r => {
+                if (r.Count > 0)
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_PLC_Table, r, 0);
+            });
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        public void Send_WriteSelectedRows()
+        {
+            var rowsToWrite = PLCTable_VM.SelectedRows.Split(10);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            rowsToWrite.ForEach(r => {
+                if (r.Count > 0)
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_PLC_Table, r, 0);
+            });
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        public void Send_RequestPLC(PLC_Request type)
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            PLCTable_VM.SelectedRows.ForEach(r => {
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Request_PLC, new PLCRequestParamsForProtocol(type) { Device = r }, 0);
+            });
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
 
+        }
+        #endregion
+        #region Data E Table
+        public void Send_Read_E_Selected()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            PLCTable_VM.SelectedRows.ForEach(r => {
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Current, r.Adrs_PLC, 0);
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Start_Day, r.Adrs_PLC, 0);
+            });
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        public void Send_Read_E_Enabled()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            PLCTable_VM.TablePLC.ToList().ForEach(r => {
+                if(r.IsEnable)
+                {
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Current, r.Adrs_PLC, 0);
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Start_Day, r.Adrs_PLC, 0);
+                }
+            });
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        #endregion
+        #region Journals
+        public void Send_ReadJournal(Journal_type type)
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_Journal, type, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        #endregion
         void GetProtocolData(object DataObject)
         {
             ProtocolDataContainer dataContainer = (ProtocolDataContainer)DataObject;
+            //Some data from protocol
             object data = dataContainer.Data;
+            //Check Protocol name
             if (dataContainer.ProtocolName != "PulsePLCv2" || data == null) return;
             PulsePLCv2Protocol.Commands cmd = (PulsePLCv2Protocol.Commands)dataContainer.CommandCode;
 
@@ -186,7 +260,6 @@ namespace Pulse_PLC_Tools_2
                 ((List<string>)data).ForEach(str => Main_VM.SerialNumList.Add(str));
                 if (Main_VM.SerialNumList.Count > 0 && Main_VM.Device.Serial_View == string.Empty) Main_VM.Device.Serial_View = Main_VM.SerialNumList[0];
             }
-
             if (cmd == PulsePLCv2Protocol.Commands.Check_Pass)
             {
                 AccessType access = (AccessType)data;
@@ -216,16 +289,68 @@ namespace Pulse_PLC_Tools_2
                 else
                     Main_VM.Imp2 = ((ImpParamsForProtocol)data).Imp;
             }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_IMP_extra)
+            {
+                ImpExParamsForProtocol exParams = (ImpExParamsForProtocol)data;
+            }
             if (cmd == PulsePLCv2Protocol.Commands.Read_DateTime)
             {
                 DeviceParams.DeviceDateTime = (DateTime)data;
             }
-            if(cmd == PulsePLCv2Protocol.Commands.Read_IMP_extra)
+            if (cmd == PulsePLCv2Protocol.Commands.Read_PLC_Table_En)
             {
-                ImpExParamsForProtocol exParams = (ImpExParamsForProtocol)data;
-
+                List<DataGridRow_PLC> rows = (List<DataGridRow_PLC>)data;
+                PLCTable_VM.TablePLC.ToList().ForEach(item => item.IsEnable = false);
+                foreach (var item in rows) PLCTable_VM.TablePLC[item.Adrs_PLC - 1].IsEnable = true;
+                var rowsToRead = rows.Split(10); //Divide into groups of 10 item
+                //Send requests for data
+                rowsToRead.ForEach(r => {
+                    if (r.Count > 0)
+                        CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_PLC_Table, r, 0);
+                });
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
             }
-
+            if (cmd == PulsePLCv2Protocol.Commands.Read_PLC_Table)
+            {
+                var rows = (List<DataGridRow_PLC>)data;
+                foreach (var item in rows) PLCTable_VM.TablePLC[item.Adrs_PLC - 1] = item;
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_E_Current)
+            {
+                var row = (DataGridRow_PLC)data;
+                PLCTable_VM.TablePLC[row.Adrs_PLC - 1].E_Current = row.E_Current;
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_E_Start_Day)
+            {
+                var row = (DataGridRow_PLC)data;
+                PLCTable_VM.TablePLC[row.Adrs_PLC - 1].E_StartDay = row.E_StartDay;
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_Journal)
+            {
+                var journal = (JournalForProtocol)data;
+                switch (journal.Type)
+                {
+                    case Journal_type.POWER:
+                        Main_VM.JournalPower.Clear();
+                        journal.Events.ForEach(row => Main_VM.JournalPower.Add(row));
+                        break;
+                    case Journal_type.CONFIG:
+                        Main_VM.JournalConfig.Clear();
+                        journal.Events.ForEach(row => Main_VM.JournalConfig.Add(row));
+                        break;
+                    case Journal_type.INTERFACES:
+                        Main_VM.JournalInterfaces.Clear();
+                        journal.Events.ForEach(row => Main_VM.JournalInterfaces.Add(row));
+                        break;
+                    case Journal_type.REQUESTS:
+                        Main_VM.JournalRequestsPLC.Clear();
+                        journal.Events.ForEach(row => Main_VM.JournalRequestsPLC.Add(row));
+                        break;
+                    default:
+                        break;
+                }
+                
+            }
         }
     }
 }
