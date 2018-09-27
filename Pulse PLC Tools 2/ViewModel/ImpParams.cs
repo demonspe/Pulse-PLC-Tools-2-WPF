@@ -114,42 +114,42 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(E_T3_View));
             }
         }
-        public ImpEnergyValue E_T1_Value
+        public ImpEnergyValue E_T1
         {
             get => e_T1_Value;
             set
             {
                 e_T1_Value = value;
-                RaisePropertyChanged(nameof(E_T1_Value));
+                RaisePropertyChanged(nameof(E_T1));
                 RaisePropertyChanged(nameof(E_T1_View));
                 RaisePropertyChanged(nameof(E_Summ_View));
             }
         }
-        public ImpEnergyValue E_T2_Value
+        public ImpEnergyValue E_T2
         {
             get => e_T2_Value;
             set
             {
                 e_T2_Value = value;
-                RaisePropertyChanged(nameof(E_T2_Value));
+                RaisePropertyChanged(nameof(E_T2));
                 RaisePropertyChanged(nameof(E_T2_View));
                 RaisePropertyChanged(nameof(E_Summ_View));
             }
         }
-        public ImpEnergyValue E_T3_Value
+        public ImpEnergyValue E_T3
         {
             get => e_T3_Value;
             set
             {
                 e_T3_Value = value;
-                RaisePropertyChanged(nameof(E_T3_Value));
+                RaisePropertyChanged(nameof(E_T3));
                 RaisePropertyChanged(nameof(E_T3_View));
                 RaisePropertyChanged(nameof(E_Summ_View));
             }
         }
-        public string E_T1_View { get => (IsCorrect && E_T1_Value.Value_Wt < 0xFFFFFFFF) ? E_T1_Value.Value_kWt.ToString() : "-"; }
-        public string E_T2_View { get => (IsCorrect && E_T2_Value.Value_Wt < 0xFFFFFFFF) ? E_T2_Value.Value_kWt.ToString() : "-"; }
-        public string E_T3_View { get => (IsCorrect && E_T3_Value.Value_Wt < 0xFFFFFFFF) ? E_T3_Value.Value_kWt.ToString() : "-"; }
+        public string E_T1_View { get => (IsCorrect && E_T1.Value_Wt < 0xFFFFFFFF) ? E_T1.Value_kWt.ToString() : "-"; }
+        public string E_T2_View { get => (IsCorrect && E_T2.Value_Wt < 0xFFFFFFFF) ? E_T2.Value_kWt.ToString() : "-"; }
+        public string E_T3_View { get => (IsCorrect && E_T3.Value_Wt < 0xFFFFFFFF) ? E_T3.Value_kWt.ToString() : "-"; }
         public string E_Summ_View
         {
             get
@@ -157,9 +157,9 @@ namespace Pulse_PLC_Tools_2
                 if (IsCorrect)
                 {
                     double summ = 0;
-                    if (E_T1_Value.Value_Wt < 0xFFFFFFFF) summ += E_T1_Value.Value_kWt;
-                    if (E_T2_Value.Value_Wt < 0xFFFFFFFF) summ += E_T2_Value.Value_kWt;
-                    if (E_T3_Value.Value_Wt < 0xFFFFFFFF) summ += E_T3_Value.Value_kWt;
+                    if (E_T1.Value_Wt < 0xFFFFFFFF) summ += E_T1.Value_kWt;
+                    if (E_T2.Value_Wt < 0xFFFFFFFF) summ += E_T2.Value_kWt;
+                    if (E_T3.Value_Wt < 0xFFFFFFFF) summ += E_T3.Value_kWt;
                     return summ.ToString();
                 }
                 else return "-";
@@ -169,19 +169,19 @@ namespace Pulse_PLC_Tools_2
         public ImpEnergyGroup(bool isCorrect)
         {
             IsCorrect = isCorrect;
-            E_T1_Value = new ImpEnergyValue(0);
-            E_T2_Value = new ImpEnergyValue(0);
-            E_T3_Value = new ImpEnergyValue(0);
+            E_T1 = new ImpEnergyValue(0);
+            E_T2 = new ImpEnergyValue(0);
+            E_T3 = new ImpEnergyValue(0);
 
-            E_T1_Value.PropertyChanged += (s, a) => {
+            E_T1.PropertyChanged += (s, a) => {
                 RaisePropertyChanged(nameof(E_Summ_View));
                 RaisePropertyChanged(nameof(E_T1_View));
             };
-            E_T2_Value.PropertyChanged += (s, a) => {
+            E_T2.PropertyChanged += (s, a) => {
                 RaisePropertyChanged(nameof(E_Summ_View));
                 RaisePropertyChanged(nameof(E_T2_View));
             };
-            E_T3_Value.PropertyChanged += (s, a) => {
+            E_T3.PropertyChanged += (s, a) => {
                 RaisePropertyChanged(nameof(E_Summ_View));
                 RaisePropertyChanged(nameof(E_T3_View));
             };

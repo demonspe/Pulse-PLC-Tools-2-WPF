@@ -87,11 +87,12 @@ namespace Pulse_PLC_Tools_2
             }
         }
         public byte N { get { return n_steps; } set { if (value >= 0 && value <= 5) n_steps = value; RaisePropertyChanged(nameof(N)); } }
-        public byte S1 { get { return steps[0]; } set { if (value >= 0 && value <= 250) steps[0] = value; RaisePropertyChanged(nameof(S1)); } }
-        public byte S2 { get { return steps[1]; } set { if (value >= 0 && value <= 250) steps[1] = value; RaisePropertyChanged(nameof(S2)); } }
-        public byte S3 { get { return steps[2]; } set { if (value >= 0 && value <= 250) steps[2] = value; RaisePropertyChanged(nameof(S3)); } }
-        public byte S4 { get { return steps[3]; } set { if (value >= 0 && value <= 250) steps[3] = value; RaisePropertyChanged(nameof(S4)); } }
-        public byte S5 { get { return steps[4]; } set { if (value >= 0 && value <= 250) steps[4] = value; RaisePropertyChanged(nameof(S5)); } }
+        public byte[] Steps { get => steps; }
+        public byte S1 { get { return steps[0]; } set { if (value >= 0 && value <= 250) steps[0] = value; RaisePropertyChanged(nameof(S1)); RaisePropertyChanged(nameof(Steps)); } }
+        public byte S2 { get { return steps[1]; } set { if (value >= 0 && value <= 250) steps[1] = value; RaisePropertyChanged(nameof(S2)); RaisePropertyChanged(nameof(Steps)); } }
+        public byte S3 { get { return steps[2]; } set { if (value >= 0 && value <= 250) steps[2] = value; RaisePropertyChanged(nameof(S3)); RaisePropertyChanged(nameof(Steps)); } }
+        public byte S4 { get { return steps[3]; } set { if (value >= 0 && value <= 250) steps[3] = value; RaisePropertyChanged(nameof(S4)); RaisePropertyChanged(nameof(Steps)); } }
+        public byte S5 { get { return steps[4]; } set { if (value >= 0 && value <= 250) steps[4] = value; RaisePropertyChanged(nameof(S5)); RaisePropertyChanged(nameof(Steps)); } }
         public ImpAscueProtocolType Protocol_ASCUE { get { return protocol_type; } set { protocol_type = value; RaisePropertyChanged(nameof(Protocol_ASCUE)); } }
         public ushort Adrs_ASCUE { get { return adrs_ASCUE; } set { adrs_ASCUE = value; RaisePropertyChanged(nameof(Adrs_ASCUE)); } }
         public byte[] Pass_ASCUE
@@ -129,8 +130,8 @@ namespace Pulse_PLC_Tools_2
             }
         }
         public bool LastPLCRequestStatus { get => lastPLCRequestStatus; set { lastPLCRequestStatus = value; RaisePropertyChanged(nameof(LastPLCRequestStatus)); } }
-        public DateTime LastPLCRequestTime //Дата последней успешной связи по PLC
-        {
+        public DateTime LastPLCRequestTime
+        {//Дата последней успешной связи по PLC
             get => lastPLCRequestTime;
             set
             {
