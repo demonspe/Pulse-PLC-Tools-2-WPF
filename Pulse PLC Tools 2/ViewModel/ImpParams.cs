@@ -188,27 +188,51 @@ namespace Pulse_PLC_Tools_2
         }
     }
 
-    public class ImpExParams
+    public class ImpExParams : BindableBase
     {
-        public byte CurrentTarif { get; set; }
-        public ushort ImpCounter { get; set; }
-        public uint TimeMsFromLastImp { get; set; }
-        public uint CurrentPower { get; set; }
+        private ImpNum num;
+        private byte currentTarif;
+        private ushort impCounter;
+        private uint timeMsFromLastImp;
+        private uint currentPower;
+        private DateTime actualAtTime;
+
+        public ImpNum Num { get => num; set { num = value; RaisePropertyChanged(nameof(Num)); } }
+        public byte CurrentTarif { get => currentTarif; set { currentTarif = value; RaisePropertyChanged(nameof(CurrentTarif)); } }
+        public ushort ImpCounter { get => impCounter; set { impCounter = value; RaisePropertyChanged(nameof(ImpCounter)); } }
+        public uint MsFromLastImp { get => timeMsFromLastImp; set { timeMsFromLastImp = value; RaisePropertyChanged(nameof(MsFromLastImp)); RaisePropertyChanged(nameof(SecFromLastImp)); } }
+        public double SecFromLastImp { get => ((double)timeMsFromLastImp/1000); }
+        public uint CurrentPower { get => currentPower; set { currentPower = value; RaisePropertyChanged(nameof(CurrentPower)); } }
+        public DateTime ActualAtTime { get => actualAtTime; set { actualAtTime = value; RaisePropertyChanged(nameof(ActualAtTime)); } }
 
         public ImpExParams()
         {
+            Num = ImpNum.IMP1;
             CurrentTarif = 1;
             ImpCounter = 0;
-            TimeMsFromLastImp = 0;
+            MsFromLastImp = 0;
             CurrentPower = 0;
+            ActualAtTime = DateTime.MinValue;
+        }
+        public ImpExParams(ImpNum num)
+        {
+            Num = num;
+            CurrentTarif = 1;
+            ImpCounter = 0;
+            MsFromLastImp = 0;
+            CurrentPower = 0;
+            ActualAtTime = DateTime.MinValue;
         }
     }
 
     public class ImpParams : BindableBase
     {
-        private  byte isEnable;      //Включен/отключен
-        private  byte adrs_PLC;       //Сетевой адрес
+        private ImpNum num;
+        private byte isEnable;      //Включен/отключен
+        private byte adrs_PLC;       //Сетевой адрес
         private ushort a;            //A передаточное число
+        ImpEnergyGroup e_Current;
+        ImpEnergyGroup e_StartDay;
         private ImpOverflowType perepoln;       //число разрядов после которых происходит переполнение 0, 5 или 6
         private int perepoln_view;  //число разрядов после которых происходит переполнение 0, 1 или 2 для отображения во view (ComboBox)
         private ImpNumOfTarifs t_qty;         //Количество тарифов
@@ -219,11 +243,12 @@ namespace Pulse_PLC_Tools_2
         private byte ascue_protocol;    //Тип протокола
         private ushort max_Power;    //Максимальная мощность нагрузки
 
+        public ImpNum Num { get => num; set { num = value; RaisePropertyChanged(nameof(Num)); } }
         public byte IsEnable { get => isEnable; set { isEnable = value; RaisePropertyChanged(nameof(IsEnable)); } }
         public byte Adrs_PLC { get => adrs_PLC; set { adrs_PLC = value; RaisePropertyChanged(nameof(Adrs_PLC)); } }
         public ushort A { get => a; set { a = value; RaisePropertyChanged(nameof(A)); } }
-        public ImpEnergyGroup E_Current { get; set; }
-        public ImpEnergyGroup E_StartDay { get; set; }
+        public ImpEnergyGroup E_Current { get => e_Current; set { e_Current = value; RaisePropertyChanged(nameof(E_Current)); } }
+        public ImpEnergyGroup E_StartDay { get => e_StartDay; set { e_StartDay = value; RaisePropertyChanged(nameof(E_StartDay)); } }
         public ImpOverflowType Perepoln { get => perepoln;
             set {
                 perepoln = value;
@@ -305,12 +330,14 @@ namespace Pulse_PLC_Tools_2
 
         public ImpParams()
         {
+            Num = ImpNum.IMP1;
             Adrs_PLC = 1;
             SetDefaultParams();
         }
-        public ImpParams(byte adrsPLC)
+        public ImpParams(ImpNum impNum)
         {
-            Adrs_PLC = adrsPLC;
+            Num = impNum;
+            Adrs_PLC = (byte)impNum;
             SetDefaultParams();
         }
         

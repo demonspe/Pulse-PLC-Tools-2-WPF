@@ -66,6 +66,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\FileConfigManager.cs" />
     <Compile Include="Model\Helpers.cs" />
     <Compile Include="Model\LinkManager.cs" />
     <Compile Include="Model\BLProtocolManager.cs" />

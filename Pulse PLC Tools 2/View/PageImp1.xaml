@@ -79,15 +79,15 @@
                         </StackPanel.Resources>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 1 (кВт*ч)</TextBlock>
-                            <TextBox Text="{Binding Imp1.E_Current.E_T1_Value.Value_kWt}"/>
+                            <TextBox Text="{Binding Imp1.E_Current.E_T1.Value_kWt}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 2 (кВт*ч)</TextBlock>
-                            <TextBox Text="{Binding Imp1.E_Current.E_T2_Value.Value_kWt}"/>
+                            <TextBox Text="{Binding Imp1.E_Current.E_T2.Value_kWt}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 3 (кВт*ч)</TextBlock>
-                            <TextBox Text="{Binding Imp1.E_Current.E_T3_Value.Value_kWt}"/>
+                            <TextBox Text="{Binding Imp1.E_Current.E_T3.Value_kWt}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ сумма (кВт*ч)</TextBlock>
@@ -105,15 +105,15 @@
                         </StackPanel.Resources>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 1 (кВт*ч)</TextBlock>
-                            <TextBlock Text="{Binding Imp1.E_StartDay.E_T1_Value.Value_kWt}"/>
+                            <TextBlock Text="{Binding Imp1.E_StartDay.E_T1.Value_kWt}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 2 (кВт*ч)</TextBlock>
-                            <TextBlock Text="{Binding Imp1.E_StartDay.E_T2_Value.Value_kWt}"/>
+                            <TextBlock Text="{Binding Imp1.E_StartDay.E_T2.Value_kWt}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 3 (кВт*ч)</TextBlock>
-                            <TextBlock Text="{Binding Imp1.E_StartDay.E_T3_Value.Value_kWt}"/>
+                            <TextBlock Text="{Binding Imp1.E_StartDay.E_T3.Value_kWt}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ сумма (кВт*ч)</TextBlock>

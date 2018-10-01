@@ -19,8 +19,9 @@ namespace Pulse_PLC_Tools_2
     public class MainVM : BindableBase
     {
         //Data
-        ImpParams imp1;
-        ImpParams imp2;
+        ImpParams imp1, imp2;
+        ImpExParams imp1Ex, imp2Ex;
+        DeviceMainParams device;
         //Messages and Log
         private FlowDocument logContent;
         private FlowDocument logExContent;
@@ -29,14 +30,14 @@ namespace Pulse_PLC_Tools_2
         private string toolBarText;
         //Navigate
         private int currentPage;
-
-
+        
         public ObservableCollection<string> SerialNumList { get; }
-
         //Data
         public ImpParams Imp1 { get => imp1; set { imp1 = value; RaisePropertyChanged(nameof(Imp1)); } }
         public ImpParams Imp2 { get => imp2; set { imp2 = value; RaisePropertyChanged(nameof(Imp2)); } }
-        public DeviceMainParams Device { get; set; }
+        public ImpExParams Imp1Ex { get => imp1Ex; set { imp1Ex = value; RaisePropertyChanged(nameof(Imp1Ex)); } }
+        public ImpExParams Imp2Ex { get => imp2Ex; set { imp2Ex = value; RaisePropertyChanged(nameof(Imp2Ex)); } }
+        public DeviceMainParams Device { get => device; set { device = value; RaisePropertyChanged(nameof(Device)); } }
         //Device events journals
         public ObservableCollection<DataGridRow_Log> JournalPower { get; }
         public ObservableCollection<DataGridRow_Log> JournalConfig { get; }
@@ -61,63 +62,71 @@ namespace Pulse_PLC_Tools_2
         public ProtocolManager ProtocolManager { get; }
         LogManager LogManager { get; }
 
+        //------------------------------------------------------------------------------------
         //Commands
-        
+        //
+        //HotKeys
+        public DelegateCommand KeyDownEsc { get; private set; }
         //Log
-        public DelegateCommand ShowLogSimple { get; }
-        public DelegateCommand ShowLogExpert { get; }
-        public DelegateCommand ClearLog { get; }
+        public DelegateCommand ShowLogSimple { get; private set; }
+        public DelegateCommand ShowLogExpert { get; private set; }
+        public DelegateCommand ClearLog { get; private set; }
         //Navigate
-        public DelegateCommand<string> CommandGoToPage { get; }
+        public DelegateCommand<string> CommandGoToPage { get; private set; }
         //For link
-        public DelegateCommand OpenLink { get; }
-        public DelegateCommand CloseLink { get; }
+        public DelegateCommand OpenLink { get; private set; }
+        public DelegateCommand CloseLink { get; private set; }
         //Files
-        public DelegateCommand SaveFile { get; }
-        public DelegateCommand OpenFile { get; }
+        public DelegateCommand SaveFile { get; private set; }
+        public DelegateCommand OpenFile { get; private set; }
         //For protocol
-        public DelegateCommand Send_SearchDevices { get; }
-        public DelegateCommand Send_ReadAllParams { get; }
-        public DelegateCommand Send_WriteAllParams { get; }
-        public DelegateCommand Send_ReadDateTime { get; }   //Date and Time
-        public DelegateCommand Send_WriteDateTime { get; }
-        public DelegateCommand Send_CorrectDateTime { get; }
-        public DelegateCommand Send_ReadMainParams { get; } //Main Params
-        public DelegateCommand Send_WriteMainParams { get; }
-        public DelegateCommand Send_ClearErrors { get; }
-        public DelegateCommand Send_WritePass { get; }
-        public DelegateCommand Send_ReadImp1 { get; }   //Imp1
-        public DelegateCommand Send_WriteImp1 { get; }
-        public DelegateCommand Send_ReadImp2 { get; }   //Imp2
-        public DelegateCommand Send_WriteImp2 { get; }
+        public DelegateCommand Send_SearchDevices { get; private set; }
+        public DelegateCommand Send_ReadAllParams { get; private set; }
+        public DelegateCommand Send_WriteAllParams { get; private set; }
+        public DelegateCommand Send_ReadDateTime { get; private set; }   //Date and Time
+        public DelegateCommand Send_WriteDateTime { get; private set; }
+        public DelegateCommand Send_CorrectDateTime { get; private set; }
+        public DelegateCommand Send_ReadMainParams { get; private set; } //Main Params
+        public DelegateCommand Send_WriteMainParams { get; private set; }
+        public DelegateCommand Send_ClearErrors { get; private set; }
+        public DelegateCommand Send_WritePass { get; private set; }
+        public DelegateCommand Send_ReadImp1 { get; private set; }   //Imp1
+        public DelegateCommand Send_WriteImp1 { get; private set; }
+        public DelegateCommand Send_ReadImp2 { get; private set; }   //Imp2
+        public DelegateCommand Send_WriteImp2 { get; private set; }
+        public DelegateCommand Send_ReadImp1Ex { get; private set; }
+        public DelegateCommand Send_ReadImp2Ex { get; private set; }
         //PLC Table
-        public DelegateCommand Send_ReadEnableRows { get; }
-        public DelegateCommand Send_ReadSelectedRows { get; }
-        public DelegateCommand Send_WriteSelectedRows { get; }
-        public DelegateCommand Send_Request_PLCv1 { get; }
-        public DelegateCommand Send_Request_Time { get; }
-        public DelegateCommand Send_Request_Serial { get; }
-        public DelegateCommand Send_Request_E_Current { get; }
-        public DelegateCommand Send_Request_E_StartDay { get; }
-        public DelegateCommand EnableSelected { get; }
-        public DelegateCommand DisableSelected { get; }
-        public DelegateCommand ClearPLCTable { get; }
+        public DelegateCommand Send_ReadEnableRows { get; private set; }
+        public DelegateCommand Send_ReadSelectedRows { get; private set; }
+        public DelegateCommand Send_WriteSelectedRows { get; private set; }
+        public DelegateCommand Send_Request_PLCv1 { get; private set; }
+        public DelegateCommand Send_Request_Time { get; private set; }
+        public DelegateCommand Send_Request_Serial { get; private set; }
+        public DelegateCommand Send_Request_E_Current { get; private set; }
+        public DelegateCommand Send_Request_E_StartDay { get; private set; }
+        public DelegateCommand EnableSelected { get; private set; }
+        public DelegateCommand DisableSelected { get; private set; }
+        public DelegateCommand ClearPLCTable { get; private set; }
         //Data E Table
-        public DelegateCommand Send_Read_E_Enabled { get; }
-        public DelegateCommand Send_Read_E_Selected { get; }
+        public DelegateCommand Send_Read_E_Enabled { get; private set; }
+        public DelegateCommand Send_Read_E_Selected { get; private set; }
         //Journals
-        public DelegateCommand Send_ReadJournal_Interface { get; }
-        public DelegateCommand Send_ReadJournal_Config { get; }
-        public DelegateCommand Send_ReadJournal_Power { get; }
-        public DelegateCommand Send_ReadJournal_RequestsPLC { get; }
+        public DelegateCommand Send_ReadJournal_Interface { get; private set; }
+        public DelegateCommand Send_ReadJournal_Config { get; private set; }
+        public DelegateCommand Send_ReadJournal_Power { get; private set; }
+        public DelegateCommand Send_ReadJournal_RequestsPLC { get; private set; }
+        //----------------------------------------------------------------------------------
 
         public MainVM()
         {
             SerialNumList = new ObservableCollection<string>();
 
             //Контейнеры для данных
-            Imp1 = new ImpParams(1);
-            Imp2 = new ImpParams(2);
+            Imp1 = new ImpParams(ImpNum.IMP1);
+            Imp2 = new ImpParams(ImpNum.IMP2);
+            Imp1Ex = new ImpExParams(ImpNum.IMP1);
+            Imp2Ex = new ImpExParams(ImpNum.IMP2);
             Device = new DeviceMainParams();
 
             //Журналы событий
@@ -143,58 +152,82 @@ namespace Pulse_PLC_Tools_2
             ProtocolManager = new ProtocolManager(this, SynchronizationContext.Current);
 
             //Commands
+            InitCommands();
+
+            //Start page
+            GoToPage(TabPages.Link);
+        }
+
+        void InitCommands()
+        {
+            KeyDownEsc = new DelegateCommand(ProtocolManager.ClearCommandBuffer);
+
+            CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
+            //Log
             ShowLogSimple = new DelegateCommand(() => { LogVisible = Visibility.Visible; LogExVisible = Visibility.Hidden; });
             ShowLogExpert = new DelegateCommand(() => { LogVisible = Visibility.Hidden; LogExVisible = Visibility.Visible; });
             ClearLog = new DelegateCommand(LogManager.ClearLog);
-            CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
             //For link
             OpenLink = new DelegateCommand(LinkManager.OpenLink);
             CloseLink = new DelegateCommand(LinkManager.CloseLink);
             //For files
-            SaveFile = new DelegateCommand(() => { MessageBox.Show(nameof(SaveFile)); });
-            OpenFile = new DelegateCommand(() => { MessageBox.Show(nameof(OpenFile)); });
+            SaveFile = new DelegateCommand(() => { FileConfigManager.SaveConfig(new PulsePLCv2Config() { Imp1 = this.Imp1, Imp2 = this.Imp2, Device = this.Device, TablePLC = VM_PLCTable.TablePLC.ToList() }); });
+            OpenFile = new DelegateCommand(() => {
+                PulsePLCv2Config config = FileConfigManager.LoadConfig();
+                if(config != null)
+                {
+                    Imp1 = config.Imp1;
+                    Imp2 = config.Imp2;
+                    Device = config.Device;
+                    VM_PLCTable.TablePLC.Clear();
+                    for (int i = 0; i < 250; i++) VM_PLCTable.TablePLC.Add(config.TablePLC[i]);
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Файл конфигурации успешно загружен", MessageType = MessageType.Normal });
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Файл конфигурации успешно загружен", MessageType = MessageType.ToolBarInfo });
+                }
+                else
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Не удалось загрузить файл конфигурации", MessageType = MessageType.Error });
+            });
             //For protocol
             //Common
             Send_SearchDevices = new DelegateCommand(ProtocolManager.Send_SearchDevices);
             Send_ReadAllParams = new DelegateCommand(ProtocolManager.Send_ReadAllParams);
-            Send_WriteAllParams = new DelegateCommand(ProtocolManager.Send_WriteAllParams);
+            Send_WriteAllParams = new DelegateCommand(()=> ProtocolManager.Send_WriteAllParams(Device, Imp1, Imp2));
             //DateTime
             Send_ReadDateTime = new DelegateCommand(ProtocolManager.Send_ReadDateTime);
             Send_WriteDateTime = new DelegateCommand(ProtocolManager.Send_WriteDateTime);
             Send_CorrectDateTime = new DelegateCommand(ProtocolManager.Send_CorrectDateTime);
             //Main params
             Send_ReadMainParams = new DelegateCommand(ProtocolManager.Send_ReadMainParams);
-            Send_WriteMainParams = new DelegateCommand(ProtocolManager.Send_WriteMainParams);
+            Send_WriteMainParams = new DelegateCommand(() => ProtocolManager.Send_WriteMainParams(Device));
             Send_ClearErrors = new DelegateCommand(ProtocolManager.Send_ClearErrors);
-            Send_WritePass = new DelegateCommand(ProtocolManager.Send_WritePass);
+            Send_WritePass = new DelegateCommand(() => ProtocolManager.Send_WritePass(Device));
             //Imps params
-            Send_ReadImp1 = new DelegateCommand(ProtocolManager.Send_ReadImp1);
-            Send_WriteImp1 = new DelegateCommand(ProtocolManager.Send_WriteImp1);
-            Send_ReadImp2 = new DelegateCommand(ProtocolManager.Send_ReadImp2);
-            Send_WriteImp2 = new DelegateCommand(ProtocolManager.Send_WriteImp2);
+            Send_ReadImp1 = new DelegateCommand(() => ProtocolManager.Send_ReadImp(ImpNum.IMP1));
+            Send_WriteImp1 = new DelegateCommand(() => ProtocolManager.Send_WriteImp(Imp1));
+            Send_ReadImp2 = new DelegateCommand(() => ProtocolManager.Send_ReadImp(ImpNum.IMP2));
+            Send_WriteImp2 = new DelegateCommand(() => ProtocolManager.Send_WriteImp(Imp2));
+            Send_ReadImp1Ex = new DelegateCommand(() => ProtocolManager.Send_ReadImpEx(ImpNum.IMP1));
+            Send_ReadImp2Ex = new DelegateCommand(() => ProtocolManager.Send_ReadImpEx(ImpNum.IMP2));
             //PLC Table
             Send_ReadEnableRows = new DelegateCommand(ProtocolManager.Send_ReadEnableRowsAdrss);
             Send_ReadSelectedRows = new DelegateCommand(ProtocolManager.Send_ReadSelectedRows);
-            Send_WriteSelectedRows = new DelegateCommand(ProtocolManager.Send_WriteSelectedRows);
-            Send_Request_PLCv1 = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.PLCv1); });
-            Send_Request_Time = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.Time_Synchro); });
-            Send_Request_Serial = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.Serial_Num); });
-            Send_Request_E_Current = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.E_Current); });
-            Send_Request_E_StartDay = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(PLC_Request.E_Start_Day); });
+            Send_WriteSelectedRows = new DelegateCommand(() => ProtocolManager.Send_WriteSelectedRows(VM_PLCTable.SelectedRows));
+            Send_Request_PLCv1 = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.PLCv1); });
+            Send_Request_Time = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.Time_Synchro); });
+            Send_Request_Serial = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.Serial_Num); });
+            Send_Request_E_Current = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Current); });
+            Send_Request_E_StartDay = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Start_Day); });
             EnableSelected = new DelegateCommand(VM_PLCTable.EnableSelected);
             DisableSelected = new DelegateCommand(VM_PLCTable.DisableSelected);
             ClearPLCTable = new DelegateCommand(VM_PLCTable.ResetTable);
             //Data E Table
-            Send_Read_E_Enabled = new DelegateCommand(ProtocolManager.Send_Read_E_Enabled);
-            Send_Read_E_Selected = new DelegateCommand(ProtocolManager.Send_Read_E_Selected);
+            Send_Read_E_Enabled = new DelegateCommand(() => ProtocolManager.Send_Read_E_Enabled(VM_PLCTable.TablePLC.ToList()));
+            Send_Read_E_Selected = new DelegateCommand(()=>ProtocolManager.Send_Read_E_Selected(VM_PLCTable.SelectedRows));
             //Journals
             Send_ReadJournal_Interface = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.INTERFACES));
             Send_ReadJournal_Config = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.CONFIG));
             Send_ReadJournal_Power = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.POWER));
             Send_ReadJournal_RequestsPLC = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.REQUESTS));
-
-            //Start page
-            GoToPage(TabPages.Link);
         }
 
         void GoToPageFromXName(string xNameOfPage)

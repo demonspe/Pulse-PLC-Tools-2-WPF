@@ -38,6 +38,7 @@ namespace Pulse_PLC_Tools_2
         private byte quality = 100;
         private PLCProtocolType typePLC;
         private byte errors_byte;
+        private ImpEnergyGroup e_Current, e_StartDay;
 
         public bool IsEnable { get { return isEnable; } set { isEnable = value; RaisePropertyChanged(nameof(IsEnable)); } }
         public byte Adrs_PLC { get { return adrs_PLC; } set { if (value >= 1 && value <= 250) adrs_PLC = value; RaisePropertyChanged(nameof(Adrs_PLC)); } }
@@ -182,11 +183,10 @@ namespace Pulse_PLC_Tools_2
                 return err_str;
             }
         }
-        //Показания
         //Текущие
-        public ImpEnergyGroup E_Current { get; set; }
+        public ImpEnergyGroup E_Current { get => e_Current; set { e_Current = value; RaisePropertyChanged(nameof(E_Current)); } }
         //Начало суток
-        public ImpEnergyGroup E_StartDay { get; set; }
+        public ImpEnergyGroup E_StartDay { get => e_StartDay; set { e_StartDay = value; RaisePropertyChanged(nameof(E_StartDay)); } }
         //Начало месяца
         //-----
         //Начало года

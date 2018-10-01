@@ -47,28 +47,6 @@ namespace Pulse_PLC_Tools_2
             PassString = Encoding.Default.GetString(Pass).Trim(Convert.ToChar(255));
         }
     }
-    public class ImpParamsForProtocol
-    {
-        public ImpParams Imp { get; }
-        public ImpNum Num { get; }
-
-        public ImpParamsForProtocol(ImpParams imp, ImpNum num)
-        {
-            Imp = imp;
-            Num = num;
-        }
-    }
-    public class ImpExParamsForProtocol
-    {
-        public ImpExParams ImpEx { get; }
-        public ImpNum Num { get; }
-
-        public ImpExParamsForProtocol(ImpExParams impEx, ImpNum num)
-        {
-            ImpEx = impEx;
-            Num = num;
-        }
-    }
     public class JournalForProtocol
     {
         public List<DataGridRow_Log> Events { get; }
@@ -264,7 +242,7 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Clear_Errors)       return CMD_Clear_Errors();
             if (CurrentCommand == Commands.Write_DateTime)     return CMD_Write_DateTime((DateTime)param);
             if (CurrentCommand == Commands.Write_Main_Params)  return CMD_Write_Main_Params((DeviceMainParams)param);
-            if (CurrentCommand == Commands.Write_IMP)          return CMD_Write_Imp_Params((ImpParamsForProtocol)param);
+            if (CurrentCommand == Commands.Write_IMP)          return CMD_Write_Imp_Params((ImpParams)param);
             if (CurrentCommand == Commands.Write_PLC_Table)    return CMD_Write_PLC_Table((List<DataGridRow_PLC>)param);
             if (CurrentCommand == Commands.Request_PLC)        return CMD_Request_PLC((PLCRequestParamsForProtocol)param);
             return false;
@@ -721,6 +699,7 @@ namespace Pulse_PLC_Tools_2
         {
             ImpParams Imp = new ImpParams();
             if (rxBytes[6] != '1' && rxBytes[6] != '2') return;
+            Imp.Num = (rxBytes[6] == '1') ? ImpNum.IMP1 : ImpNum.IMP2;
             int pntr = 7;
             Imp.IsEnable = rxBytes[pntr++];
             if (Imp.IsEnable != 0)
@@ -788,8 +767,7 @@ namespace Pulse_PLC_Tools_2
                 reserv_ = rxBytes[pntr++];
                 reserv_ = rxBytes[pntr++];
             }
-            ImpNum impNum = (rxBytes[6] == '1') ? ImpNum.IMP1 : ImpNum.IMP2;
-            DataContainer.Data = new ImpParamsForProtocol(Imp, impNum);
+            DataContainer.Data = Imp;
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры IMP" + Convert.ToChar(rxBytes[6]) + " успешно прочитаны" + PingStr() });
         }
 
@@ -801,7 +779,7 @@ namespace Pulse_PLC_Tools_2
             if (imp_num == ImpNum.IMP1) imp_ = Convert.ToByte('1');
             if (imp_num == ImpNum.IMP2) imp_ = Convert.ToByte('2');
             //Параметры
-            Add_Tx((byte)imp_num);
+            Add_Tx((byte)imp_);
             //Отправляем запрос
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение состояния " + imp_num });
             return Request_Start();
@@ -809,32 +787,28 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private void CMD_Read_Imp_Extra_Params(byte[] rxBytes)
         {
-            ImpExParams ImpEx = new ImpExParams();
-            ImpNum num = ImpNum.IMP1;
+            ImpExParams ImpEx = new ImpExParams(ImpNum.IMP1);
             if (rxBytes[6] != '1' && rxBytes[6] != '2') return;
-            if (rxBytes[6] == '2') num = ImpNum.IMP2;
+            if (rxBytes[6] == '2') ImpEx.Num = ImpNum.IMP2;
             int pntr = 7;
             ImpEx.CurrentTarif = rxBytes[pntr++];
-            ImpEx.ImpCounter = rxBytes[pntr++];
-            ImpEx.ImpCounter = (ushort)((ImpEx.ImpCounter << 8) + rxBytes[pntr++]);
-            ImpEx.TimeMsFromLastImp = rxBytes[pntr++];
-            ImpEx.TimeMsFromLastImp = (ushort)((ImpEx.TimeMsFromLastImp << 8) + rxBytes[pntr++]);
-            ImpEx.TimeMsFromLastImp = (ushort)((ImpEx.TimeMsFromLastImp << 8) + rxBytes[pntr++]);
-            ImpEx.TimeMsFromLastImp = (ushort)((ImpEx.TimeMsFromLastImp << 8) + rxBytes[pntr++]);
+            ImpEx.ImpCounter = new[] { rxBytes[pntr++], rxBytes[pntr++] }.ToUint16(false);
+            ImpEx.MsFromLastImp = new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] }.ToUint32(false);
+            ImpEx.CurrentPower = new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] }.ToUint32(false);
+            ImpEx.ActualAtTime = DateTime.Now;
             //Отобразим
-            DataContainer.Data = new ImpExParamsForProtocol(ImpEx, num);
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Мгновенные значения считаны" + PingStr() });
+            DataContainer.Data = ImpEx;
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Мгновенные значения " + ImpEx.Num + " считаны" + PingStr() });
         }
 
         //Запрос ЗАПИСЬ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
-        private bool CMD_Write_Imp_Params(ImpParamsForProtocol param)
+        private bool CMD_Write_Imp_Params(ImpParams imp)
         {
-            
             Start_Add_Tx(Commands.Write_IMP);
-            if (param.Num == ImpNum.IMP1) Add_Tx("1");
-            else if (param.Num == ImpNum.IMP2) Add_Tx("2");
+            if (imp.Num == ImpNum.IMP1) Add_Tx("1");
+            else if (imp.Num == ImpNum.IMP2) Add_Tx("2");
             else return false;
-            ImpParams Imp_ = param.Imp;
+            ImpParams Imp_ = imp;
 
             //Параметры
             Add_Tx(Imp_.IsEnable); 
@@ -876,7 +850,7 @@ namespace Pulse_PLC_Tools_2
                 Add_Tx(0);
                 Add_Tx(0);
             }
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись параметров "+param.Num });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Запись параметров "+imp.Num });
             return Request_Start();
         }
         //Обработка ответа
@@ -1273,7 +1247,7 @@ namespace Pulse_PLC_Tools_2
 
             //Отправляем запрос
             if (param.Device.N == 0)
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Прямой запрос PLC на " + param.Device.Adrs_PLC });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Прямой запрос ("+ param.Type + ") PLC на " + param.Device.Adrs_PLC });
             else
             {
                 string steps_ = "";
@@ -1336,7 +1310,8 @@ namespace Pulse_PLC_Tools_2
                         MessageString = "Прочитано №" + adrs_PLC +
                         ", Тариф 1: " + energy.E_T1.Value_kWt + " кВт" +
                         ", Тариф 2: " + energy.E_T2.Value_kWt + " кВт" +
-                        ", Тариф 3: " + energy.E_T3.Value_kWt + " кВт"});
+                        ", Тариф 3: " + energy.E_T3.Value_kWt + " кВт" + PingStr()
+                    });
                 }
             }
             else Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство №" + adrs_PLC + " не отвечает" + PingStr() });

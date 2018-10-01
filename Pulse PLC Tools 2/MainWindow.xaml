@@ -8,12 +8,14 @@
         mc:Ignorable="d"
         Icon="Pics/logo1.ico"
         Title="Pulse PLC Tools 2.0" Height="800" Width="1400" MinWidth="725" MinHeight="600">
+    <Window.InputBindings>
+        <KeyBinding 
+          Key="Esc" 
+          Command="{Binding KeyDownEsc}" />
+    </Window.InputBindings>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
-            <i:InvokeCommandAction Command="{Binding AppClosing}" />
-        </i:EventTrigger>
-        <i:EventTrigger EventName="KeyDown">
-            <i:InvokeCommandAction Command="{Binding KeyDown}" />
+            <i:InvokeCommandAction Command="{Binding AppClosing}"/>
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <Window.DataContext>
@@ -27,7 +29,6 @@
         <Style TargetType="TabItem">
             <Setter Property="Width" Value="100" />
         </Style>
-
         <Style TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>

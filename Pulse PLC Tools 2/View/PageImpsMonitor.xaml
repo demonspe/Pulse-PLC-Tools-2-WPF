@@ -7,9 +7,60 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Margin="-4">
-        <Button x:Name="button_Read_Imp1_Extra" Content="Прочитать IMP1" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="177" />
-        <Label x:Name="label_Imp1_Extra" Content="Текущие значения:" Height="100" Margin="10,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="204"/>
-        <Button x:Name="button_Read_Imp1_Extra_Copy" Content="Прочитать IMP2" HorizontalAlignment="Left" Margin="219,12,0,0" VerticalAlignment="Top" Width="177" />
-        <Label x:Name="label_Imp2_Extra" Content="Текущие значения:" Height="100" Margin="219,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="214"/>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel Width="300" Margin="5">
+                <Button Content="Прочитать IMP1" Command="{Binding Send_ReadImp1Ex}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Текущий тариф: " Width="200"/>
+                    <TextBlock Text="{Binding Imp1Ex.CurrentTarif}"/>
+                    <TextBlock Text=" тариф"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Счетчик импульсов: " Width="200"/>
+                    <TextBlock Text="{Binding Imp1Ex.ImpCounter}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Время с последнего импульса: " Width="200"/>
+                    <TextBlock Text="{Binding Imp1Ex.SecFromLastImp}"/>
+                    <TextBlock Text=" сек"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Текущая нагрузка: " Width="200"/>
+                    <TextBlock Text="{Binding Imp1Ex.CurrentPower}"/>
+                    <TextBlock Text=" Вт"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Данные актуальны на: " Width="200"/>
+                    <TextBlock Text="{Binding Imp1Ex.ActualAtTime, StringFormat='dd.MM.yy HH:mm:ss'}"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Width="300" Margin="5">
+                <Button Content="Прочитать IMP2" Command="{Binding Send_ReadImp2Ex}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Текущий тариф: " Width="200"/>
+                    <TextBlock Text="{Binding Imp2Ex.CurrentTarif}"/>
+                    <TextBlock Text=" тариф"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Счетчик импульсов: " Width="200"/>
+                    <TextBlock Text="{Binding Imp2Ex.ImpCounter}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Время с последнего импульса: " Width="200"/>
+                    <TextBlock Text="{Binding Imp2Ex.SecFromLastImp}"/>
+                    <TextBlock Text=" сек"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Текущая нагрузка: " Width="200"/>
+                    <TextBlock Text="{Binding Imp2Ex.CurrentPower}"/>
+                    <TextBlock Text=" Вт"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="Данные актуальны на: " Width="200"/>
+                    <TextBlock Text="{Binding Imp2Ex.ActualAtTime, StringFormat='dd.MM.yy HH:mm:ss'}"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+        
     </Grid>
 </UserControl>

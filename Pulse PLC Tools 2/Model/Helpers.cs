@@ -29,10 +29,19 @@ namespace Pulse_PLC_Tools_2
 
         public static uint ToUint32(this byte[] bytes, bool fromLowToHigth)
         {
+            if (bytes.Length < 4) throw new Exception("В массиве меньше 4х элементов. Невозможно выполнить преобразование.");
             if(fromLowToHigth)
                 return ((uint)bytes[3] << 24) + ((uint)bytes[2] << 16) + ((uint)bytes[1] << 8) + bytes[0];
             else
                 return ((uint)bytes[0] << 24) + ((uint)bytes[1] << 16) + ((uint)bytes[2] << 8) + bytes[3];
+        }
+        public static ushort ToUint16(this byte[] bytes, bool fromLowToHigth)
+        {
+            if (bytes.Length < 2) throw new Exception("В массиве меньше 2х элементов. Невозможно выполнить преобразование.");
+            if (fromLowToHigth)
+                return (ushort)((bytes[1] << 8) + bytes[0]);
+            else
+                return (ushort)((bytes[0] << 8) + bytes[1]);
         }
     }
 }
