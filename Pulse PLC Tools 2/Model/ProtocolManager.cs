@@ -110,7 +110,7 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_CorrectDateTime()
         {
-
+            //Code here...
         }
         #endregion
         #region MainParams
@@ -238,6 +238,30 @@ namespace Pulse_PLC_Tools_2
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_Journal, type, 0);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
+        #endregion
+        #region Service
+        public void Send_WriteSerial(string serialString)
+        {
+            PulsePLCv2Serial serial = new PulsePLCv2Serial(serialString);
+            MessageBox.Show(serial.SerialString);
+            if (MessageBox.Show("Записать серийный номер?\n\nНомер: " + serial.SerialString, "Запись серийного номера", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                int serialInt = Convert.ToInt32(serial.SerialBytes[0].ToString("00") + serial.SerialBytes[1].ToString("00") + serial.SerialBytes[2].ToString("00") + serial.SerialBytes[3].ToString("00"));
+                if (serialInt > 1809000 && serialInt < 1814001)
+                {
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.SerialWrite, serial, 0);
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+                }
+            }
+        }
+        public void Send_ReadEEPROM(ushort eAddres)
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.EEPROM_Read_Byte, eAddres, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+
         #endregion
 
         void GetProtocolData(object DataObject)

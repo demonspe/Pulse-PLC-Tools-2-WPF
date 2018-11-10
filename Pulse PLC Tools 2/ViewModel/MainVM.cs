@@ -30,7 +30,15 @@ namespace Pulse_PLC_Tools_2
         private string toolBarText;
         //Navigate
         private int currentPage;
-        
+
+        //Service serial write (!) только для первой настройки блоков!!!
+        private string serialForWrite;
+        public string SerialForWrite { get => serialForWrite; set { serialForWrite = value; RaisePropertyChanged(nameof(SerialForWrite)); } }
+        private ushort eAddres;
+        public ushort EAddres { get; set; }
+        //----------------------------------------------------------------
+
+        //Found serials
         public ObservableCollection<string> SerialNumList { get; }
         //Data
         public ImpParams Imp1 { get => imp1; set { imp1 = value; RaisePropertyChanged(nameof(Imp1)); } }
@@ -49,6 +57,7 @@ namespace Pulse_PLC_Tools_2
         public Visibility LogVisible { get => logVisible; set { logVisible = value; RaisePropertyChanged(nameof(LogVisible)); } }
         public Visibility LogExVisible { get => logExVisible; set { logExVisible = value; RaisePropertyChanged(nameof(LogExVisible)); } }
         public string ToolBarText { get => toolBarText; set { toolBarText = value; RaisePropertyChanged(nameof(ToolBarText)); } }
+        public string ImgSrcLinkStatus { get; set; } //Image source for link status image in ToolBar (bottom rigth)
 
         //Navigate
         public int CurrentPage { get => currentPage; set { currentPage = value; RaisePropertyChanged(nameof(CurrentPage)); } }
@@ -116,10 +125,15 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_ReadJournal_Config { get; private set; }
         public DelegateCommand Send_ReadJournal_Power { get; private set; }
         public DelegateCommand Send_ReadJournal_RequestsPLC { get; private set; }
+        //Service
+        public DelegateCommand Send_WriteSerial { get; private set; }
+        public DelegateCommand Send_ReadEEPROM { get; set; }
         //----------------------------------------------------------------------------------
 
         public MainVM()
         {
+            SerialForWrite = "12345678";
+            //Список найденных серийных номеров
             SerialNumList = new ObservableCollection<string>();
 
             //Контейнеры для данных
@@ -141,7 +155,11 @@ namespace Pulse_PLC_Tools_2
             LogVisible = Visibility.Visible;
             LogExVisible = Visibility.Hidden;
             LogManager = new LogManager(Log, LogEx, SynchronizationContext.Current);
+
+            //ToolBar
             ToolBarText = "Привет";
+            ImgSrcLinkStatus = "Pics/red.png";
+
 
             //VM
             VM_Link = new LinkVM();
@@ -195,7 +213,7 @@ namespace Pulse_PLC_Tools_2
             //DateTime
             Send_ReadDateTime = new DelegateCommand(ProtocolManager.Send_ReadDateTime);
             Send_WriteDateTime = new DelegateCommand(ProtocolManager.Send_WriteDateTime);
-            Send_CorrectDateTime = new DelegateCommand(ProtocolManager.Send_CorrectDateTime);
+            Send_CorrectDateTime = new DelegateCommand(ProtocolManager.Send_CorrectDateTime); //Need to realize
             //Main params
             Send_ReadMainParams = new DelegateCommand(ProtocolManager.Send_ReadMainParams);
             Send_WriteMainParams = new DelegateCommand(() => ProtocolManager.Send_WriteMainParams(Device));
@@ -228,6 +246,9 @@ namespace Pulse_PLC_Tools_2
             Send_ReadJournal_Config = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.CONFIG));
             Send_ReadJournal_Power = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.POWER));
             Send_ReadJournal_RequestsPLC = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.REQUESTS));
+            //Service
+            Send_WriteSerial = new DelegateCommand(() => { ProtocolManager.Send_WriteSerial(SerialForWrite); SerialForWrite = ""; });
+            Send_ReadEEPROM = new DelegateCommand(() => { ProtocolManager.Send_ReadEEPROM(EAddres); });
         }
 
         void GoToPageFromXName(string xNameOfPage)

@@ -59,7 +59,7 @@ namespace Pulse_PLC_Tools_2
             get => serial_bytes;
             set
             {
-                if (serial_bytes.Length >= 4)
+                if (value.Length >= 4)
                 {
                     serial_bytes = value;
                     serial_string = serial_bytes[0].ToString("00") + serial_bytes[1].ToString("00") + serial_bytes[2].ToString("00") + serial_bytes[3].ToString("00");

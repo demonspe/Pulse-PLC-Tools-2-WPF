@@ -10,7 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using LinkLibrary;
-
+using Prism.Mvvm;
 
 namespace Pulse_PLC_Tools_2
 {
@@ -18,35 +18,130 @@ namespace Pulse_PLC_Tools_2
     public enum Journal_type : int { POWER = 1, CONFIG, INTERFACES, REQUESTS }
     public enum AccessType : int { No_Access, Read, Write }
 
-    public class PulsePLCv2LoginPass
+    public class PulsePLCv2Serial : BindableBase
     {
-        public byte[] Serial { get; }
-        public byte[] Pass { get; }
-        public string SerialString { get; }
-        public string PassString { get; }
+        private byte[] serial_bytes;  //Серийный номер устройства с которым идет общение
+        private string serial_string;
 
-        public PulsePLCv2LoginPass(byte[] serialNum, byte[] pass)
+        public byte[] SerialBytes {
+            get => serial_bytes;
+            set
+            {
+                if (value.Length >= 4)
+                {
+                    serial_bytes = value;
+                    serial_string = serial_bytes[0].ToString("00") + serial_bytes[1].ToString("00") + serial_bytes[2].ToString("00") + serial_bytes[3].ToString("00");
+                    serial_bytes = new byte[4] { //Подгоняем длину массива под 4 
+                        Convert.ToByte(serial_string.Substring(0, 2)),
+                        Convert.ToByte(serial_string.Substring(2, 2)),
+                        Convert.ToByte(serial_string.Substring(4, 2)),
+                        Convert.ToByte(serial_string.Substring(6, 2))
+                    };
+                }
+                RaisePropertyChanged(nameof(SerialBytes));
+                RaisePropertyChanged(nameof(SerialString));
+            }
+        }
+        public string SerialString {
+            get
+            {
+                if (serial_string == "00000000") return string.Empty; else return serial_string;
+            }
+            set
+            {
+                if (value == null || value == string.Empty || value == "0")
+                {
+                    serial_string = "00000000";
+                    serial_bytes = new byte[4] { 0, 0, 0, 0 };
+                    return;
+                }
+                string tmpStr = value;
+                if (tmpStr.Length > 8) tmpStr = tmpStr.Substring(0, 8);
+                bool isDigitsOnly = true;
+                tmpStr.ToList().ForEach(ch => { if (!char.IsDigit(ch)) isDigitsOnly = false; });
+                if (isDigitsOnly)
+                {
+                    if (tmpStr.Length == 8)
+                    {
+                        serial_string = tmpStr;
+                        serial_bytes = new byte[4] {
+                        Convert.ToByte(tmpStr.Substring(0, 2)),
+                        Convert.ToByte(tmpStr.Substring(2, 2)),
+                        Convert.ToByte(tmpStr.Substring(4, 2)),
+                        Convert.ToByte(tmpStr.Substring(6, 2))
+                        };
+                    }
+                }
+                RaisePropertyChanged(nameof(SerialBytes));
+                RaisePropertyChanged(nameof(SerialString));
+            }
+        }
+
+        public PulsePLCv2Serial()
         {
-            //Подгоняем под нужный формат
-            Serial = new byte[4] { 0, 0, 0, 0 };
-            for (int i = 0; i < serialNum.Length; i++)
-            {
-                if (i < 4)
-                    Serial[i] = serialNum[i];
-                else break;
-            }
-            Pass = new byte[6] { 255, 255, 255, 255, 255, 255 };
-            for (int i = 0; i < pass.Length; i++)
-            {
-                if (i < 6)
-                    Pass[i] = pass[i];
-                else break;
-            }
-            //В виде строк
-            SerialString = Serial[0].ToString("00") + Serial[1].ToString("00") + Serial[2].ToString("00") + Serial[3].ToString("00");
-            PassString = Encoding.Default.GetString(Pass).Trim(Convert.ToChar(255));
+            SerialString = "0";
+        }
+        public PulsePLCv2Serial(string serialString)
+        {
+            SerialString = serialString;
         }
     }
+
+    public class PulsePLCv2Pass : BindableBase
+    {
+        private byte[] pass_bytes;
+
+        public byte[] PassBytes {
+            get => pass_bytes;
+            set
+            {
+                pass_bytes = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) pass_bytes[i] = value[i];
+                RaisePropertyChanged(nameof(PassBytes));
+                RaisePropertyChanged(nameof(PassString));
+            }
+        }
+        public string PassString {
+            get => Encoding.Default.GetString(pass_bytes).Trim(Encoding.Default.GetString(new byte[1] { 255 })[0]);
+            set
+            {
+                pass_bytes = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) pass_bytes[i] = Convert.ToByte(value[i]);
+                PassBytes = pass_bytes;
+            }
+        }
+
+        public PulsePLCv2Pass()
+        {
+            PassString = "";
+        }
+    }
+
+    public class PulsePLCv2LoginPass : BindableBase
+    {
+        private PulsePLCv2Serial serial;
+        private PulsePLCv2Pass pass;
+
+        public PulsePLCv2Serial Serial { get => serial; set { serial = value; RaisePropertyChanged(nameof(Serial)); } }
+        public PulsePLCv2Pass Pass { get => pass; set { pass = value; RaisePropertyChanged(nameof(Pass)); } }
+
+        public PulsePLCv2LoginPass(byte[] serial, byte[] pass)
+        {
+            Serial = new PulsePLCv2Serial() { SerialBytes = serial };
+            Pass = new PulsePLCv2Pass() { PassBytes = pass };
+        }
+        public PulsePLCv2LoginPass(string serial, string pass)
+        {
+            Serial = new PulsePLCv2Serial() { SerialString = serial };
+            Pass = new PulsePLCv2Pass() { PassString = pass };
+        }
+        public PulsePLCv2LoginPass()
+        {
+            Serial = new PulsePLCv2Serial();
+            Pass = new PulsePLCv2Pass();
+        }
+    }
+
     public class JournalForProtocol
     {
         public List<DataGridRow_Log> Events { get; }
@@ -234,7 +329,7 @@ namespace Pulse_PLC_Tools_2
             //Доступ - Запись
             if (access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
             if (CurrentCommand == Commands.Bootloader)         return CMD_BOOTLOADER();
-            if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2LoginPass)param);
+            if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2Serial)param);
             if (CurrentCommand == Commands.Pass_Write)         return CMD_Pass_Write((DeviceMainParams)param);
             if (CurrentCommand == Commands.EEPROM_Burn)        return CMD_EEPROM_BURN();
             if (CurrentCommand == Commands.EEPROM_Read_Byte)   return CMD_EEPROM_Read_Byte((UInt16)param);
@@ -483,10 +578,10 @@ namespace Pulse_PLC_Tools_2
         {
             Start_Add_Tx(Commands.Check_Pass);
             //Серийник
-            byte[] serial = param.Serial;
+            byte[] serial = param.Serial.SerialBytes;
             Add_Tx(serial);
             //Пароль
-            byte[] pass_ = param.Pass;
+            byte[] pass_ = param.Pass.PassBytes;
             byte[] pass_buf = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
             for (int i = 0; i < 6; i++) if(i < pass_.Length) pass_buf[i] = pass_[i];
             Add_Tx(pass_buf);
@@ -545,10 +640,10 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Запрос - Запись серийного номера
-        private bool CMD_SerialWrite(PulsePLCv2LoginPass serial)
+        private bool CMD_SerialWrite(PulsePLCv2Serial serial)
         {
             Start_Add_Tx(Commands.SerialWrite);
-            Add_Tx(serial.Serial); //Новый серийник 4 байта
+            Add_Tx(serial.SerialBytes); //Новый серийник 4 байта
             Message(this, new MessageDataEventArgs() {
                 MessageType = MessageType.Normal,
                 MessageString = "ЗАПИСЬ СЕРИЙНОГО НОМЕРА " + serial.SerialString
