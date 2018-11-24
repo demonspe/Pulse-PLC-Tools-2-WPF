@@ -18,8 +18,8 @@ namespace Pulse_PLC_Tools_2
         private string ipAddress;
         private ushort tcpPort;
         private string phoneNumber;
-        private Visibility visibilityLinesGSMCOM;
         private bool isConnected;
+        private string connectionInfo;
 
         public ObservableCollection<string> ComPortList { get; }
         public string SelectedComPort { get => comPortName; set { comPortName = value; RaisePropertyChanged(nameof(SelectedComPort)); } }
@@ -27,24 +27,32 @@ namespace Pulse_PLC_Tools_2
         public ushort TCP_Port { get => tcpPort; set { tcpPort = value; RaisePropertyChanged(nameof(IP_Address)); } }
         public string PhoneNumber { get => phoneNumber; set { phoneNumber = value; RaisePropertyChanged(nameof(PhoneNumber)); } }
         public TypeOfLink SelectedLinkType { get; set; }
-        public Visibility VisibilityLinesGSMCOM { get => visibilityLinesGSMCOM; set { visibilityLinesGSMCOM = value; RaisePropertyChanged(nameof(VisibilityLinesGSMCOM)); } }
+        public Visibility VisibilityLinesGSMCOM { get => SelectedLinkType == TypeOfLink.GSM ? Visibility.Visible : Visibility.Hidden; }
         public bool IsConnected { get => isConnected;
             set
             {
                 isConnected = value;
                 RaisePropertyChanged(nameof(IsConnected));
-                RaisePropertyChanged(nameof(ConnectIsEnable));
-                RaisePropertyChanged(nameof(DisconnectIsEnable));
+                RaisePropertyChanged(nameof(ConnectIsVisible));
+                RaisePropertyChanged(nameof(DisconnectIsVisible));
             }
         }
-        public bool ConnectIsEnable { get => !isConnected; }
-        public bool DisconnectIsEnable { get => isConnected; }
+        public Visibility ConnectIsVisible { get => !isConnected ? Visibility.Visible : Visibility.Hidden; }
+        public Visibility DisconnectIsVisible { get => isConnected ? Visibility.Visible : Visibility.Hidden; }
+        public string ImgSrcLinkStatus { get => IsConnected? "Pics/green.png" : "Pics/red.png"; } //Image source for link status image in ToolBar (bottom rigth)
+        public string ConnectionInfo { get => connectionInfo; set {
+                connectionInfo = value;
+                RaisePropertyChanged(nameof(ConnectionInfo));
+                RaisePropertyChanged(nameof(ImgSrcLinkStatus));
+            }
+        }
+
         //Commands
         public DelegateCommand<string> CommandSetLinkType { get; }
 
         public LinkVM()
         {
-            VisibilityLinesGSMCOM = Visibility.Hidden;
+            SelectedLinkType = TypeOfLink.COM;
             ComPortList = new ObservableCollection<string>();
             SelectedComPort = "";
             IP_Address = "192.168.1.59";
@@ -53,11 +61,11 @@ namespace Pulse_PLC_Tools_2
 
             CommandSetLinkType = new DelegateCommand<string>(str =>
             {
-                VisibilityLinesGSMCOM = Visibility.Hidden;
                 SelectedLinkType = TypeOfLink.COM;
                 if (str == "COM") SelectedLinkType = TypeOfLink.COM;
                 if (str == "TCP") SelectedLinkType = TypeOfLink.TCP;
-                if (str == "GSM") { SelectedLinkType = TypeOfLink.GSM; VisibilityLinesGSMCOM = Visibility.Visible; }
+                if (str == "GSM") { SelectedLinkType = TypeOfLink.GSM; }
+                RaisePropertyChanged(nameof(VisibilityLinesGSMCOM));
             });
         }
     }

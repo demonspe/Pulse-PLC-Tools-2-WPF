@@ -144,15 +144,16 @@ namespace Pulse_PLC_Tools_2
 
     public class JournalForProtocol
     {
-        public List<DataGridRow_Log> Events { get; }
+        public List<DataGridRow_Event> Events { get; }
         public Journal_type Type { get; }
 
         public JournalForProtocol(Journal_type type)
         {
-            Events = new List<DataGridRow_Log>();
+            Events = new List<DataGridRow_Event>();
             Type = type;
         }
     }
+
     public class PLCRequestParamsForProtocol
     {
         public PLC_Request Type { get; }
@@ -177,7 +178,6 @@ namespace Pulse_PLC_Tools_2
             Data = data;
         }
     }
-
     
     public class PulsePLCv2Protocol : IProtocol, IMessage
     {
@@ -374,7 +374,7 @@ namespace Pulse_PLC_Tools_2
                     if (Check(CMD_Name, Commands.EEPROM_Burn))      { CMD_EEPROM_BURN(rxBytes);         return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.EEPROM_Read_Byte)) { CMD_EEPROM_Read_Byte(rxBytes);    return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Clear_Errors))     { CMD_Clear_Errors(rxBytes);        return HandleResult.Ok; }
-                    if (Check(CMD_Name, Commands.Request_PLC))      { CMD_Request_PLC(rxBytes); return HandleResult.Ok; }
+                    if (Check(CMD_Name, Commands.Request_PLC))      { CMD_Request_PLC(rxBytes);         return HandleResult.Ok; }
                 }
                 //Команды чтения
                 if (CMD_Type == 'R')
@@ -1057,7 +1057,7 @@ namespace Pulse_PLC_Tools_2
                                         bytes_buff[i * 7 + 14].ToString();
                     }
                 }
-                DataGridRow_Log row = new DataGridRow_Log {Num = (i + 1).ToString(), Date = date_string, Time = time_string, Name = event_name };
+                DataGridRow_Event row = new DataGridRow_Event {Num = (i + 1).ToString(), Date = date_string, Time = time_string, Name = event_name };
                 events.Events.Add(row);
             }
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Журнал успешно прочитан" + PingStr() });

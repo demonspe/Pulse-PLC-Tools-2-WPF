@@ -35,7 +35,7 @@ namespace Pulse_PLC_Tools_2
         private string serialForWrite;
         public string SerialForWrite { get => serialForWrite; set { serialForWrite = value; RaisePropertyChanged(nameof(SerialForWrite)); } }
         private ushort eAddres;
-        public ushort EAddres { get; set; }
+        public ushort EAddres { get => eAddres; set { eAddres = value; } }
         //----------------------------------------------------------------
 
         //Found serials
@@ -47,17 +47,16 @@ namespace Pulse_PLC_Tools_2
         public ImpExParams Imp2Ex { get => imp2Ex; set { imp2Ex = value; RaisePropertyChanged(nameof(Imp2Ex)); } }
         public DeviceMainParams Device { get => device; set { device = value; RaisePropertyChanged(nameof(Device)); } }
         //Device events journals
-        public ObservableCollection<DataGridRow_Log> JournalPower { get; }
-        public ObservableCollection<DataGridRow_Log> JournalConfig { get; }
-        public ObservableCollection<DataGridRow_Log> JournalInterfaces { get; }
-        public ObservableCollection<DataGridRow_Log> JournalRequestsPLC { get; }
+        public ObservableCollection<DataGridRow_Event> JournalPower { get; }
+        public ObservableCollection<DataGridRow_Event> JournalConfig { get; }
+        public ObservableCollection<DataGridRow_Event> JournalInterfaces { get; }
+        public ObservableCollection<DataGridRow_Event> JournalRequestsPLC { get; }
         //Messages and Log
         public FlowDocument Log { get => logContent; set { logContent = value; RaisePropertyChanged(nameof(Log)); } }
         public FlowDocument LogEx { get => logExContent; set { logExContent = value; RaisePropertyChanged(nameof(LogEx)); } }
         public Visibility LogVisible { get => logVisible; set { logVisible = value; RaisePropertyChanged(nameof(LogVisible)); } }
         public Visibility LogExVisible { get => logExVisible; set { logExVisible = value; RaisePropertyChanged(nameof(LogExVisible)); } }
         public string ToolBarText { get => toolBarText; set { toolBarText = value; RaisePropertyChanged(nameof(ToolBarText)); } }
-        public string ImgSrcLinkStatus { get; set; } //Image source for link status image in ToolBar (bottom rigth)
 
         //Navigate
         public int CurrentPage { get => currentPage; set { currentPage = value; RaisePropertyChanged(nameof(CurrentPage)); } }
@@ -125,6 +124,13 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_ReadJournal_Config { get; private set; }
         public DelegateCommand Send_ReadJournal_Power { get; private set; }
         public DelegateCommand Send_ReadJournal_RequestsPLC { get; private set; }
+        //MainMenu Info
+        public DelegateCommand ShowAboutErrors { get; set; }
+        public DelegateCommand ShowAboutFactoryConfig { get; set; }
+        public DelegateCommand GoToAboutPage { get; set; }
+        //MainMenu Commands
+        public DelegateCommand Send_BootloaderMode { get; set; }
+
         //Service
         public DelegateCommand Send_WriteSerial { get; private set; }
         public DelegateCommand Send_ReadEEPROM { get; set; }
@@ -144,10 +150,10 @@ namespace Pulse_PLC_Tools_2
             Device = new DeviceMainParams();
 
             //Журналы событий
-            JournalPower = new ObservableCollection<DataGridRow_Log>();
-            JournalConfig = new ObservableCollection<DataGridRow_Log>();
-            JournalInterfaces = new ObservableCollection<DataGridRow_Log>();
-            JournalRequestsPLC = new ObservableCollection<DataGridRow_Log>();
+            JournalPower = new ObservableCollection<DataGridRow_Event>();
+            JournalConfig = new ObservableCollection<DataGridRow_Event>();
+            JournalInterfaces = new ObservableCollection<DataGridRow_Event>();
+            JournalRequestsPLC = new ObservableCollection<DataGridRow_Event>();
 
             //Log
             Log = new FlowDocument();
@@ -158,13 +164,11 @@ namespace Pulse_PLC_Tools_2
 
             //ToolBar
             ToolBarText = "Привет";
-            ImgSrcLinkStatus = "Pics/red.png";
-
-
+            
             //VM
             VM_Link = new LinkVM();
             VM_PLCTable = new PLCTableVM();
-
+            
             //Model
             LinkManager = new LinkManager(this, SynchronizationContext.Current);
             ProtocolManager = new ProtocolManager(this, SynchronizationContext.Current);
@@ -246,6 +250,28 @@ namespace Pulse_PLC_Tools_2
             Send_ReadJournal_Config = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.CONFIG));
             Send_ReadJournal_Power = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.POWER));
             Send_ReadJournal_RequestsPLC = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.REQUESTS));
+            //MainMenu Info
+            ShowAboutErrors = new DelegateCommand(() => {
+                MessageBox.Show("Расшифровка сокращений флагов ошибок: \n" +
+                    "1. ОБ - Ошибка батареи\n" +
+                    "2. ББ - Режим без батарейки\n" +
+                    "3. П1 - Переполнение входа 1\n" +
+                    "4. П2 - Переполнение входа 2 \n" +
+                    "5. ОП - Ошибка памяти\n" +
+                    "6. ОВ - Ошибка времени", "Справка");
+            });
+            ShowAboutFactoryConfig = new DelegateCommand(() => {
+                MessageBox.Show("Заводские настройки: \n" +
+                    "Пароль на чтение: пустой \n" +
+                    "Пароль на запись: 111111 \n" +
+                    "Режим работы - Концентратор A, с батарейкой и часами \n" +
+                    "RS458 - только чтение, Bluetooth - только чтение \n" +
+                    "Импульсный вход 1 [Вкл., адреса PLC и Сетевой - 1] \n" +
+                    "Импульсный вход 2 [Вкл., адреса PLC и Сетевой - 2] \n", "Справка");
+            });
+            GoToAboutPage = new DelegateCommand(() => { GoToPage(TabPages.About); });
+            //MainMenu Commands
+            Send_BootloaderMode = new DelegateCommand(ProtocolManager.Send_BootloaderMode);
             //Service
             Send_WriteSerial = new DelegateCommand(() => { ProtocolManager.Send_WriteSerial(SerialForWrite); SerialForWrite = ""; });
             Send_ReadEEPROM = new DelegateCommand(() => { ProtocolManager.Send_ReadEEPROM(EAddres); });
@@ -277,11 +303,13 @@ namespace Pulse_PLC_Tools_2
         {
             ProtocolManager.Link_Connected();
             VM_Link.IsConnected = true;
+            VM_Link.ConnectionInfo = LinkManager.Link.ConnectionString;
         }
         //Канал связи был отключен
         public void Link_Disconnected(object sender, EventArgs e)
         {
             VM_Link.IsConnected = false;
+            VM_Link.ConnectionInfo = "";
         }
         
     }

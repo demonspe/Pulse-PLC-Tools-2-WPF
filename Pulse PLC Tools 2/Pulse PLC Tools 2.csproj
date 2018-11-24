@@ -69,11 +69,10 @@
     <Compile Include="Model\FileConfigManager.cs" />
     <Compile Include="Model\Helpers.cs" />
     <Compile Include="Model\LinkManager.cs" />
-    <Compile Include="Model\BLProtocolManager.cs" />
-    <Compile Include="Model\MessageLodManager.cs" />
+    <Compile Include="Model\LogManager.cs" />
     <Compile Include="Model\ProtocolManager.cs" />
-    <Compile Include="ViewModel\DataGridRow_Log.cs" />
-    <Compile Include="ViewModel\DataGridRow_PLC.cs" />
+    <Compile Include="Model\DataGridRow_Log.cs" />
+    <Compile Include="Model\DataGridRow_PLC.cs" />
     <Compile Include="Model\LinkLibrary\CommandBuffer.cs" />
     <Compile Include="Model\LinkLibrary\CRC16.cs" />
     <Compile Include="Model\LinkLibrary\ILink.cs" />
@@ -129,8 +128,8 @@
     <Compile Include="View\PageLink.xaml.cs">
       <DependentUpon>PageLink.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewModel\DeviceMainParams.cs" />
-    <Compile Include="ViewModel\ImpParams.cs" />
+    <Compile Include="Model\DeviceMainParams.cs" />
+    <Compile Include="Model\ImpParams.cs" />
     <Compile Include="ViewModel\LinkVM.cs" />
     <Compile Include="ViewModel\MainVM.cs" />
     <Page Include="MainWindow.xaml">
@@ -240,12 +239,6 @@
     <Resource Include="Pics\access_Write.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Pics\boxdownload32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Pics\boxupload32.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Pics\diskette32.png" />
   </ItemGroup>
   <ItemGroup>
@@ -283,6 +276,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Pics\boxdownload32flipred.png" />
+    <Resource Include="Pics\boxupload32flipblue.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Pulse_PLC_Tools_2
 {
@@ -14,15 +15,15 @@ namespace Pulse_PLC_Tools_2
 
     public class DeviceMainParams : BindableBase
     {
-        private byte[] passWrite;  //Пароль доступа к данным устройства с которым идет общение
-        private byte[] passRead;   //Пароль доступа к данным устройства с которым идет общение
-        private byte[] passCurrent;   //Пароль текущий пароль который вводит пользователь
-        private byte[] serial_bytes;  //Серийный номер устройства с которым идет общение
+        private byte[] passWrite;       //Пароль доступа к данным устройства с которым идет общение
+        private byte[] passRead;        //Пароль доступа к данным устройства с которым идет общение
+        private byte[] passCurrent;     //Пароль текущий пароль который вводит пользователь
+        private byte[] serial_bytes;    //Серийный номер устройства с которым идет общение
         private string serial_string;
 
         private byte errorsByte;
         private string firmwareVersion; //Версия прошивки
-        private string eepromVersion; //Версия разметки памяти
+        private string eepromVersion;   //Версия разметки памяти
         private byte work_mode;             //Режим устройства (Счетчик/УСПД)
         private byte mode_No_Battery;       //Режим работы без часов, тарифов и BKP (без батареи)
         private byte rs485_Work_Mode;       //Режим работы интерфейса (выкл, чтение, чтение/запись)
@@ -33,6 +34,10 @@ namespace Pulse_PLC_Tools_2
 
         public string VersionFirmware { get => firmwareVersion; set { firmwareVersion = value; RaisePropertyChanged(nameof(VersionFirmware)); } }
         public string VersionEEPROM { get => eepromVersion; set { eepromVersion = value; RaisePropertyChanged(nameof(VersionEEPROM)); } }
+
+        //For UI (Visibility of Menu items)
+        public Visibility PCLTableTabVisible { get => work_mode == 0 ? Visibility.Hidden : Visibility.Visible; }
+        public Visibility ImpsParamsTabVisible { get => work_mode == 0 ? Visibility.Visible : Visibility.Hidden; }
 
         public byte ErrorsByte { get => errorsByte;
             set
@@ -164,11 +169,29 @@ namespace Pulse_PLC_Tools_2
             }
         }
 
-        public WorkMode WorkMode { get => (WorkMode)work_mode; set { work_mode = (byte)value; RaisePropertyChanged(nameof(WorkMode_View)); } }
+        public WorkMode WorkMode { get => (WorkMode)work_mode;
+            set
+            {
+                work_mode = (byte)value;
+                RaisePropertyChanged(nameof(WorkMode_View));
+                RaisePropertyChanged(nameof(PCLTableTabVisible));
+                RaisePropertyChanged(nameof(ImpsParamsTabVisible));
+            }
+        }
+        public byte WorkMode_View { get => work_mode;
+            set
+            {
+                work_mode = value;
+                RaisePropertyChanged(nameof(WorkMode_View));
+                RaisePropertyChanged(nameof(PCLTableTabVisible));
+                RaisePropertyChanged(nameof(ImpsParamsTabVisible));
+            }
+        }
+
         public BatteryMode BatteryMode { get => (BatteryMode)mode_No_Battery; set { mode_No_Battery = (byte)value; RaisePropertyChanged(nameof(BatteryMode_View)); } }
         public InterfaceMode RS485_WorkMode { get => (InterfaceMode)rs485_Work_Mode; set { rs485_Work_Mode = (byte)value; RaisePropertyChanged(nameof(RS485_WorkMode_View)); } }
         public InterfaceMode Bluetooth_WorkMode { get => (InterfaceMode)bluetooth_Work_Mode; set { bluetooth_Work_Mode = (byte)value; RaisePropertyChanged(nameof(Bluetooth_WorkMode_View)); } }
-        public byte WorkMode_View { get => work_mode; set { work_mode = value; RaisePropertyChanged(nameof(WorkMode_View)); } }
+        
         public byte BatteryMode_View { get => mode_No_Battery; set { mode_No_Battery = value; RaisePropertyChanged(nameof(BatteryMode_View)); } }
         public byte RS485_WorkMode_View { get => rs485_Work_Mode; set { rs485_Work_Mode = value; RaisePropertyChanged(nameof(RS485_WorkMode_View)); } }
         public byte Bluetooth_WorkMode_View { get => bluetooth_Work_Mode; set { bluetooth_Work_Mode = value; RaisePropertyChanged(nameof(Bluetooth_WorkMode_View)); } }

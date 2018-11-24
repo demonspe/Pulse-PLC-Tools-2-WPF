@@ -18,8 +18,8 @@
             </GroupBox>
         <GroupBox Header="Ошибки" HorizontalAlignment="Left" Height="171" Margin="265,10,0,0" VerticalAlignment="Top" Width="194">
             <Grid>
-                <ListView ItemsSource="{Binding Device.ErrorsList}" Margin="0,0,0,23"/>
-                <Button Command="{Binding Send_ClearErrors}" Content="Очистить ошибки" Margin="0,126,0,0" VerticalAlignment="Top"/>
+                <ListView ItemsSource="{Binding Device.ErrorsList}" Margin="0,0,0,30"/>
+                <Button Command="{Binding Send_ClearErrors}" Content="Очистить ошибки" Margin="0,119,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
         <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="265,190,0,0">

@@ -29,7 +29,7 @@
         <Rectangle Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" Fill="#FFFF9700" Margin="235,93,0,0" HorizontalAlignment="Left" Width="17" Height="2" VerticalAlignment="Top"/>
         <Rectangle Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" Fill="#FFFF9700" Margin="235,50,0,0" Height="2" VerticalAlignment="Top" HorizontalAlignment="Left" Width="17"/>
         <Label Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" FontSize="10" Foreground="Black" Content="Порт модема, номер" HorizontalAlignment="Left" Margin="254,58,0,0" VerticalAlignment="Top"/>
-        <Button Command="{Binding OpenLink}" IsEnabled="{Binding VM_Link.ConnectIsEnable}" Content="Открыть канал связи" Margin="10,115,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
-        <Button Command="{Binding CloseLink}" IsEnabled="{Binding VM_Link.DisconnectIsEnable}" Content="Закрыть канал связи" Margin="10,140,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+        <Button Command="{Binding OpenLink}" Visibility="{Binding VM_Link.ConnectIsVisible}" Content="Открыть канал связи" Margin="10,115,0,0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+        <Button Command="{Binding CloseLink}" Visibility="{Binding VM_Link.DisconnectIsVisible}" Content="Закрыть канал связи" Margin="10,115,0,0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
     </Grid>
 </UserControl>
