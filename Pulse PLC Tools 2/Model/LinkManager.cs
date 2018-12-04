@@ -55,11 +55,13 @@ namespace Pulse_PLC_Tools_2
                         Message(this, new MessageDataEventArgs() { MessageString = "Не выбран COM порт", MessageType = MessageType.Warning });
                         return;
                     }
-                    Link = new LinkGSM(linkViewModel.SelectedComPort, 20000);
+                    Link = new LinkGSM();
+                    ((LinkGSM)Link).ComPort = linkViewModel.SelectedComPort;
                     ((LinkGSM)Link).PhoneNumber = linkViewModel.PhoneNumber;
                     ((LinkGSM)Link).Message += messageInputHandler;
                     Link.Connected += mainVM.Link_Connected;
                     Link.Disconnected += mainVM.Link_Disconnected;
+                    ((LinkGSM)Link).Initialize();
                     Link.Connect();
                     break;
                 default:

@@ -139,9 +139,9 @@
                 <TreeViewItem x:Name="pageDateTime_01" Header="Дата/время" Foreground="White"/>
                 <TreeViewItem Header="Настройки" IsExpanded="True" Foreground="White">
                     <TreeViewItem x:Name="pageMainParams_02" Header="Основные" Foreground="White"/>
-                    <TreeViewItem x:Name="pageImp1_03" Header="Имп. вход 1" Foreground="White" Visibility="{Binding Device.ImpsParamsTabVisible}"/>
-                    <TreeViewItem x:Name="pageImp2_04" Header="Имп. вход 2" Foreground="White" Visibility="{Binding Device.ImpsParamsTabVisible}"/>
-                    <TreeViewItem x:Name="pageTablePLC_05" Header="Маршруты PLC" Foreground="White" Visibility="{Binding Device.PCLTableTabVisible}"/>
+                    <TreeViewItem x:Name="pageImp1_03" Header="Имп. вход 1" Foreground="White"/>
+                    <TreeViewItem x:Name="pageImp2_04" Header="Имп. вход 2" Foreground="White"/>
+                    <TreeViewItem x:Name="pageTablePLC_05" Header="Маршруты PLC" Foreground="White"/>
                 </TreeViewItem>
                 <TreeViewItem Header="Журналы событий" Foreground="White">
                     <TreeViewItem x:Name="pageJPower_06" Header="Питание"  Foreground="White"/>
@@ -149,7 +149,7 @@
                     <TreeViewItem x:Name="pageJInterface_08" Header="Интерфейсы" Foreground="White"/>
                     <TreeViewItem x:Name="pageJRequestPLC_09" Header="Лог опроса" Foreground="White"/>
                 </TreeViewItem>
-                <TreeViewItem x:Name="pageData_10" Header="Данные" Foreground="White"/>
+                <TreeViewItem x:Name="pageData_10" Header="Показания" Foreground="White"/>
                 <TreeViewItem x:Name="pageMonitor_11" Header="Монитор" Foreground="White"/>
                 <TreeViewItem x:Name="pageAbout_12" Header="О программе" Foreground="White"/>
                 <TreeViewItem x:Name="pageService_13" Header="Сервис/Настройка" Foreground="White" FontWeight="Bold" Visibility="Hidden"/>

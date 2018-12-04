@@ -1033,7 +1033,7 @@ namespace Pulse_PLC_Tools_2
                     else
                         event_name = "[Запрос через "+ bytes_buff[i * 7 + 14] + " ступеней] " + event_name;
 
-                    if (status) date_string = adrs + " - Успешно"; else date_string = adrs + " - Нет ответа";
+                    if (status) date_string = "Успешно c " + adrs; else date_string = "Нет ответа от " + adrs;
 
                     time_string = bytes_buff[i * 7 + 11].ToString("00") + ":" +
                                         bytes_buff[i * 7 + 10].ToString("00") + ":" +

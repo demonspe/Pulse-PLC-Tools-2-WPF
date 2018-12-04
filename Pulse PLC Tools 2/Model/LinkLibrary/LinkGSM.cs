@@ -1,101 +1,109 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.IO.Ports;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinkLibrary
 {
-    public class LinkGSM : ILink
+    public class LinkGSM : ILink, IMessage
     {
-        public bool IsConnected { get { return isConnected; } }
-        public string ConnectionString { get { return conString; } }
-        public double ModemTimeout { get { return timer.Interval; } set { timer.Interval = value; } }
-        public int TryCount { get { return tryCount; } set { tryCount = value; } }
-        public string PhoneNumber { get { return phoneNumber; } set { phoneNumber = value; } }
-        public int LinkDelay { get { return linkTimeout; } set { linkTimeout = value; } }
+        private SerialPort Port { get; set; }
+        private string ModemState { get; set; }
+        public bool IsConnected { get; set; }
+        public string ConnectionString { get; set; }
+        public int LinkDelay { get; set; }
 
-        public event EventHandler<LinkRxEventArgs> DataRecieved;
-        public event EventHandler<EventArgs> Connected;
-        public event EventHandler<EventArgs> Disconnected;
-        public event EventHandler<MessageDataEventArgs> Message;
+        public double ModemTimeout { get; set; }
+        public int TryCount { get; set; }
+        public int CurrentTryNumber { get; set; }
+        public string PhoneNumber { get; set; }
 
-        private int linkTimeout = 5000;
-        private SerialPort port;
-        private string phoneNumber;
-        private bool isConnected;
-        private int tryCount = 3;
-        private int currentTryCount = 1;
-        private string conString;
-        private int signalStrenght = 0;
-        private string vendor = null;
+        public string ComPort { get; set; }
+        public int PortTimeout { get; set; }
+        public bool IsAlive { get; set; }
+        public string Vendor { get; set; }
+        public int SignalStrenght { get; set; }
+
+
+        public event EventHandler<LinkRxEventArgs> DataRecieved = delegate { };
+        public event EventHandler<EventArgs> Connected = delegate { };
+        public event EventHandler<EventArgs> Disconnected = delegate { };
+        public event EventHandler<MessageDataEventArgs> Message = delegate { };
+
 
         System.Timers.Timer timer;
-        System.Timers.Timer initTimer = new System.Timers.Timer(10000);
 
-        public LinkGSM(string comPort, double modemTimeout)
+        public LinkGSM()
         {
-            port = new SerialPort(comPort, 9600, Parity.None, 8, StopBits.One);
-            port.DataReceived += Port_DataReceived;
-            timer = new System.Timers.Timer(modemTimeout);
+            TryCount = 3;
+            ModemTimeout = 45000;
+            IsConnected = false;
+            timer = new System.Timers.Timer();
             timer.Stop();
-            initTimer.Stop();
-            timer.Elapsed += Timer_Elapsed;
-            port.Encoding = Encoding.Default;
-            port.Open();
-            isConnected = false;
-            conString = port.PortName;
+            CurrentTryNumber = 1;
         }
+
 
         public void ClearBuffer()
         {
-            Thread.Sleep(250);
-            port.DiscardInBuffer();
+            if (Port != null && Port.IsOpen)
+                Port.DiscardInBuffer();
         }
 
-        #region Соеденение
         public bool Connect()
         {
-            timer.Start();
-            if (port.IsOpen)
+            if (OpenPort())
             {
-                string modemMessage = "Calling " + phoneNumber + ", try: " + currentTryCount.ToString() + " of: " + tryCount.ToString();
-                Message(this, new MessageDataEventArgs() { MessageString = modemMessage, MessageType = MessageType.Normal });
+                timer.Interval = ModemTimeout;
+                timer.Elapsed += Timer_Elapsed;
+                timer.Start();
+                if (Port.IsOpen)
+                {
+                    string modemMessage = "Calling " + PhoneNumber + ", try: " + CurrentTryNumber.ToString() + " of: " + TryCount.ToString();
+                    Message(this, new MessageDataEventArgs() { MessageString = modemMessage, MessageType = MessageType.Normal });
 
-                byte[] callString = Encoding.Default.GetBytes("ATDP" + phoneNumber + "\r");
-                Send(callString);
+                    byte[] callString = Encoding.Default.GetBytes("ATDP" + PhoneNumber + "\r");
+                    Send(callString);
 
-                return true;
+                    return true;
+                }
+                else
+                    return false;
             }
-            else
-                return false;
+            return false;
+
         }
 
         public void Disconnect()
         {
-            try
+            if (OpenPort())
             {
-                port.Write("AT%P");
-                Thread.Sleep(1500);
+                try
+                {
+                    Port.Write("AT%P");
+                    Thread.Sleep(1500);
 
-                port.Write("+++");
-                Thread.Sleep(1500);
+                    Port.Write("+++");
+                    Thread.Sleep(1500);
 
-                port.Write("ATH0\r");
-                Thread.Sleep(1500);
+                    Port.Write("ATH0\r");
+                    Thread.Sleep(1500);
 
-                Disconnected(this, null);
-            }
-            catch (Exception ex)
-            {
-                byte[] message = Encoding.Default.GetBytes(ex.Message);
-                DataRecieved(this, new LinkRxEventArgs() { Buffer = message });
+                    Disconnected(this, null);
+                    ClosePort();
+
+                }
+                catch (Exception ex)
+                {
+                    Message(this, new MessageDataEventArgs { MessageString = ex.Message, MessageType = MessageType.Error });
+                }
             }
         }
-        #endregion
 
-        #region Отправка пакетов
         public bool Send(byte[] data)
         {
             Send(data, data.Length);
@@ -107,7 +115,7 @@ namespace LinkLibrary
             try
             {
                 Thread.Sleep(250);
-                port.Write(data, 0, length);
+                Port.Write(data, 0, length);
                 return true;
             }
             catch (Exception ex)
@@ -116,9 +124,39 @@ namespace LinkLibrary
                 return false;
             }
         }
-        #endregion
 
-        #region Обработка входящих пакетов
+        private bool OpenPort()
+        {
+            if (Port == null && ComPort != null && ComPort != string.Empty)
+            {
+                Port = new SerialPort(ComPort, 9600, Parity.None, 8, StopBits.One);
+                Port.Encoding = Encoding.Default;
+            }
+
+            if (!Port.IsOpen)
+            {
+                try
+                {
+                    Port.Open();
+                    Port.DataReceived += Port_DataReceived;
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Message(this, new MessageDataEventArgs { MessageString = ex.Message, MessageType = MessageType.Error });
+                    return false;
+                }
+            }
+            else
+                return true;
+        }
+
+        private void ClosePort()
+        {
+            Port.Close();
+            Port.DataReceived -= Port_DataReceived;
+        }
+
         private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             byte[] buf = new byte[0];
@@ -127,12 +165,12 @@ namespace LinkLibrary
             do //Цикл 
             {
                 Array.Resize<byte>(ref buf, buf.Length + 1);
-                buf[i] = Convert.ToByte(port.ReadByte());
+                buf[i] = Convert.ToByte(Port.ReadByte());
                 i++;
-                if (port.BytesToRead == 0)
+                if (Port.BytesToRead == 0)
                     Thread.Sleep(250);
             }
-            while (port.BytesToRead != 0);
+            while (Port.BytesToRead != 0);
 
             string strBuf = Encoding.Default.GetString(buf);
             strBuf = strBuf.Replace("\r", "");
@@ -143,10 +181,11 @@ namespace LinkLibrary
 
             if (strBuf.StartsWith("CON"))
             {
-                isConnected = true;
+                IsConnected = true;
+                Thread.Sleep(250);
                 Connected(this, null);
                 Message(this, new MessageDataEventArgs { MessageString = strBuf, MessageType = MessageType.Normal });
-                currentTryCount = 1;
+                CurrentTryNumber = 1;
                 buf = null;
                 return;
             }
@@ -161,22 +200,28 @@ namespace LinkLibrary
             if ((strBuf.StartsWith("NO") || strBuf.StartsWith("BUS")))
             {
                 Message(this, new MessageDataEventArgs { MessageString = strBuf, MessageType = MessageType.Normal });
-                if (!isConnected)
+                if (!IsConnected)
                 {
-                    if (currentTryCount <= tryCount)
+                    if (CurrentTryNumber < TryCount)
                     {
-                        currentTryCount++;
+                        CurrentTryNumber++;
+                        ClosePort();
                         Connect();
                         return;
                     }
                     else
                     {
-
+                        Message(this, new MessageDataEventArgs { MessageString = "Не удалось связаться с удаленным модемом", MessageType = MessageType.Error });
+                        Message(this, new MessageDataEventArgs { MessageString = "Не удалось связаться с удаленным модемом", MessageType = MessageType.MsgBox });
+                        CurrentTryNumber = 1;
                     }
                 }
                 else
                 {
+                    Message(this, new MessageDataEventArgs { MessageString = "Соеденение разорвано", MessageType = MessageType.Error });
+                    IsConnected = false;
                     Disconnected(this, null);
+                    ClosePort();
                 }
                 return;
             }
@@ -190,6 +235,7 @@ namespace LinkLibrary
 
             if (strBuf == "OK")
             {
+                ModemState = "OK";
                 return;
             }
 
@@ -200,49 +246,64 @@ namespace LinkLibrary
 
             if (strBuf.StartsWith("+CSQ"))
             {
-                initTimer.Stop();
-                signalStrenght = Convert.ToInt32(Regex.Replace(strBuf, @"[^\d]+", ""));
-                signalStrenght = (signalStrenght * 100) / 300;
+                timer.Stop();
+                SignalStrenght = Convert.ToInt32(Regex.Replace(strBuf, @"[^\d]+", ""));
+                SignalStrenght = -113 + (SignalStrenght / 100) * 2; // (signalStrenght * 100) / 300;
                 return;
             }
 
             if (strBuf.StartsWith("+COPS"))
             {
-                initTimer.Stop();
+                timer.Stop();
                 Regex regex = new Regex(@"\D*[^,],");
-                vendor = regex.Matches(strBuf)[1].Value.Replace(",", "");
+                Vendor = regex.Matches(strBuf)[1].Value.Replace(",", "");
                 return;
             }
-
             DataRecieved(this, new LinkRxEventArgs() { Buffer = buf });
-
             buf = null;
         }
-        #endregion
 
-        #region Инициализация модема
+        #region Инициализация
         public void Initialize()
         {
-            vendor = null;
-            signalStrenght = 0;
 
-            initTimer.Elapsed += InitTimer_Elapsed;
-            initTimer.Interval = 40000;
-            GetVendorName();
-            initTimer.Start();
-            while (vendor == null) { }
+            ConnectionString = "Инициализация устройства " + ComPort + "...";
+            Message(this, new MessageDataEventArgs { MessageString = ConnectionString, MessageType = MessageType.Normal });
+            if (OpenPort())
+            {
+                Vendor = null;
+                SignalStrenght = 0;
+                timer.Elapsed += InitTimer_Elapsed;
 
-            Thread.Sleep(250);
+                GetModemState();
+                timer.Interval = 2000;
+                timer.Start();
+                ModemState = null;
+                while (ModemState == null) { }
 
-            initTimer.Interval = 10000;
-            GetSignalStrength();
-            initTimer.Start();
-            while (signalStrenght == 0) { }
+                if (ModemState == null || ModemState == "NO")
+                {
+                    Message(this, new MessageDataEventArgs { MessageString = "Устройство " + ComPort + " не является HAYES совместимым модемом.", MessageType = MessageType.Error });
+                    return;
+                }
 
-            conString += "; " + vendor + "; Уровень сигнала: " + signalStrenght.ToString() + "%";
+                timer.Interval = 60000;
+                GetVendorName();
+                timer.Start();
+                while (Vendor == null) { }
 
-            Message(this, new MessageDataEventArgs { MessageString = conString, MessageType = MessageType.Normal });
+                Thread.Sleep(250);
 
+                timer.Interval = 10000;
+                GetSignalStrength();
+                timer.Start();
+                while (SignalStrenght == 0) { }
+
+                ConnectionString = Vendor + "; Уровень сигнала: " + SignalStrenght.ToString() + "дБ";
+
+                Message(this, new MessageDataEventArgs { MessageString = ConnectionString, MessageType = MessageType.Normal });
+                ClosePort();
+            }
         }
 
         private void GetSignalStrength()
@@ -260,16 +321,31 @@ namespace LinkLibrary
             timer.Stop();
             string message = "No answer from modem in " + (timer.Interval / 1000).ToString("#.0") + " sec.";
             Message(this, new MessageDataEventArgs() { MessageString = message, MessageType = MessageType.Error });
+            ClosePort();
+            timer.Elapsed -= Timer_Elapsed;
         }
 
         private void InitTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            initTimer.Stop();
+            timer.Stop();
+            ModemState = "NO";
+            SignalStrenght = -1;
+            Vendor = "No data";
+        }
 
-            signalStrenght = -1;
-            vendor = "No data";
+        public bool GetModemState()
+        {
+            try
+            {
+                Send(Encoding.Default.GetBytes("AT\r"));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Message(this, new MessageDataEventArgs() { MessageString = ex.Message, MessageType = MessageType.Error });
+                return false;
+            }
         }
         #endregion
     }
 }
- 

@@ -35,10 +35,6 @@ namespace Pulse_PLC_Tools_2
         public string VersionFirmware { get => firmwareVersion; set { firmwareVersion = value; RaisePropertyChanged(nameof(VersionFirmware)); } }
         public string VersionEEPROM { get => eepromVersion; set { eepromVersion = value; RaisePropertyChanged(nameof(VersionEEPROM)); } }
 
-        //For UI (Visibility of Menu items)
-        public Visibility PCLTableTabVisible { get => work_mode == 0 ? Visibility.Hidden : Visibility.Visible; }
-        public Visibility ImpsParamsTabVisible { get => work_mode == 0 ? Visibility.Visible : Visibility.Hidden; }
-
         public byte ErrorsByte { get => errorsByte;
             set
             {
@@ -174,8 +170,6 @@ namespace Pulse_PLC_Tools_2
             {
                 work_mode = (byte)value;
                 RaisePropertyChanged(nameof(WorkMode_View));
-                RaisePropertyChanged(nameof(PCLTableTabVisible));
-                RaisePropertyChanged(nameof(ImpsParamsTabVisible));
             }
         }
         public byte WorkMode_View { get => work_mode;
@@ -183,8 +177,6 @@ namespace Pulse_PLC_Tools_2
             {
                 work_mode = value;
                 RaisePropertyChanged(nameof(WorkMode_View));
-                RaisePropertyChanged(nameof(PCLTableTabVisible));
-                RaisePropertyChanged(nameof(ImpsParamsTabVisible));
             }
         }
 

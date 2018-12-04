@@ -246,6 +246,7 @@ namespace Pulse_PLC_Tools_2
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Bootloader, null, 0);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
+
         public void Send_WriteSerial(string serialString)
         {
             PulsePLCv2Serial serial = new PulsePLCv2Serial(serialString);
@@ -261,6 +262,7 @@ namespace Pulse_PLC_Tools_2
                 }
             }
         }
+
         public void Send_ReadEEPROM(ushort eAddres)
         {
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);

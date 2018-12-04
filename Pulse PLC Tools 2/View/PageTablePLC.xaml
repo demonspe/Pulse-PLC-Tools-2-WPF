@@ -19,6 +19,7 @@
                 <CheckBox IsChecked="{Binding VM_PLCTable.IsCheckedStatus}" Content="Статус" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="67" Margin="145,10,0,0"/>
             </Grid>
         </GroupBox>
+        <FrameworkElement x:Name="dummyElement" Visibility="Collapsed"/>
         <DataGrid x:Name="TablePLC" Grid.Row ="1" ItemsSource="{Binding VM_PLCTable.TablePLC}" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="SelectionChanged">
@@ -36,7 +37,7 @@
                     <MenuItem Header="Запрос по PLC">
                         <MenuItem Header="Проверка связи (Ctrl+P)" Command="{Binding Send_Request_PLCv1}"/>
                         <MenuItem Header="Синхронизация времени" Command="{Binding Send_Request_Time}"/>
-                        <!--<MenuItem Header="Серийный номер" Command="{Binding Send_Request_Serial}"/>-->
+                        <MenuItem Header="Серийный номер" Command="{Binding Send_Request_Serial}"/>
                         <MenuItem Header="Показания - Текущие" Command="{Binding Send_Request_E_Current}"/>
                         <MenuItem Header="Показания - На начало суток" Command="{Binding Send_Request_E_StartDay}"/>
                     </MenuItem>
@@ -54,23 +55,23 @@
                 </Style>
             </DataGrid.CellStyle>
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Adrs_PLC}" Header="Адрес PLC"  Width="9*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding Adrs_PLC}" Header="Адрес PLC" Width="9*" IsReadOnly="True" CanUserSort="False"/>
                 <DataGridCheckBoxColumn Binding="{Binding IsEnable}" Header="Опрашивать"  Width="11*" CanUserSort="False"/>
                 <DataGridTextColumn Binding="{Binding Serial_View}" Header="Серийный номер" Width="14*" MinWidth="100" MaxWidth="200" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding N}" Visibility="{Binding VM_PLCTable.IsVisiblePLC, Mode=OneWay}" Header="Число ступеней ретрансляции" Width="24*" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding S1}" Visibility="{Binding VM_PLCTable.IsVisiblePLC, Mode=OneWay}" Header="Ст. 1" Width="5*" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding S2}" Visibility="{Binding VM_PLCTable.IsVisiblePLC, Mode=OneWay}" Header="Ст. 2" Width="5*" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding S3}" Visibility="{Binding VM_PLCTable.IsVisiblePLC, Mode=OneWay}" Header="Ст. 3" Width="5*" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding S4}" Visibility="{Binding VM_PLCTable.IsVisiblePLC, Mode=OneWay}" Header="Ст. 4" Width="5*" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding S5}" Visibility="{Binding VM_PLCTable.IsVisible}" Header="Ст. 5" Width="5*" CanUserSort="False"/>
-                <DataGridComboBoxColumn SelectedItemBinding="{Binding Protocol_ASCUE}" Visibility="{Binding VM_PLCTable.IsVisibleASU}" Header="Протокол АСУЭ" Width="13*" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding Adrs_ASCUE}" Visibility="{Binding VM_PLCTable.IsVisibleASU}" Header="Адрес АСУЭ" Width="11*" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding Pass_ASCUE_View}" Visibility="{Binding VM_PLCTable.IsVisibleASU}" Header="Пароль АСУЭ" Width="12*" CanUserSort="False"/>
-                <DataGridCheckBoxColumn  Binding="{Binding LastPLCRequestStatus}" Visibility="{Binding VM_PLCTable.IsVisibleStatus}" Header="Связь" Width="6*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding LastPLCRequestTime, StringFormat='dd.MM.yy HH:mm:ss'}" Visibility="{Binding VM_PLCTable.IsVisibleStatus}" Header="Успешная связь" Width="14*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding Quality}" Visibility="{Binding VM_PLCTable.IsVisibleStatus}" Header="Качество" Width="8*" IsReadOnly="True" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding TypePLC_View}" Visibility="{Binding VM_PLCTable.IsVisibleStatus}" Header="Тип" Width="6*" IsReadOnly="False" CanUserSort="False"/>
-                <DataGridTextColumn Binding="{Binding ErrorsByte_View}" Visibility="{Binding VM_PLCTable.IsVisibleStatus}" Header="Флаги ошибок" Width="16*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding N}" Visibility="{Binding DataContext.VM_PLCTable.IsVisiblePLC, Source={x:Reference dummyElement}}" Header="Число ступеней ретрансляции" Width="24*" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding S1}" Visibility="{Binding DataContext.VM_PLCTable.IsVisiblePLC, Source={x:Reference dummyElement}}" Header="Ст. 1" Width="5*" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding S2}" Visibility="{Binding DataContext.VM_PLCTable.IsVisiblePLC, Source={x:Reference dummyElement}}" Header="Ст. 2" Width="5*" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding S3}" Visibility="{Binding DataContext.VM_PLCTable.IsVisiblePLC, Source={x:Reference dummyElement}}" Header="Ст. 3" Width="5*" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding S4}" Visibility="{Binding DataContext.VM_PLCTable.IsVisiblePLC, Source={x:Reference dummyElement}}" Header="Ст. 4" Width="5*" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding S5}" Visibility="{Binding DataContext.VM_PLCTable.IsVisiblePLC, Source={x:Reference dummyElement}}" Header="Ст. 5" Width="5*" CanUserSort="False"/>
+                <DataGridComboBoxColumn SelectedItemBinding="{Binding Protocol_ASCUE}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleASU, Source={x:Reference dummyElement}}" Header="Протокол АСУЭ" Width="13*" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding Adrs_ASCUE}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleASU, Source={x:Reference dummyElement}}" Header="Адрес АСУЭ" Width="11*" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding Pass_ASCUE_View}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleASU, Source={x:Reference dummyElement}}" Header="Пароль АСУЭ" Width="12*" CanUserSort="False"/>
+                <DataGridCheckBoxColumn  Binding="{Binding LastPLCRequestStatus}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleStatus, Source={x:Reference dummyElement}}" Header="Связь" Width="6*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding LastPLCRequestTime, StringFormat='dd.MM.yy HH:mm:ss'}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleStatus, Source={x:Reference dummyElement}}" Header="Успешная связь" Width="14*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding Quality}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleStatus, Source={x:Reference dummyElement}}" Header="Качество" Width="8*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding TypePLC_View}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleStatus, Source={x:Reference dummyElement}}" Header="Тип" Width="6*" IsReadOnly="False" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding ErrorsByte_View}" Visibility="{Binding DataContext.VM_PLCTable.IsVisibleStatus, Source={x:Reference dummyElement}}" Header="Флаги ошибок" Width="16*" IsReadOnly="True" CanUserSort="False"/>
             </DataGrid.Columns>
         </DataGrid>
         <Button Content="Прочитать опрашиваемые" Command="{Binding Send_ReadEnableRows}" HorizontalAlignment="Left" Margin="221,10,0,0" VerticalAlignment="Top" Width="156" Height="35"/> 

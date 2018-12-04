@@ -12,13 +12,6 @@
             <RowDefinition Height="50"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <GroupBox Header="Отображение" Grid.Row ="0" x:Name="groupBox_E_Data" HorizontalAlignment="Left" Width="319">
-            <Grid Margin="-4">
-                <CheckBox x:Name="checkBox_E_Current" Grid.Row ="0" Content="Текущие" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="67" Margin="10,10,0,0" IsChecked="True"/>
-                <CheckBox x:Name="checkBox_E_Start_Day" Grid.Row ="0" Content="Начало суток" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="98" Margin="93,10,0,0" IsChecked="True"/>
-                <CheckBox x:Name="checkBox_E_Month" Grid.Row ="0" Content="Начало месяца" Height="16" VerticalAlignment="Top" HorizontalAlignment="Left" Width="109" Margin="196,10,0,0" IsChecked="True"/>
-            </Grid>
-        </GroupBox>
         <DataGrid x:Name="TableDataE" Grid.Row ="1" ItemsSource="{Binding VM_PLCTable.TablePLC}" EnableRowVirtualization="True" HorizontalGridLinesBrush="Gray" VerticalGridLinesBrush="Gray" AlternationCount="1" RowBackground="White" Background="{x:Null}" CanUserDeleteRows="False" CanUserAddRows="False" AutoGenerateColumns="False">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="SelectionChanged">
@@ -52,7 +45,6 @@
                 <DataGridTextColumn Binding="{Binding E_StartDay.E_Summ_View}" Header="Нач. суток (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
             </DataGrid.Columns>
         </DataGrid>
-        <Button Content="Прочитать все" HorizontalAlignment="Left" Margin="528,10,0,0" VerticalAlignment="Top" Width="110" Height="30"/>
-        <Button Content="Прочитать включенные" Command="{Binding Send_Read_E_Enabled}" HorizontalAlignment="Left" Margin="324,10,0,0" VerticalAlignment="Top" Width="153" Height="30"/>
+        <Button Content="Прочитать" Command="{Binding Send_Read_E_Enabled}" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="96" Height="30"/>
     </Grid>
 </UserControl>

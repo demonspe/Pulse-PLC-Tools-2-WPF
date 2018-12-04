@@ -87,7 +87,7 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(Serial_View));
             }
         }
-        public byte N { get { return n_steps; } set { if (value >= 0 && value <= 3) n_steps = value; RaisePropertyChanged(nameof(N)); } }
+        public byte N { get { return n_steps; } set { if (value >= 0 && value <= 5) n_steps = value; RaisePropertyChanged(nameof(N)); } }
         public byte[] Steps { get => steps; }
         public byte S1 { get { return steps[0]; } set { if (value >= 0 && value <= 250) steps[0] = value; RaisePropertyChanged(nameof(S1)); RaisePropertyChanged(nameof(Steps)); } }
         public byte S2 { get { return steps[1]; } set { if (value >= 0 && value <= 250) steps[1] = value; RaisePropertyChanged(nameof(S2)); RaisePropertyChanged(nameof(Steps)); } }
