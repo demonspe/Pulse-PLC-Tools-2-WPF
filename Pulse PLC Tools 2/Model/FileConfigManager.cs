@@ -19,7 +19,8 @@ namespace Pulse_PLC_Tools_2
 
     public static class FileConfigManager
     {
-        static string FileName { get; set; }
+        static string filePath;
+        public static string FilePath { get => filePath; set { if (File.Exists(value)) filePath = value; else filePath = string.Empty; } }
 
         public static T ParseEnum<T>(string value)
         {
@@ -197,66 +198,76 @@ namespace Pulse_PLC_Tools_2
                 File.WriteAllText(saveFileDialog.FileName, versionOfConfigFile+ConfigImp1 + ConfigImp2 + ConfigDevice + ConfigTablePLC);
         }
 
-        public static PulsePLCv2Config LoadConfig()
+        public static PulsePLCv2Config LoadFromFile()
+        {
+            return LoadConfigsFromFile(FilePath);
+        }
+
+        public static PulsePLCv2Config LoadConfigsFromFile(string filePath_)
+        {
+            FilePath = filePath_;
+            PulsePLCv2Config config = new PulsePLCv2Config();
+
+            if (File.Exists(FilePath))
+            {
+                //Try to read config lines
+                string[] lines = File.ReadLines(FilePath).ToArray();
+                if (lines.Length < 254)
+                {
+                    MessageBox.Show("Ошибка при попытке чтения конфигурации. В файле недостаточно данных.");
+                    return null;
+                }
+                //If read lines is ok, copy
+                string versionOfConfigFile = lines[0];
+                string ConfigImp1 = lines[1];
+                string ConfigImp2 = lines[2];
+                string ConfigDevice = lines[3];
+                string[] ConfigTablePLC = new string[250];
+                for (int i = 0; i < 250; i++)
+                {
+                    ConfigTablePLC[i] = lines[i + 4];
+                }
+
+                //try to get data from lines
+                config.Imp1 = GetImpParamsFromString(ConfigImp1, versionOfConfigFile);
+                if (config.Imp1 == null) return null;
+
+                config.Imp2 = GetImpParamsFromString(ConfigImp2, versionOfConfigFile);
+                if (config.Imp2 == null) return null;
+
+                config.Device = GetDeviceParamsFromString(ConfigDevice, versionOfConfigFile);
+                if (config.Device == null) return null;
+
+                config.TablePLC = new List<DataGridRow_PLC>();
+                foreach (var item in ConfigTablePLC)
+                {
+                    DataGridRow_PLC row = GetPLCRowFromString(item, versionOfConfigFile);
+                    if (row == null) return null;
+
+                    config.TablePLC.Add(row);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Файла не существует");
+                return null;
+            }
+
+            return config;
+        }
+
+        public static PulsePLCv2Config OpenConfigFile()
         {
             OpenFileDialog myDialog = new OpenFileDialog();
             myDialog.Filter = "Конфигурация PulsePLCv2(*.pplc)|*.PPLC" + "|Все файлы (*.*)|*.*";
             myDialog.CheckFileExists = true;
             myDialog.Multiselect = false;
 
-            PulsePLCv2Config config = new PulsePLCv2Config();
-
             if (myDialog.ShowDialog() == true)
             {
-                FileName = myDialog.FileName;
-                if (File.Exists(FileName))
-                {
-                    //Try to read config lines
-                    string[] lines = File.ReadLines(FileName).ToArray();
-                    if(lines.Length < 254)
-                    {
-                        MessageBox.Show("Ошибка при попытке чтения конфигурации. В файле недостаточно данных.");
-                        return null;
-                    }
-                    //If read lines is ok, copy
-                    string versionOfConfigFile = lines[0];
-                    string ConfigImp1 = lines[1];
-                    string ConfigImp2 = lines[2];
-                    string ConfigDevice = lines[3];
-                    string[] ConfigTablePLC = new string[250];
-                    for (int i = 0; i < 250; i++)
-                    {
-                        ConfigTablePLC[i] = lines[i + 4];
-                    }
-
-                    //try to get data from lines
-                    config.Imp1 = GetImpParamsFromString(ConfigImp1, versionOfConfigFile);
-                    if (config.Imp1 == null) return null;
-
-                    config.Imp2 = GetImpParamsFromString(ConfigImp2, versionOfConfigFile);
-                    if (config.Imp2 == null) return null;
-
-                    config.Device = GetDeviceParamsFromString(ConfigDevice, versionOfConfigFile);
-                    if (config.Device == null) return null;
-
-                    config.TablePLC = new List<DataGridRow_PLC>();
-                    foreach (var item in ConfigTablePLC)
-                    {
-                        DataGridRow_PLC row = GetPLCRowFromString(item, versionOfConfigFile);
-                        if (row == null) return null;
-
-                        config.TablePLC.Add(row);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Файла не существует");
-                    return null;
-                }
-                    
+                return LoadConfigsFromFile(myDialog.FileName);
             }
-
-            return config;
+            else return null;
         }
     }
 }

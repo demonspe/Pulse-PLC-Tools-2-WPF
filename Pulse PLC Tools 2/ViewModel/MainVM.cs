@@ -18,7 +18,7 @@ namespace Pulse_PLC_Tools_2
 
     public class MainVM : BindableBase
     {
-        //Data
+        //Data (Device configs)
         ImpParams imp1, imp2;
         ImpExParams imp1Ex, imp2Ex;
         DeviceMainParams device;
@@ -31,12 +31,12 @@ namespace Pulse_PLC_Tools_2
         //Navigate
         private int currentPage;
 
-        //Service serial write (!) только для первой настройки блоков!!!
+        #region Service serial write (!) только для первой настройки блоков!!! В релизе не нужно
         private string serialForWrite;
         public string SerialForWrite { get => serialForWrite; set { serialForWrite = value; RaisePropertyChanged(nameof(SerialForWrite)); } }
         private ushort eAddres;
         public ushort EAddres { get => eAddres; set { eAddres = value; } }
-        //----------------------------------------------------------------
+        #endregion----------------------------------------------------------------
 
         //Found serials
         public ObservableCollection<string> SerialNumList { get; }
@@ -142,13 +142,10 @@ namespace Pulse_PLC_Tools_2
             //Список найденных серийных номеров
             SerialNumList = new ObservableCollection<string>();
 
-            //Контейнеры для данных
-            Imp1 = new ImpParams(ImpNum.IMP1);
-            Imp2 = new ImpParams(ImpNum.IMP2);
-            Imp1Ex = new ImpExParams(ImpNum.IMP1);
-            Imp2Ex = new ImpExParams(ImpNum.IMP2);
-            Device = new DeviceMainParams();
-
+            //VM
+            VM_Link = new LinkVM();
+            VM_PLCTable = new PLCTableVM();
+            
             //Журналы событий
             JournalPower = new ObservableCollection<DataGridRow_Event>();
             JournalConfig = new ObservableCollection<DataGridRow_Event>();
@@ -165,10 +162,6 @@ namespace Pulse_PLC_Tools_2
             //ToolBar
             ToolBarText = "Привет";
             
-            //VM
-            VM_Link = new LinkVM();
-            VM_PLCTable = new PLCTableVM();
-            
             //Model
             LinkManager = new LinkManager(this, SynchronizationContext.Current);
             ProtocolManager = new ProtocolManager(this, SynchronizationContext.Current);
@@ -178,6 +171,32 @@ namespace Pulse_PLC_Tools_2
 
             //Start page
             GoToPage(TabPages.Link);
+
+            //Контейнеры для данных
+            Imp1Ex = new ImpExParams(ImpNum.IMP1);
+            Imp2Ex = new ImpExParams(ImpNum.IMP2);
+            Imp1 = new ImpParams(ImpNum.IMP1);
+            Imp2 = new ImpParams(ImpNum.IMP2);
+            Device = new DeviceMainParams();
+            //Загрузка настроек если был передан файл на открытие
+            if (FileConfigManager.FilePath != string.Empty)
+            {
+                PulsePLCv2Config config = FileConfigManager.LoadFromFile();
+                if (config != null)
+                {
+                    Imp1 = config.Imp1;
+                    Imp2 = config.Imp2;
+                    Device = config.Device;
+                    VM_PLCTable.TablePLC.Clear();
+                    for (int i = 0; i < 250; i++) VM_PLCTable.TablePLC.Add(config.TablePLC[i]);
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Файл конфигурации успешно загружен", MessageType = MessageType.Normal });
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Файл конфигурации успешно загружен", MessageType = MessageType.ToolBarInfo });
+                }
+                else
+                {
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Не удалось загрузить файл конфигурации, загружены параметры по умолчанию", MessageType = MessageType.Error });
+                }
+            }
         }
 
         void InitCommands()
@@ -195,7 +214,7 @@ namespace Pulse_PLC_Tools_2
             //For files
             SaveFile = new DelegateCommand(() => { FileConfigManager.SaveConfig(new PulsePLCv2Config() { Imp1 = this.Imp1, Imp2 = this.Imp2, Device = this.Device, TablePLC = VM_PLCTable.TablePLC.ToList() }); });
             OpenFile = new DelegateCommand(() => {
-                PulsePLCv2Config config = FileConfigManager.LoadConfig();
+                PulsePLCv2Config config = FileConfigManager.OpenConfigFile();
                 if(config != null)
                 {
                     Imp1 = config.Imp1;
