@@ -249,7 +249,7 @@ namespace Pulse_PLC_Tools_2
             }
             else
             {
-                MessageBox.Show("Файла не существует");
+                //MessageBox.Show("Файла не существует");
                 return null;
             }
 

@@ -18,7 +18,6 @@ namespace Pulse_PLC_Tools_2
             if (e.Args.Count() > 0)
             {
                 FileConfigManager.FilePath = e.Args[0];
-                MessageBox.Show(FileConfigManager.FilePath);
             }
             else FileConfigManager.FilePath = string.Empty;
         }

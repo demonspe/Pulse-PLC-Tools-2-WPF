@@ -558,6 +558,7 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private bool CMD_Search_Devices(byte[] rxBytes)
         {
+            if (rxBytes.Length < 11) return false;
             int mode = rxBytes[6];
             string mode_ = "";
             if (mode == 0) mode_ = " [Счетчик]";

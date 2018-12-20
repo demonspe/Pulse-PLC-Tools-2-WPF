@@ -75,6 +75,9 @@ namespace Pulse_PLC_Tools_2
         //
         //HotKeys
         public DelegateCommand KeyDownEsc { get; private set; }
+        //On closing propgramm
+        public DelegateCommand AppClosing { get; private set; }
+        
         //Log
         public DelegateCommand ShowLogSimple { get; private set; }
         public DelegateCommand ShowLogExpert { get; private set; }
@@ -202,7 +205,11 @@ namespace Pulse_PLC_Tools_2
         void InitCommands()
         {
             KeyDownEsc = new DelegateCommand(ProtocolManager.ClearCommandBuffer);
-
+            AppClosing = new DelegateCommand(() =>
+            {
+                if (LinkManager.Link != null) LinkManager.Link.Disconnect();
+                //ДОДЕЛАТЬ (сохранение файла конфигурации)
+            });
             CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
             //Log
             ShowLogSimple = new DelegateCommand(() => { LogVisible = Visibility.Visible; LogExVisible = Visibility.Hidden; });
