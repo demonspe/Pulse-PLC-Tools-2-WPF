@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.IO;
+using System.Net.NetworkInformation;
 
 namespace LinkLibrary
 {
@@ -62,6 +63,7 @@ namespace LinkLibrary
                     Message(this, new MessageDataEventArgs() { MessageString = IPAddress + ":" + PortNumber + " подключено.", MessageType = MessageType.Good });
                     //Событие при успешном подключении
                     Connected(this, new EventArgs());
+                    ThreadPool.QueueUserWorkItem(PingServer);
                     return true;
                 }
                 catch (Exception ex)
@@ -112,19 +114,21 @@ namespace LinkLibrary
             {
                 if(tcpStream.DataAvailable) //Забираем данные если есть
                 {
-                    byte[] bytes_buff = new byte[0];
+                    //byte[] bytes_buff = new byte[0];
+                    List<byte> buffer = new List<byte>();
                     try
                     {
                         do
                         {
                             //Получаем байт из буффера
-                            Array.Resize(ref bytes_buff, bytes_buff.Length + 1);
-                            bytes_buff[bytes_buff.Length - 1] = (byte)tcpStream.ReadByte();
+                            //Array.Resize(ref bytes_buff, bytes_buff.Length + 1);
+                            //bytes_buff[bytes_buff.Length - 1] = (byte)tcpStream.ReadByte();
+                            buffer.Add((byte)tcpStream.ReadByte());
 
                             if (!tcpStream.DataAvailable) Thread.Sleep(50);     //Время ожидания байта-------------------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         } while (tcpStream.DataAvailable);
                         //Вызываем собитие приема данных
-                        DataRecieved(this, new LinkRxEventArgs() { Buffer = bytes_buff });
+                        DataRecieved(this, new LinkRxEventArgs() { Buffer = buffer.ToArray() });
                     }
                     catch (IOException)
                     {
@@ -133,6 +137,24 @@ namespace LinkLibrary
                 }
                 Thread.Sleep(200);
             }
+        }
+
+        void PingServer(object o)
+        {
+            Ping ping = new Ping();
+            PingReply pingReply = null;
+
+            while(IsConnected)
+            {
+                pingReply = ping.Send(IPAddress, LinkDelay);
+                if (pingReply.Status == IPStatus.TimedOut)
+                {
+                    Message(this, new MessageDataEventArgs() { MessageString = "Проблемы со связью на " + IPAddress, MessageType = MessageType.Error });
+                    Disconnect();
+                    return;
+                }
+            }
+            
         }
     }
 }

@@ -60,7 +60,7 @@ namespace Pulse_PLC_Tools_2
             {
                 //Байты в HEX
                 string str_msg_HEX = "HEX: ";
-                for (int k_ = 0; k_ < count; k_++) { str_msg_HEX += msg[k_].ToString("X2") + " "; }
+                for (int k_ = 0; k_ < count; k_++) { str_msg_HEX += "0x"+msg[k_].ToString("X2") + " "; }
                 str_msg_HEX += "["+count + " bytes] ";
                 //Байты в ASCII
                 string str_msg_ASCII = "ASCII: ";

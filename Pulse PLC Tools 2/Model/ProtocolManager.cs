@@ -40,7 +40,7 @@ namespace Pulse_PLC_Tools_2
         //Канал связи был открыт
         public void Link_Connected()
         {
-            Send_SearchDevices();
+            //Send_SearchDevices();
         }
 
         private void Protocol_AccessEnd(object sender, EventArgs e)
