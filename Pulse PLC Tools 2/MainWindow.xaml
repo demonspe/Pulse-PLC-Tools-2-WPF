@@ -63,8 +63,8 @@
                     <MenuItem Header="Выход" />
                 </MenuItem>
                 <MenuItem Header="Сервисные команды">
-                    <MenuItem Header="-> Перезагрузить" />
-                    <MenuItem Header="-> Заводские настройки" />
+                    <MenuItem Command="{Binding Send_Reboot}" Header="-> Перезагрузить" />
+                    <MenuItem Command="{Binding Send_FactoryReset}" Header="-> Заводские настройки" />
                     <MenuItem Command="{Binding Send_BootloaderMode}" Header="-> Включить режим обновления ПО"/>
                 </MenuItem>
                 <MenuItem Header="Горячие клавиши">

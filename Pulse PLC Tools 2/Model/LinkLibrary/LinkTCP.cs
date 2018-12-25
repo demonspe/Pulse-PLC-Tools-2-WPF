@@ -83,6 +83,7 @@ namespace LinkLibrary
         public void Disconnect()
         {
             client.Close();
+            Message(this, new MessageDataEventArgs() { MessageString = "Канал связи закрыт [" + ConnectionString + "]", MessageType = MessageType.Normal });
             Disconnected(this, new EventArgs());
         }
         
@@ -114,15 +115,12 @@ namespace LinkLibrary
             {
                 if(tcpStream.DataAvailable) //Забираем данные если есть
                 {
-                    //byte[] bytes_buff = new byte[0];
                     List<byte> buffer = new List<byte>();
                     try
                     {
                         do
                         {
                             //Получаем байт из буффера
-                            //Array.Resize(ref bytes_buff, bytes_buff.Length + 1);
-                            //bytes_buff[bytes_buff.Length - 1] = (byte)tcpStream.ReadByte();
                             buffer.Add((byte)tcpStream.ReadByte());
 
                             if (!tcpStream.DataAvailable) Thread.Sleep(50);     //Время ожидания байта-------------------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -143,16 +141,25 @@ namespace LinkLibrary
         {
             Ping ping = new Ping();
             PingReply pingReply = null;
+            int repeatCounter = 0;
 
             while(IsConnected)
             {
                 pingReply = ping.Send(IPAddress, LinkDelay);
                 if (pingReply.Status == IPStatus.TimedOut)
                 {
-                    Message(this, new MessageDataEventArgs() { MessageString = "Проблемы со связью на " + IPAddress, MessageType = MessageType.Error });
-                    Disconnect();
-                    return;
+                    repeatCounter++;
+                    if(repeatCounter > 3)
+                    {
+                        Disconnect();
+                        return;
+                    }
+                    else
+                    {
+                        Message(this, new MessageDataEventArgs() { MessageString = "Обрыв связи " + IPAddress + " тест соединения, попытка " + repeatCounter + "...", MessageType = MessageType.Error });
+                    }
                 }
+                else repeatCounter = 0;
             }
             
         }

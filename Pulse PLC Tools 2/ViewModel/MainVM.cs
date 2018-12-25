@@ -132,6 +132,8 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand ShowAboutFactoryConfig { get; set; }
         public DelegateCommand GoToAboutPage { get; set; }
         //MainMenu Commands
+        public DelegateCommand Send_Reboot { get; set; }
+        public DelegateCommand Send_FactoryReset { get; set; }
         public DelegateCommand Send_BootloaderMode { get; set; }
 
         //Service
@@ -297,7 +299,10 @@ namespace Pulse_PLC_Tools_2
             });
             GoToAboutPage = new DelegateCommand(() => { GoToPage(TabPages.About); });
             //MainMenu Commands
+            Send_Reboot = new DelegateCommand(ProtocolManager.Send_Reboot);
+            Send_FactoryReset = new DelegateCommand(ProtocolManager.Send_FactoryReset);
             Send_BootloaderMode = new DelegateCommand(ProtocolManager.Send_BootloaderMode);
+            
             //Service
             Send_WriteSerial = new DelegateCommand(() => { ProtocolManager.Send_WriteSerial(SerialForWrite); SerialForWrite = ""; });
             Send_ReadEEPROM = new DelegateCommand(() => { ProtocolManager.Send_ReadEEPROM(EAddres); });

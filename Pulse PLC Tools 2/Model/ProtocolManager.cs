@@ -190,7 +190,7 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_WriteSelectedRows(List<DataGridRow_PLC> selectedRows)
         {
-            var rowsToWrite = selectedRows.Split(10);
+            var rowsToWrite = selectedRows.Split(5);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
             rowsToWrite.ForEach(r => {
                 if (r.Count > 0)
@@ -240,6 +240,18 @@ namespace Pulse_PLC_Tools_2
         }
         #endregion
         #region Service
+        public void Send_Reboot()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Reboot, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        public void Send_FactoryReset()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.EEPROM_Burn, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
         public void Send_BootloaderMode()
         {
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
