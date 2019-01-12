@@ -14,7 +14,7 @@ using Prism.Mvvm;
 
 namespace Pulse_PLC_Tools_2
 {
-    public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day } //Добавить начало месяца и тд
+    public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day, CurrentLoad } //Добавить начало месяца и тд
     public enum Journal_type : int { POWER = 1, CONFIG, INTERFACES, REQUESTS }
     public enum AccessType : int { No_Access, Read, Write }
 
@@ -285,7 +285,7 @@ namespace Pulse_PLC_Tools_2
             CommandProps.Add(Commands.Read_Journal,     new CommandProperties() { Code = "RJ", MinLength = 0, Timeout = 200 });
             CommandProps.Add(Commands.Read_DateTime,    new CommandProperties() { Code = "RT", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_Main_Params, new CommandProperties() { Code = "RM", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Read_IMP,         new CommandProperties() { Code = "RI", MinLength = 64, Timeout = 100 });
+            CommandProps.Add(Commands.Read_IMP,         new CommandProperties() { Code = "RI", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_IMP_extra,   new CommandProperties() { Code = "Ri", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_PLC_Table,   new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
             CommandProps.Add(Commands.Read_PLC_Table_En,new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
@@ -1413,6 +1413,15 @@ namespace Pulse_PLC_Tools_2
                         ", Тариф 2: " + energy.E_T2.Value_kWt + " кВт" +
                         ", Тариф 3: " + energy.E_T3.Value_kWt + " кВт" + GetPingStr()
                     });
+                }
+                if (plc_cmd_code == PLC_Request.CurrentLoad)
+                {
+                    string str = 
+                        " [ A: "+ new[] { rxBytes[10], rxBytes[11] }.ToUint16(false) + 
+                        ", Импульсы: "+ new[] { rxBytes[12], rxBytes[13] }.ToUint16(false) +
+                        ", Последний: " + new[] { rxBytes[14], rxBytes[15] }.ToUint16(false) + " сек. назад" + 
+                        ", Нагрузка: " + new[] { rxBytes[16], rxBytes[17], rxBytes[18], rxBytes[19] }.ToUint32(false) + " Вт ]";
+                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + str + GetPingStr() });
                 }
             }
             else Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство №" + adrs_PLC + " не отвечает" + GetPingStr() });

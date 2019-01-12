@@ -10,9 +10,10 @@
         Title="Pulse PLC Tools 2" Height="800" Width="1400" MinWidth="725" MinHeight="600"
         WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <Window.InputBindings>
-        <KeyBinding
-            Key="Esc" 
-            Command="{Binding KeyDownEsc}" />
+        <KeyBinding Key="Esc" Command="{Binding KeyDownEsc}" />
+        <KeyBinding Modifiers="Ctrl" Key="M" Command="{Binding KeyDownCtrlM}" />
+        <KeyBinding Modifiers="Ctrl" Key="R" Command="{Binding KeyDownCtrlR}" />
+        <KeyBinding Modifiers="Ctrl" Key="P" Command="{Binding KeyDownCtrlP}" />
     </Window.InputBindings>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">

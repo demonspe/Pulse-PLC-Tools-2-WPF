@@ -291,7 +291,7 @@
                                 <Label Content="от 1 до 250" HorizontalAlignment="Left" Margin="192,7,0,0" VerticalAlignment="Top" Width="82" />
                             </Grid>
                         </GroupBox>
-                        <CheckBox x:Name="checkBox_IMP1_On" Content="Импульсный вход 1" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top" Click="checkBox_IMP1_On_Checked"/>
+                        <CheckBox x:Name="checkBox_IMP1_On" Content="Импульсный вход 1" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top" Click="checkBox_IMP1_On_Checked" Checked="checkBox_IMP1_On_Checked"/>
                         <Rectangle x:Name="draw_Imp2_double" HorizontalAlignment="Left" Height="34" Stroke="Black" VerticalAlignment="Top" Width="62" Margin="113,108,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="0">
                             <Rectangle.Fill>
                                 <SolidColorBrush Color="#B2808080"/>

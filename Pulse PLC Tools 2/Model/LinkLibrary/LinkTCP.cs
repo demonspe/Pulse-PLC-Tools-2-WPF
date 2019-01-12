@@ -149,7 +149,7 @@ namespace LinkLibrary
                 if (pingReply.Status == IPStatus.TimedOut)
                 {
                     repeatCounter++;
-                    if(repeatCounter > 3)
+                    if (repeatCounter > 3)
                     {
                         Disconnect();
                         return;
@@ -159,9 +159,12 @@ namespace LinkLibrary
                         Message(this, new MessageDataEventArgs() { MessageString = "Обрыв связи " + IPAddress + " тест соединения, попытка " + repeatCounter + "...", MessageType = MessageType.Error });
                     }
                 }
-                else repeatCounter = 0;
+                else
+                {
+                    if(repeatCounter != 0) Message(this, new MessageDataEventArgs() { MessageString = "Связь восстановлена " + IPAddress, MessageType = MessageType.Good });
+                    repeatCounter = 0;
+                }
             }
-            
         }
     }
 }

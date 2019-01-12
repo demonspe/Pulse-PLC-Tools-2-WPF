@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace Pulse_PLC_Tools_2
 {
@@ -323,10 +324,8 @@ namespace Pulse_PLC_Tools_2
         public byte Ascue_protocol { get => ascue_protocol; set { ascue_protocol = value; RaisePropertyChanged(nameof(Ascue_protocol)); } }
         public ushort Max_Power { get => max_Power; set { max_Power = value; RaisePropertyChanged(nameof(Max_Power)); } }
 
-        public void UpdateAllProps()
-        {
-            RaisePropertyChanged(null);
-        }
+        //View
+        //public Brush FillColor { get => isEnable? new SolidColorBrush(Color.FromArgb(0x7F, 0x00, 0xA2, 0xFF)) : new SolidColorBrush(Color.FromArgb(0x7F, 0x00, 0xA2, 0xFF)) }
 
         public ImpParams()
         {

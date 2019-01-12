@@ -97,6 +97,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Icons\UserControl1.xaml.cs">
+      <DependentUpon>UserControl1.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Model\FileConfigManager.cs" />
     <Compile Include="Model\Helpers.cs" />
     <Compile Include="Model\LinkLibrary\LinkTCP.cs" />
@@ -164,6 +167,14 @@
     <Compile Include="Model\ImpParams.cs" />
     <Compile Include="ViewModel\LinkVM.cs" />
     <Compile Include="ViewModel\MainVM.cs" />
+    <Page Include="3DExtrude_16x.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Icons\UserControl1.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

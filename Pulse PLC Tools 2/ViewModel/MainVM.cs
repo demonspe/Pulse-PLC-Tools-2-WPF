@@ -75,6 +75,10 @@ namespace Pulse_PLC_Tools_2
         //
         //HotKeys
         public DelegateCommand KeyDownEsc { get; private set; }
+        public DelegateCommand KeyDownCtrlM { get; private set; }
+        public DelegateCommand KeyDownCtrlR { get; private set; }
+        public DelegateCommand KeyDownCtrlP { get; private set; }
+
         //On closing propgramm
         public DelegateCommand AppClosing { get; private set; }
         
@@ -111,14 +115,17 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_ReadEnableRows { get; private set; }
         public DelegateCommand Send_ReadSelectedRows { get; private set; }
         public DelegateCommand Send_WriteSelectedRows { get; private set; }
+
+        public DelegateCommand EnableSelected { get; private set; }
+        public DelegateCommand DisableSelected { get; private set; }
+        public DelegateCommand ClearPLCTable { get; private set; }
+        //plc requests
         public DelegateCommand Send_Request_PLCv1 { get; private set; }
         public DelegateCommand Send_Request_Time { get; private set; }
         public DelegateCommand Send_Request_Serial { get; private set; }
         public DelegateCommand Send_Request_E_Current { get; private set; }
         public DelegateCommand Send_Request_E_StartDay { get; private set; }
-        public DelegateCommand EnableSelected { get; private set; }
-        public DelegateCommand DisableSelected { get; private set; }
-        public DelegateCommand ClearPLCTable { get; private set; }
+        public DelegateCommand Send_Request_CurrentLoad { get; private set; }
         //Data E Table
         public DelegateCommand Send_Read_E_Enabled { get; private set; }
         public DelegateCommand Send_Read_E_Selected { get; private set; }
@@ -139,6 +146,11 @@ namespace Pulse_PLC_Tools_2
         //Service
         public DelegateCommand Send_WriteSerial { get; private set; }
         public DelegateCommand Send_ReadEEPROM { get; set; }
+
+        //View
+        public DelegateCommand<string> ImpRectangleOffOnClick { get; private set; }
+        public DelegateCommand<string> ImpRectangleGoToPageClick { get; private set; }
+        
         //----------------------------------------------------------------------------------
 
         public MainVM()
@@ -206,17 +218,32 @@ namespace Pulse_PLC_Tools_2
 
         void InitCommands()
         {
+            //Hot Keys
             KeyDownEsc = new DelegateCommand(ProtocolManager.ClearCommandBuffer);
+            KeyDownCtrlM = new DelegateCommand(() =>
+            {
+                GoToPage(TabPages.Monitor);
+                ProtocolManager.Send_ReadImpEx(ImpNum.IMP1);
+                ProtocolManager.Send_ReadImpEx(ImpNum.IMP2);
+            });
+            KeyDownCtrlR = new DelegateCommand(ProtocolManager.Send_ReadSelectedRows);
+            KeyDownCtrlP = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.PLCv1); });
+            
+            //On closing propgramm
             AppClosing = new DelegateCommand(() =>
             {
                 if (LinkManager.Link != null) LinkManager.Link.Disconnect();
                 //ДОДЕЛАТЬ (сохранение файла конфигурации)
             });
-            CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
+            
             //Log
             ShowLogSimple = new DelegateCommand(() => { LogVisible = Visibility.Visible; LogExVisible = Visibility.Hidden; });
             ShowLogExpert = new DelegateCommand(() => { LogVisible = Visibility.Hidden; LogExVisible = Visibility.Visible; });
             ClearLog = new DelegateCommand(LogManager.ClearLog);
+
+            //Navigate
+            CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
+
             //For link
             OpenLink = new DelegateCommand(LinkManager.OpenLink);
             CloseLink = new DelegateCommand(LinkManager.CloseLink);
@@ -262,14 +289,16 @@ namespace Pulse_PLC_Tools_2
             Send_ReadEnableRows = new DelegateCommand(ProtocolManager.Send_ReadEnableRowsAdrss);
             Send_ReadSelectedRows = new DelegateCommand(ProtocolManager.Send_ReadSelectedRows);
             Send_WriteSelectedRows = new DelegateCommand(() => ProtocolManager.Send_WriteSelectedRows(VM_PLCTable.SelectedRows));
+            EnableSelected = new DelegateCommand(VM_PLCTable.EnableSelected);
+            DisableSelected = new DelegateCommand(VM_PLCTable.DisableSelected);
+            ClearPLCTable = new DelegateCommand(VM_PLCTable.ResetTable);
+            //plc requests
             Send_Request_PLCv1 = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.PLCv1); });
             Send_Request_Time = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.Time_Synchro); });
             Send_Request_Serial = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.Serial_Num); });
             Send_Request_E_Current = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Current); });
             Send_Request_E_StartDay = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Start_Day); });
-            EnableSelected = new DelegateCommand(VM_PLCTable.EnableSelected);
-            DisableSelected = new DelegateCommand(VM_PLCTable.DisableSelected);
-            ClearPLCTable = new DelegateCommand(VM_PLCTable.ResetTable);
+            Send_Request_CurrentLoad = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.CurrentLoad); });
             //Data E Table
             Send_Read_E_Enabled = new DelegateCommand(() => ProtocolManager.Send_Read_E_Enabled(VM_PLCTable.TablePLC.ToList()));
             Send_Read_E_Selected = new DelegateCommand(()=>ProtocolManager.Send_Read_E_Selected(VM_PLCTable.SelectedRows));
@@ -306,6 +335,16 @@ namespace Pulse_PLC_Tools_2
             //Service
             Send_WriteSerial = new DelegateCommand(() => { ProtocolManager.Send_WriteSerial(SerialForWrite); SerialForWrite = ""; });
             Send_ReadEEPROM = new DelegateCommand(() => { ProtocolManager.Send_ReadEEPROM(EAddres); });
+
+            //View
+            ImpRectangleOffOnClick = new DelegateCommand<string>(impNum => {
+                if (impNum == "1") Imp1.IsEnable = Imp1.IsEnable == 0 ? (byte)1 : (byte)0;
+                if (impNum == "2") Imp2.IsEnable = Imp2.IsEnable == 0 ? (byte)1 : (byte)0;
+            });
+            ImpRectangleGoToPageClick = new DelegateCommand<string>(impNum => {
+                if (impNum == "1") GoToPage(TabPages.Imp2);
+                if (impNum == "2") GoToPage(TabPages.Imp1);
+            });
         }
 
         void GoToPageFromXName(string xNameOfPage)
