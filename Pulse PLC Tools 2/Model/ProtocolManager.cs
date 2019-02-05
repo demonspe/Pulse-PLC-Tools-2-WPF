@@ -35,12 +35,20 @@ namespace Pulse_PLC_Tools_2
             Protocol.Message += mainVM.MessageInput;    //Обработчик сообщений (для лога)
             Protocol.CommandEnd += Protocol_CommandEnd; //Получение данных из ответов на команды
             Protocol.AccessEnd += Protocol_AccessEnd;
+            Protocol.TimeoutTickEvent += Protocol_TimeoutTickEvent;
         }
+
+        
 
         //Канал связи был открыт
         public void Link_Connected()
         {
             //Send_SearchDevices();
+        }
+
+        private void Protocol_TimeoutTickEvent(object sender, TimeoutTickEventArgs e)
+        {
+            Main_VM.TimeoutTimer = e.Timeout;
         }
 
         private void Protocol_AccessEnd(object sender, EventArgs e)

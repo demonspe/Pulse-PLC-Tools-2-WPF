@@ -69,7 +69,8 @@ namespace Pulse_PLC_Tools_2
                     ((LinkGSM)Link).Message += messageInputHandler;
                     Link.Connected += mainVM.Link_Connected;
                     Link.Disconnected += mainVM.Link_Disconnected;
-                    ((LinkGSM)Link).Initialize();
+                    //((LinkGSM)Link).Initialize();
+                    Link.LinkDelay = 10000;
                     Link.Connect();
                     break;
                 default:

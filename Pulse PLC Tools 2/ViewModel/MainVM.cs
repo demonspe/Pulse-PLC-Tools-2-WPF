@@ -30,6 +30,8 @@ namespace Pulse_PLC_Tools_2
         private string toolBarText;
         //Navigate
         private int currentPage;
+        //Protocol timeout
+        private int timeoutTimer;
 
         #region Service serial write (!) только для первой настройки блоков!!! В релизе не нужно
         private string serialForWrite;
@@ -60,6 +62,9 @@ namespace Pulse_PLC_Tools_2
 
         //Navigate
         public int CurrentPage { get => currentPage; set { currentPage = value; RaisePropertyChanged(nameof(CurrentPage)); } }
+
+        //Protocol timeout
+        public int TimeoutTimer { get => timeoutTimer; set { timeoutTimer = value; RaisePropertyChanged(nameof(TimeoutTimer)); } }
 
         //VM
         public LinkVM VM_Link { get; }

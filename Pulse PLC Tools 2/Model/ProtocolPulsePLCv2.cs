@@ -164,7 +164,16 @@ namespace Pulse_PLC_Tools_2
             Type = type;
         }
     }
-    
+
+    public class TimeoutTickEventArgs : EventArgs
+    {
+        public int Timeout { get; set; }
+        public TimeoutTickEventArgs(int timeout)
+        {
+            Timeout = timeout;
+        }
+    }
+
     public class PulsePLCv2Protocol : IProtocol, IMessage
     {
         //Буффер для передачи
@@ -177,7 +186,11 @@ namespace Pulse_PLC_Tools_2
 
         //Контейнер для передачи данных в основную программу через событие CommandEnd
         public string ProtocolName { get => "PulsePLCv2"; }
-        ProtocolDataContainer DataContainer { get; set; }
+        private ProtocolDataContainer DataContainer { get; set; }
+
+        //Таймеры
+        private int Timeout { get; set; }       //ожидание ответа от устройства (Ms)
+        private int TimeoutTick { get => 50; }  //Ms    
 
         class CommandProperties
         {
@@ -228,6 +241,7 @@ namespace Pulse_PLC_Tools_2
         public event EventHandler<MessageDataEventArgs> Message = delegate { }; //IMessage - для передачи различных сообщений в логи
         public event EventHandler<ProtocolEventArgs> CommandEnd = delegate { }; //Для передачи данных от запросов по протоколу в основную программу
         public event EventHandler AccessEnd = delegate { }; //Для индикации, есть ли доступ к данным устройства Pulse PLC (доступ открывается на 30 секунд после успешной авторизации, после этого устройство начинает отвечать на остальные команды по протоколу)
+        public event EventHandler<TimeoutTickEventArgs> TimeoutTickEvent = delegate { }; //Для отображения таймаута
 
         //Выполняемая сейчас команда
         private Commands CurrentCommand { get; set; }
@@ -258,7 +272,7 @@ namespace Pulse_PLC_Tools_2
             InitCommandProperties();
 
             //Ограничивает время ожидания ответа
-            TimerTimeout = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
+            TimerTimeout = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, TimeoutTick) };
             TimerTimeout.Tick += Timer_Timeout_Tick;
             //Показывает есть ли доступ к устройству
             TimerAccess = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 30000) };
@@ -271,7 +285,7 @@ namespace Pulse_PLC_Tools_2
             //---Заполним коды команд---
             //Доступ
             CommandProps.Add(Commands.Check_Pass,       new CommandProperties() { Code = "Ap", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Close_Session,    new CommandProperties() { Code = "Ac", MinLength = 0, Timeout = 100 });
+            CommandProps.Add(Commands.Close_Session,    new CommandProperties() { Code = "Ac", MinLength = 0, Timeout = 200 });
             //Системные                                                                        
             CommandProps.Add(Commands.Bootloader,       new CommandProperties() { Code = "Su", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.SerialWrite,      new CommandProperties() { Code = "Ss", MinLength = 0, Timeout = 200 });
@@ -289,9 +303,9 @@ namespace Pulse_PLC_Tools_2
             CommandProps.Add(Commands.Read_IMP_extra,   new CommandProperties() { Code = "Ri", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_PLC_Table,   new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
             CommandProps.Add(Commands.Read_PLC_Table_En,new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
-            CommandProps.Add(Commands.Read_E_Current,   new CommandProperties() { Code = "REc", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Read_E_Start_Day, new CommandProperties() { Code = "REd", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Read_E_Month,     new CommandProperties() { Code = "REm", MinLength = 0, Timeout = 100 });
+            CommandProps.Add(Commands.Read_E_Current,   new CommandProperties() { Code = "REc", MinLength = 28, Timeout = 100 });
+            CommandProps.Add(Commands.Read_E_Start_Day, new CommandProperties() { Code = "REd", MinLength = 28, Timeout = 100 });
+            CommandProps.Add(Commands.Read_E_Month,     new CommandProperties() { Code = "REm", MinLength = 28, Timeout = 100 });
             //Запись
             CommandProps.Add(Commands.Write_DateTime,   new CommandProperties() { Code = "WT", MinLength = 0, Timeout = 500 });
             CommandProps.Add(Commands.Write_Main_Params, new CommandProperties() { Code = "WM", MinLength = 0, Timeout = 500 });
@@ -404,6 +418,30 @@ namespace Pulse_PLC_Tools_2
             return HandleResult.Error;
         }
         
+        bool CheckMinLengthCommand()
+        {
+            if(CurrentCommand == Commands.Read_PLC_Table)
+            {
+                if (Rx_Bytes.Length < 8) return false;
+                int count_adrs = Rx_Bytes[6]; //Число адресов в ответе
+                if (Rx_Bytes.Length < 8 + count_adrs) return false;
+                if (count_adrs > 0)
+                {
+                    int pntr = 6;
+                    for (int i = 1; i <= count_adrs; i++)
+                    {
+                        pntr++; //PLC adrs
+                        if(pntr >= Rx_Bytes.Length) return false; //Overflow
+                        int shift = (Rx_Bytes[pntr] == 0) ? 9 : 29; //data
+                        pntr += shift;
+                    }
+                    if (pntr >= Rx_Bytes.Length - 2) return false; //2 bytes is CRC16
+                }
+            }
+
+            return Rx_Bytes.Length >= CommandProps[CurrentCommand].MinLength;
+        }
+
         public void DateRecieved(object sender, LinkRxEventArgs e)
         {
             //Забираем данные
@@ -416,6 +454,7 @@ namespace Pulse_PLC_Tools_2
 
                 //Проверяем CRC16
                 if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0 && Rx_Bytes.Length >= CommandProps[CurrentCommand].MinLength)
+                //if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0 && CheckMinLengthCommand())
                 {
                     //Если сформирован корректный пакет то отправляем на обработку
                     HandleResult handle_code = Handle(Rx_Bytes, Rx_Bytes.Length);
@@ -456,6 +495,12 @@ namespace Pulse_PLC_Tools_2
         
         private void Timer_Timeout_Tick(object sender, EventArgs e)
         {
+            if (Timeout > 0)
+            {
+                Timeout -= TimeoutTick;
+                TimeoutTickEvent(this, new TimeoutTickEventArgs(Timeout));
+                return;
+            }
             //Если ожидали данных но не дождались
             if (CurrentCommand != Commands.None)
             {
@@ -486,7 +531,10 @@ namespace Pulse_PLC_Tools_2
         {
             //Запускаем таймер ожидания ответа
             TimerTimeout.Stop();
-            TimerTimeout.Interval = new TimeSpan(0, 0, 0, 0, CurrentLink.LinkDelay + CommandProps[CurrentCommand].Timeout);
+            Timeout = CurrentLink.LinkDelay + CommandProps[CurrentCommand].Timeout;
+            //Если команда "Закрыть сессию", то нет смысла ждать долго
+            if(CurrentCommand == Commands.Close_Session) Timeout = CommandProps[CurrentCommand].Timeout;
+            TimerTimeout.Interval = new TimeSpan(0, 0, 0, 0, TimeoutTick);
             TimerTimeout.Start();
             //Добавим контрольную сумму
             Add_Tx(CRC16.ComputeChecksumBytes(TxBytes, tx_len));
@@ -509,6 +557,8 @@ namespace Pulse_PLC_Tools_2
             InputData.Clear();
 
             TimerTimeout.Stop();
+            TimeoutTickEvent(this, new TimeoutTickEventArgs(0));
+
             CurrentCommand = Commands.None;
             if(!status) DataContainer = null;
             CommandEnd(this, new ProtocolEventArgs(status) { DataObject = DataContainer });
