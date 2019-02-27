@@ -74,13 +74,18 @@ namespace LinkLibrary
 
         public void Clear_Buffer()
         {
+            if (haveCommandForCheck)
+            {
+                commands.Peek().Link.DataRecieved -= commands.Peek().Protocol.DateRecieved;
+                commands.Peek().Protocol.CommandEnd -= CommandEndHandler;
+            }
             //Очищаем буффер
             commands.Clear();
             haveCommandForCheck = false;
             busy_flag = false;
             repeat_Counter = 0;
             countCommandsMax = 0;
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.ToolBarInfo, MessageString = "Отправка запросов завершена" });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.ToolBarInfo, MessageString = "Отправка запросов отменена" });
             //Событие
             BufferCleared(this, new EventArgs());
         }
@@ -178,7 +183,6 @@ namespace LinkLibrary
                 }
                 Thread.Sleep(30);
             }
-            
         }
 
         public void CommandEndHandler(object sender, ProtocolEventArgs e)

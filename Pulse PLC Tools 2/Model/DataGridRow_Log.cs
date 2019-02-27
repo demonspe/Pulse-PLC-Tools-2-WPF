@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Pulse_PLC_Tools_2
 {
     //Класс для представления данных в таблице Журнал событий (для всех 4х)
-    public class DataGridRow_Log
+    public class DataGridRow_Event
     {
         public string Num { get; set; }
         public string Date { get; set; }

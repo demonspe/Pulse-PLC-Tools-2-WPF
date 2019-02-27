@@ -123,7 +123,7 @@ namespace Pulse_PLC_Tools_2
                     pass_bytes = new byte[6] { 0, 0, 0, 0, 0, 0 };
                     for (int i = 0; i < 6; i++)
                     {
-                        if (char.IsDigit(ascue_pass_string[i])) pass_bytes[i] = Convert.ToByte(ascue_pass_string[i]);
+                        if (char.IsDigit(ascue_pass_string[i])) pass_bytes[i] = Convert.ToByte(ascue_pass_string.Substring(i,1));
                     }
                 }
                 RaisePropertyChanged(nameof(Pass_ASCUE));

@@ -18,7 +18,7 @@ namespace Pulse_PLC_Tools_2
 
     public class MainVM : BindableBase
     {
-        //Data
+        //Data (Device configs)
         ImpParams imp1, imp2;
         ImpExParams imp1Ex, imp2Ex;
         DeviceMainParams device;
@@ -30,7 +30,17 @@ namespace Pulse_PLC_Tools_2
         private string toolBarText;
         //Navigate
         private int currentPage;
-        
+        //Protocol timeout
+        private int timeoutTimer;
+
+        #region Service serial write (!) только для первой настройки блоков!!! В релизе не нужно
+        private string serialForWrite;
+        public string SerialForWrite { get => serialForWrite; set { serialForWrite = value; RaisePropertyChanged(nameof(SerialForWrite)); } }
+        private ushort eAddres;
+        public ushort EAddres { get => eAddres; set { eAddres = value; } }
+        #endregion----------------------------------------------------------------
+
+        //Found serials
         public ObservableCollection<string> SerialNumList { get; }
         //Data
         public ImpParams Imp1 { get => imp1; set { imp1 = value; RaisePropertyChanged(nameof(Imp1)); } }
@@ -39,10 +49,10 @@ namespace Pulse_PLC_Tools_2
         public ImpExParams Imp2Ex { get => imp2Ex; set { imp2Ex = value; RaisePropertyChanged(nameof(Imp2Ex)); } }
         public DeviceMainParams Device { get => device; set { device = value; RaisePropertyChanged(nameof(Device)); } }
         //Device events journals
-        public ObservableCollection<DataGridRow_Log> JournalPower { get; }
-        public ObservableCollection<DataGridRow_Log> JournalConfig { get; }
-        public ObservableCollection<DataGridRow_Log> JournalInterfaces { get; }
-        public ObservableCollection<DataGridRow_Log> JournalRequestsPLC { get; }
+        public ObservableCollection<DataGridRow_Event> JournalPower { get; }
+        public ObservableCollection<DataGridRow_Event> JournalConfig { get; }
+        public ObservableCollection<DataGridRow_Event> JournalInterfaces { get; }
+        public ObservableCollection<DataGridRow_Event> JournalRequestsPLC { get; }
         //Messages and Log
         public FlowDocument Log { get => logContent; set { logContent = value; RaisePropertyChanged(nameof(Log)); } }
         public FlowDocument LogEx { get => logExContent; set { logExContent = value; RaisePropertyChanged(nameof(LogEx)); } }
@@ -52,6 +62,9 @@ namespace Pulse_PLC_Tools_2
 
         //Navigate
         public int CurrentPage { get => currentPage; set { currentPage = value; RaisePropertyChanged(nameof(CurrentPage)); } }
+
+        //Protocol timeout
+        public int TimeoutTimer { get => timeoutTimer; set { timeoutTimer = value; RaisePropertyChanged(nameof(TimeoutTimer)); } }
 
         //VM
         public LinkVM VM_Link { get; }
@@ -67,6 +80,13 @@ namespace Pulse_PLC_Tools_2
         //
         //HotKeys
         public DelegateCommand KeyDownEsc { get; private set; }
+        public DelegateCommand KeyDownCtrlM { get; private set; }
+        public DelegateCommand KeyDownCtrlR { get; private set; }
+        public DelegateCommand KeyDownCtrlP { get; private set; }
+
+        //On closing propgramm
+        public DelegateCommand AppClosing { get; private set; }
+        
         //Log
         public DelegateCommand ShowLogSimple { get; private set; }
         public DelegateCommand ShowLogExpert { get; private set; }
@@ -100,14 +120,17 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_ReadEnableRows { get; private set; }
         public DelegateCommand Send_ReadSelectedRows { get; private set; }
         public DelegateCommand Send_WriteSelectedRows { get; private set; }
+
+        public DelegateCommand EnableSelected { get; private set; }
+        public DelegateCommand DisableSelected { get; private set; }
+        public DelegateCommand ClearPLCTable { get; private set; }
+        //plc requests
         public DelegateCommand Send_Request_PLCv1 { get; private set; }
         public DelegateCommand Send_Request_Time { get; private set; }
         public DelegateCommand Send_Request_Serial { get; private set; }
         public DelegateCommand Send_Request_E_Current { get; private set; }
         public DelegateCommand Send_Request_E_StartDay { get; private set; }
-        public DelegateCommand EnableSelected { get; private set; }
-        public DelegateCommand DisableSelected { get; private set; }
-        public DelegateCommand ClearPLCTable { get; private set; }
+        public DelegateCommand Send_Request_CurrentLoad { get; private set; }
         //Data E Table
         public DelegateCommand Send_Read_E_Enabled { get; private set; }
         public DelegateCommand Send_Read_E_Selected { get; private set; }
@@ -116,24 +139,40 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_ReadJournal_Config { get; private set; }
         public DelegateCommand Send_ReadJournal_Power { get; private set; }
         public DelegateCommand Send_ReadJournal_RequestsPLC { get; private set; }
+        //MainMenu Info
+        public DelegateCommand ShowAboutErrors { get; set; }
+        public DelegateCommand ShowAboutFactoryConfig { get; set; }
+        public DelegateCommand GoToAboutPage { get; set; }
+        //MainMenu Commands
+        public DelegateCommand Send_Reboot { get; set; }
+        public DelegateCommand Send_FactoryReset { get; set; }
+        public DelegateCommand Send_BootloaderMode { get; set; }
+
+        //Service
+        public DelegateCommand Send_WriteSerial { get; private set; }
+        public DelegateCommand Send_ReadEEPROM { get; set; }
+
+        //View
+        public DelegateCommand<string> ImpRectangleOffOnClick { get; private set; }
+        public DelegateCommand<string> ImpRectangleGoToPageClick { get; private set; }
+        
         //----------------------------------------------------------------------------------
 
         public MainVM()
         {
+            SerialForWrite = "12345678";
+            //Список найденных серийных номеров
             SerialNumList = new ObservableCollection<string>();
 
-            //Контейнеры для данных
-            Imp1 = new ImpParams(ImpNum.IMP1);
-            Imp2 = new ImpParams(ImpNum.IMP2);
-            Imp1Ex = new ImpExParams(ImpNum.IMP1);
-            Imp2Ex = new ImpExParams(ImpNum.IMP2);
-            Device = new DeviceMainParams();
-
+            //VM
+            VM_Link = new LinkVM();
+            VM_PLCTable = new PLCTableVM();
+            
             //Журналы событий
-            JournalPower = new ObservableCollection<DataGridRow_Log>();
-            JournalConfig = new ObservableCollection<DataGridRow_Log>();
-            JournalInterfaces = new ObservableCollection<DataGridRow_Log>();
-            JournalRequestsPLC = new ObservableCollection<DataGridRow_Log>();
+            JournalPower = new ObservableCollection<DataGridRow_Event>();
+            JournalConfig = new ObservableCollection<DataGridRow_Event>();
+            JournalInterfaces = new ObservableCollection<DataGridRow_Event>();
+            JournalRequestsPLC = new ObservableCollection<DataGridRow_Event>();
 
             //Log
             Log = new FlowDocument();
@@ -141,12 +180,10 @@ namespace Pulse_PLC_Tools_2
             LogVisible = Visibility.Visible;
             LogExVisible = Visibility.Hidden;
             LogManager = new LogManager(Log, LogEx, SynchronizationContext.Current);
+
+            //ToolBar
             ToolBarText = "Привет";
-
-            //VM
-            VM_Link = new LinkVM();
-            VM_PLCTable = new PLCTableVM();
-
+            
             //Model
             LinkManager = new LinkManager(this, SynchronizationContext.Current);
             ProtocolManager = new ProtocolManager(this, SynchronizationContext.Current);
@@ -156,24 +193,69 @@ namespace Pulse_PLC_Tools_2
 
             //Start page
             GoToPage(TabPages.Link);
+
+            //Контейнеры для данных
+            Imp1Ex = new ImpExParams(ImpNum.IMP1);
+            Imp2Ex = new ImpExParams(ImpNum.IMP2);
+            Imp1 = new ImpParams(ImpNum.IMP1);
+            Imp2 = new ImpParams(ImpNum.IMP2);
+            Device = new DeviceMainParams();
+            //Загрузка настроек если был передан файл на открытие
+            if (FileConfigManager.FilePath != string.Empty)
+            {
+                PulsePLCv2Config config = FileConfigManager.LoadFromFile();
+                if (config != null)
+                {
+                    Imp1 = config.Imp1;
+                    Imp2 = config.Imp2;
+                    Device = config.Device;
+                    VM_PLCTable.TablePLC.Clear();
+                    for (int i = 0; i < 250; i++) VM_PLCTable.TablePLC.Add(config.TablePLC[i]);
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Файл конфигурации успешно загружен", MessageType = MessageType.Normal });
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Файл конфигурации успешно загружен", MessageType = MessageType.ToolBarInfo });
+                }
+                else
+                {
+                    MessageInput(this, new MessageDataEventArgs() { MessageString = "Не удалось загрузить файл конфигурации, загружены параметры по умолчанию", MessageType = MessageType.Error });
+                }
+            }
         }
 
         void InitCommands()
         {
+            //Hot Keys
             KeyDownEsc = new DelegateCommand(ProtocolManager.ClearCommandBuffer);
-
-            CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
+            KeyDownCtrlM = new DelegateCommand(() =>
+            {
+                GoToPage(TabPages.Monitor);
+                ProtocolManager.Send_ReadImpEx(ImpNum.IMP1);
+                ProtocolManager.Send_ReadImpEx(ImpNum.IMP2);
+            });
+            KeyDownCtrlR = new DelegateCommand(ProtocolManager.Send_ReadSelectedRows);
+            KeyDownCtrlP = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.PLCv1); });
+            
+            //On closing propgramm
+            AppClosing = new DelegateCommand(() =>
+            {
+                if (LinkManager.Link != null) LinkManager.Link.Disconnect();
+                //ДОДЕЛАТЬ (сохранение файла конфигурации)
+            });
+            
             //Log
             ShowLogSimple = new DelegateCommand(() => { LogVisible = Visibility.Visible; LogExVisible = Visibility.Hidden; });
             ShowLogExpert = new DelegateCommand(() => { LogVisible = Visibility.Hidden; LogExVisible = Visibility.Visible; });
             ClearLog = new DelegateCommand(LogManager.ClearLog);
+
+            //Navigate
+            CommandGoToPage = new DelegateCommand<string>(namePage => GoToPageFromXName(namePage));
+
             //For link
             OpenLink = new DelegateCommand(LinkManager.OpenLink);
             CloseLink = new DelegateCommand(LinkManager.CloseLink);
             //For files
             SaveFile = new DelegateCommand(() => { FileConfigManager.SaveConfig(new PulsePLCv2Config() { Imp1 = this.Imp1, Imp2 = this.Imp2, Device = this.Device, TablePLC = VM_PLCTable.TablePLC.ToList() }); });
             OpenFile = new DelegateCommand(() => {
-                PulsePLCv2Config config = FileConfigManager.LoadConfig();
+                PulsePLCv2Config config = FileConfigManager.OpenConfigFile();
                 if(config != null)
                 {
                     Imp1 = config.Imp1;
@@ -195,7 +277,7 @@ namespace Pulse_PLC_Tools_2
             //DateTime
             Send_ReadDateTime = new DelegateCommand(ProtocolManager.Send_ReadDateTime);
             Send_WriteDateTime = new DelegateCommand(ProtocolManager.Send_WriteDateTime);
-            Send_CorrectDateTime = new DelegateCommand(ProtocolManager.Send_CorrectDateTime);
+            Send_CorrectDateTime = new DelegateCommand(ProtocolManager.Send_CorrectDateTime); //Need to realize
             //Main params
             Send_ReadMainParams = new DelegateCommand(ProtocolManager.Send_ReadMainParams);
             Send_WriteMainParams = new DelegateCommand(() => ProtocolManager.Send_WriteMainParams(Device));
@@ -212,14 +294,16 @@ namespace Pulse_PLC_Tools_2
             Send_ReadEnableRows = new DelegateCommand(ProtocolManager.Send_ReadEnableRowsAdrss);
             Send_ReadSelectedRows = new DelegateCommand(ProtocolManager.Send_ReadSelectedRows);
             Send_WriteSelectedRows = new DelegateCommand(() => ProtocolManager.Send_WriteSelectedRows(VM_PLCTable.SelectedRows));
+            EnableSelected = new DelegateCommand(VM_PLCTable.EnableSelected);
+            DisableSelected = new DelegateCommand(VM_PLCTable.DisableSelected);
+            ClearPLCTable = new DelegateCommand(VM_PLCTable.ResetTable);
+            //plc requests
             Send_Request_PLCv1 = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.PLCv1); });
             Send_Request_Time = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.Time_Synchro); });
             Send_Request_Serial = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.Serial_Num); });
             Send_Request_E_Current = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Current); });
             Send_Request_E_StartDay = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Start_Day); });
-            EnableSelected = new DelegateCommand(VM_PLCTable.EnableSelected);
-            DisableSelected = new DelegateCommand(VM_PLCTable.DisableSelected);
-            ClearPLCTable = new DelegateCommand(VM_PLCTable.ResetTable);
+            Send_Request_CurrentLoad = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.CurrentLoad); });
             //Data E Table
             Send_Read_E_Enabled = new DelegateCommand(() => ProtocolManager.Send_Read_E_Enabled(VM_PLCTable.TablePLC.ToList()));
             Send_Read_E_Selected = new DelegateCommand(()=>ProtocolManager.Send_Read_E_Selected(VM_PLCTable.SelectedRows));
@@ -228,6 +312,44 @@ namespace Pulse_PLC_Tools_2
             Send_ReadJournal_Config = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.CONFIG));
             Send_ReadJournal_Power = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.POWER));
             Send_ReadJournal_RequestsPLC = new DelegateCommand(() => ProtocolManager.Send_ReadJournal(Journal_type.REQUESTS));
+            //MainMenu Info
+            ShowAboutErrors = new DelegateCommand(() => {
+                MessageBox.Show("Расшифровка сокращений флагов ошибок: \n" +
+                    "1. ОБ - Ошибка батареи\n" +
+                    "2. ББ - Режим без батарейки\n" +
+                    "3. П1 - Переполнение входа 1\n" +
+                    "4. П2 - Переполнение входа 2 \n" +
+                    "5. ОП - Ошибка памяти\n" +
+                    "6. ОВ - Ошибка времени", "Справка");
+            });
+            ShowAboutFactoryConfig = new DelegateCommand(() => {
+                MessageBox.Show("Заводские настройки: \n" +
+                    "Пароль на чтение: пустой \n" +
+                    "Пароль на запись: 111111 \n" +
+                    "Режим работы - Концентратор A, с батарейкой и часами \n" +
+                    "RS458 - только чтение, Bluetooth - только чтение \n" +
+                    "Импульсный вход 1 [Вкл., адреса PLC и Сетевой - 1] \n" +
+                    "Импульсный вход 2 [Вкл., адреса PLC и Сетевой - 2] \n", "Справка");
+            });
+            GoToAboutPage = new DelegateCommand(() => { GoToPage(TabPages.About); });
+            //MainMenu Commands
+            Send_Reboot = new DelegateCommand(ProtocolManager.Send_Reboot);
+            Send_FactoryReset = new DelegateCommand(ProtocolManager.Send_FactoryReset);
+            Send_BootloaderMode = new DelegateCommand(ProtocolManager.Send_BootloaderMode);
+            
+            //Service
+            Send_WriteSerial = new DelegateCommand(() => { ProtocolManager.Send_WriteSerial(SerialForWrite); SerialForWrite = ""; });
+            Send_ReadEEPROM = new DelegateCommand(() => { ProtocolManager.Send_ReadEEPROM(EAddres); });
+
+            //View
+            ImpRectangleOffOnClick = new DelegateCommand<string>(impNum => {
+                if (impNum == "1") Imp1.IsEnable = Imp1.IsEnable == 0 ? (byte)1 : (byte)0;
+                if (impNum == "2") Imp2.IsEnable = Imp2.IsEnable == 0 ? (byte)1 : (byte)0;
+            });
+            ImpRectangleGoToPageClick = new DelegateCommand<string>(impNum => {
+                if (impNum == "1") GoToPage(TabPages.Imp2);
+                if (impNum == "2") GoToPage(TabPages.Imp1);
+            });
         }
 
         void GoToPageFromXName(string xNameOfPage)
@@ -256,11 +378,13 @@ namespace Pulse_PLC_Tools_2
         {
             ProtocolManager.Link_Connected();
             VM_Link.IsConnected = true;
+            VM_Link.ConnectionInfo = LinkManager.Link.ConnectionString;
         }
         //Канал связи был отключен
         public void Link_Disconnected(object sender, EventArgs e)
         {
             VM_Link.IsConnected = false;
+            VM_Link.ConnectionInfo = "";
         }
         
     }

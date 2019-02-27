@@ -7,9 +7,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="White" Margin="-4">
-        <Button x:Name="button_Read_EEPROM" Content="Прочитать байт EEPROM" HorizontalAlignment="Left" Margin="10,208,0,0" VerticalAlignment="Top" Width="177" />
-        <TextBox x:Name="textBox_Adrs_EEPROM" Text="Адрес" HorizontalAlignment="Left" Margin="10,235,0,0" VerticalAlignment="Top" Width="177"/>
-        <TextBox x:Name="textBox_Serial_New" Text="12345678" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="325" Height="82" FontSize="48" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="Bold" />
-        <Button x:Name="button_WriteSerial" Content="Записать серийный номер" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Width="325" Height="48" FontSize="24"/>
+        <TextBox Text="{Binding SerialForWrite}" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="325" Height="82" FontSize="48" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="Bold" />
+        <Button Command="{Binding Send_WriteSerial}" Content="Записать серийный номер" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Width="325" Height="48" FontSize="24"/>
+        <TextBlock Margin="0,225,0,0" HorizontalAlignment="Left" Width="90" Height="22" VerticalAlignment="Top">Адрес EEPROM</TextBlock>
+        <TextBox Text="{Binding EAddres}" Height="22" Width="100" Margin="95,225,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Button Command="{Binding Send_ReadEEPROM}"  Margin="203,225,0,0" HorizontalAlignment="Left" Width="100" Height="22" VerticalAlignment="Top">Прочитать</Button>
     </Grid>
 </UserControl>

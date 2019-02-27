@@ -35,12 +35,20 @@ namespace Pulse_PLC_Tools_2
             Protocol.Message += mainVM.MessageInput;    //Обработчик сообщений (для лога)
             Protocol.CommandEnd += Protocol_CommandEnd; //Получение данных из ответов на команды
             Protocol.AccessEnd += Protocol_AccessEnd;
+            Protocol.TimeoutTickEvent += Protocol_TimeoutTickEvent;
         }
+
+        
 
         //Канал связи был открыт
         public void Link_Connected()
         {
-            Send_SearchDevices();
+            //Send_SearchDevices();
+        }
+
+        private void Protocol_TimeoutTickEvent(object sender, TimeoutTickEventArgs e)
+        {
+            Main_VM.TimeoutTimer = e.Timeout;
         }
 
         private void Protocol_AccessEnd(object sender, EventArgs e)
@@ -110,7 +118,7 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_CorrectDateTime()
         {
-
+            //Code here...
         }
         #endregion
         #region MainParams
@@ -190,7 +198,7 @@ namespace Pulse_PLC_Tools_2
         }
         public void Send_WriteSelectedRows(List<DataGridRow_PLC> selectedRows)
         {
-            var rowsToWrite = selectedRows.Split(10);
+            var rowsToWrite = selectedRows.Split(5);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
             rowsToWrite.ForEach(r => {
                 if (r.Count > 0)
@@ -239,9 +247,53 @@ namespace Pulse_PLC_Tools_2
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
         #endregion
+        #region Service
+        public void Send_Reboot()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Reboot, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        public void Send_FactoryReset()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.EEPROM_Burn, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        public void Send_BootloaderMode()
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Bootloader, null, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+
+        public void Send_WriteSerial(string serialString)
+        {
+            PulsePLCv2Serial serial = new PulsePLCv2Serial(serialString);
+            MessageBox.Show(serial.SerialString);
+            if (MessageBox.Show("Записать серийный номер?\n\nНомер: " + serial.SerialString, "Запись серийного номера", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                int serialInt = Convert.ToInt32(serial.SerialBytes[0].ToString("00") + serial.SerialBytes[1].ToString("00") + serial.SerialBytes[2].ToString("00") + serial.SerialBytes[3].ToString("00"));
+                if (serialInt > 1809000 && serialInt < 1814001)
+                {
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.SerialWrite, serial, 0);
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+                }
+            }
+        }
+
+        public void Send_ReadEEPROM(ushort eAddres)
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.EEPROM_Read_Byte, eAddres, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
+        #endregion
 
         void GetProtocolData(object DataObject)
         {
+            //Data container from protocol
             ProtocolDataContainer dataContainer = (ProtocolDataContainer)DataObject;
             //Some data from protocol
             object data = dataContainer.Data;
@@ -253,7 +305,17 @@ namespace Pulse_PLC_Tools_2
             {
                 Main_VM.SerialNumList.Clear();
                 ((List<string>)data).ForEach(str => Main_VM.SerialNumList.Add(str));
-                if (Main_VM.SerialNumList.Count > 0 && Main_VM.Device.Serial_View == string.Empty) Main_VM.Device.Serial_View = Main_VM.SerialNumList[0];
+                if (Main_VM.SerialNumList.Count > 0)
+                {
+                    //Проверим есть ли выбранный серийник в списке
+                    bool exsistInList = false;
+                    foreach(var item in Main_VM.SerialNumList)
+                    {
+                        if (item.Substring(0, 8) == Main_VM.Device.Serial_View) exsistInList = true;
+                    }
+                    //Если нет в списке, то делаем текущим первый номер из списка
+                    if(!exsistInList) Main_VM.Device.Serial_View = Main_VM.SerialNumList[0];
+                }
             }
             if (cmd == PulsePLCv2Protocol.Commands.Check_Pass)
             {

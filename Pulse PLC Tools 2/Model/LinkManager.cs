@@ -48,6 +48,14 @@ namespace Pulse_PLC_Tools_2
                     Link.Connect();
                     break;
                 case TypeOfLink.TCP:
+                    var tcpLink = new LinkTCP();
+                    tcpLink.IPAddress = mainVM.VM_Link.IP_Address;
+                    tcpLink.PortNumber = mainVM.VM_Link.TCP_Port;
+                    tcpLink.Message += messageInputHandler;
+                    tcpLink.Connected += mainVM.Link_Connected;
+                    tcpLink.Disconnected += mainVM.Link_Disconnected;
+                    Link = tcpLink;
+                    Link.Connect();
                     break;
                 case TypeOfLink.GSM:
                     if (linkViewModel.SelectedComPort == null || linkViewModel.SelectedComPort == string.Empty)
@@ -55,11 +63,14 @@ namespace Pulse_PLC_Tools_2
                         Message(this, new MessageDataEventArgs() { MessageString = "Не выбран COM порт", MessageType = MessageType.Warning });
                         return;
                     }
-                    Link = new LinkGSM(linkViewModel.SelectedComPort, 20000);
+                    Link = new LinkGSM();
+                    ((LinkGSM)Link).ComPort = linkViewModel.SelectedComPort;
                     ((LinkGSM)Link).PhoneNumber = linkViewModel.PhoneNumber;
                     ((LinkGSM)Link).Message += messageInputHandler;
                     Link.Connected += mainVM.Link_Connected;
                     Link.Disconnected += mainVM.Link_Disconnected;
+                    //((LinkGSM)Link).Initialize();
+                    Link.LinkDelay = 10000;
                     Link.Connect();
                     break;
                 default:

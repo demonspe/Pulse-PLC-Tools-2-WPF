@@ -7,11 +7,13 @@
         xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
         mc:Ignorable="d"
         Icon="Pics/logo1.ico"
-        Title="Pulse PLC Tools 2.0" Height="800" Width="1400" MinWidth="725" MinHeight="600">
+        Title="Pulse PLC Tools 2" Height="800" Width="1400" MinWidth="725" MinHeight="600"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <Window.InputBindings>
-        <KeyBinding
-            Key="Esc" 
-            Command="{Binding KeyDownEsc}" />
+        <KeyBinding Key="Esc" Command="{Binding KeyDownEsc}" />
+        <KeyBinding Modifiers="Ctrl" Key="M" Command="{Binding KeyDownCtrlM}" />
+        <KeyBinding Modifiers="Ctrl" Key="R" Command="{Binding KeyDownCtrlR}" />
+        <KeyBinding Modifiers="Ctrl" Key="P" Command="{Binding KeyDownCtrlP}" />
     </Window.InputBindings>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
@@ -62,9 +64,9 @@
                     <MenuItem Header="Выход" />
                 </MenuItem>
                 <MenuItem Header="Сервисные команды">
-                    <MenuItem Header="-> Перезагрузить" />
-                    <MenuItem Header="-> Заводские настройки" />
-                    <MenuItem Header="-> Включить режим обновления ПО"/>
+                    <MenuItem Command="{Binding Send_Reboot}" Header="-> Перезагрузить" />
+                    <MenuItem Command="{Binding Send_FactoryReset}" Header="-> Заводские настройки" />
+                    <MenuItem Command="{Binding Send_BootloaderMode}" Header="-> Включить режим обновления ПО"/>
                 </MenuItem>
                 <MenuItem Header="Горячие клавиши">
                     <MenuItem Header="Монитор запрос (Ctrl+M)" />
@@ -72,10 +74,10 @@
                     <MenuItem Header="Запрос по таблице PLC (Ctrl+P)" />
                 </MenuItem>
                 <MenuItem Header="Справка">
-                    <MenuItem Header="О флагах ошибок.."/>
-                    <MenuItem Header="О заводских настройках.."/>
+                    <MenuItem Header="О флагах ошибок.." Command="{Binding ShowAboutErrors}"/>
+                    <MenuItem Header="О заводских настройках.." Command="{Binding ShowAboutFactoryConfig}"/>
                     <Separator/>
-                    <MenuItem Header="О программе..."/>
+                    <MenuItem Header="О программе..." Command="{Binding GoToAboutPage}"/>
                 </MenuItem>
             </Menu>
         </Grid>
@@ -91,7 +93,7 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock Width="80" VerticalAlignment="Center">Пароль</TextBlock>
-                            <TextBox Text="{Binding Device.PassCurrent_View}" MaxLength="6" Width="130" VerticalAlignment="Center" ></TextBox>
+                            <TextBox Text="{Binding Device.PassCurrent_View, UpdateSourceTrigger=PropertyChanged}" MaxLength="6" Width="130" VerticalAlignment="Center" ></TextBox>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -102,12 +104,12 @@
                         </Button>
                         <Button Command="{Binding Send_ReadAllParams}" ToolTip="Прочитать всю конфигурацию из памяти устройства" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}" >
                             <StackPanel>
-                                <Image Source="Pics/boxupload32.png" Height="32" Width="32"/>
+                                <Image Source="Pics/boxupload32flipblue.png" Height="32" Width="32"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding Send_WriteAllParams}" ToolTip="Записать всю конфигурацию в память устройства" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
                             <StackPanel>
-                                <Image Source="Pics/boxdownload32.png" Height="32" Width="32"/>
+                                <Image Source="Pics/boxdownload32flipred.png" Height="32" Width="32"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding SaveFile}" ToolTip="Сохранить в файл..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Background="{x:Null}">
@@ -127,12 +129,13 @@
 
         <!-- TreeView Меню навигации по вкладкам -->
         <Grid x:Name="grid_Menu" Grid.Row ="2" Grid.RowSpan="3"  Background="#FF293955">
-            <TreeView x:Name="mainMenuTreeView" BorderThickness="0" UseLayoutRounding="False" Background="{x:Null}" Foreground="White">
+            <TreeView x:Name="mainMenuTreeView" BorderThickness="0" UseLayoutRounding="False" Background="{x:Null}" Foreground="White" FontSize="14">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectedItemChanged">
                         <i:InvokeCommandAction Command="{Binding CommandGoToPage}" CommandParameter="{Binding ElementName=mainMenuTreeView, Path=SelectedItem.Name}"/>
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
+                <!--Последние две цифры означают номер страницы-->
                 <TreeViewItem x:Name="pageLink_00" Header="Связь" Foreground="White"/>
                 <TreeViewItem x:Name="pageDateTime_01" Header="Дата/время" Foreground="White"/>
                 <TreeViewItem Header="Настройки" IsExpanded="True" Foreground="White">
@@ -147,10 +150,10 @@
                     <TreeViewItem x:Name="pageJInterface_08" Header="Интерфейсы" Foreground="White"/>
                     <TreeViewItem x:Name="pageJRequestPLC_09" Header="Лог опроса" Foreground="White"/>
                 </TreeViewItem>
-                <TreeViewItem x:Name="pageData_10" Header="Данные" Foreground="White"/>
+                <TreeViewItem x:Name="pageData_10" Header="Показания" Foreground="White"/>
                 <TreeViewItem x:Name="pageMonitor_11" Header="Монитор" Foreground="White"/>
                 <TreeViewItem x:Name="pageAbout_12" Header="О программе" Foreground="White"/>
-                <TreeViewItem x:Name="pageService_13" Header="Сервис/Настройка" Foreground="White" FontWeight="Bold"/>
+                <TreeViewItem x:Name="pageService_13" Header="Сервис/Настройка" Foreground="White" FontWeight="Bold" Visibility="Hidden"/> <!-- Вкладка для записи серийного номера -->
             </TreeView>
         </Grid>
 
@@ -218,8 +221,9 @@
                 </StatusBarItem>
                 <StatusBarItem Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="connect_status_txt" Width="300" HorizontalAlignment="Left" TextAlignment="Right" Padding="0,0,4,0" Foreground="White"/>
-                        <Image x:Name="connect_status_img" Height="16" Width="16" HorizontalAlignment="Right" Source="Pics/red.png"/>
+                        <TextBlock Width="50" HorizontalAlignment="Left" TextAlignment="Right" Padding="0,0,4,0" Foreground="White" Text="{Binding TimeoutTimer}"/>
+                        <TextBlock Width="300" HorizontalAlignment="Left" TextAlignment="Right" Padding="0,0,4,0" Foreground="White" Text="{Binding VM_Link.ConnectionInfo}"/>
+                        <Image Height="16" Width="16" HorizontalAlignment="Right" Source="{Binding VM_Link.ImgSrcLinkStatus}"/>
                     </StackPanel>
                 </StatusBarItem>
             </StatusBar>

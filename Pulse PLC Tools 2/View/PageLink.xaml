@@ -12,14 +12,14 @@
             <StackPanel Orientation="Horizontal">
                 <StackPanel Width="70">
                     <RadioButton x:Name="radioButton_COM" IsChecked="True" Margin="3" Command="{Binding VM_Link.CommandSetLinkType}" CommandParameter="{Binding ElementName=radioButton_COM, Path=Content}">COM</RadioButton>
-                    <RadioButton x:Name="radioButton_TCP" Margin="3" IsEnabled="False" Command="{Binding VM_Link.CommandSetLinkType}" CommandParameter="{Binding ElementName=radioButton_TCP, Path=Content}">TCP</RadioButton>
+                    <RadioButton x:Name="radioButton_TCP" Margin="3" Command="{Binding VM_Link.CommandSetLinkType}" CommandParameter="{Binding ElementName=radioButton_TCP, Path=Content}">TCP</RadioButton>
                     <RadioButton x:Name="radioButton_GSM" Margin="3" Command="{Binding VM_Link.CommandSetLinkType}" CommandParameter="{Binding ElementName=radioButton_GSM, Path=Content}">GSM</RadioButton>
                 </StackPanel>
                 <StackPanel Width="150">
                     <ComboBox Text="{Binding VM_Link.SelectedComPort}" ItemsSource="{Binding VM_Link.ComPortList}" IsEditable="True" Background="{x:Null}" />
                     <StackPanel Orientation="Horizontal">
-                        <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.IP_Address}" Width="100" IsEnabled="False"/>
-                        <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.TCP_Port}" Width="50" IsEnabled="False"/>
+                        <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.IP_Address, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                        <TextBox TextWrapping="Wrap" Text="{Binding VM_Link.TCP_Port, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
                     </StackPanel>
                     <TextBox x:Name="textBoxPhoneNumber" Text="{Binding VM_Link.PhoneNumber}"/>
                 </StackPanel>
@@ -29,7 +29,7 @@
         <Rectangle Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" Fill="#FFFF9700" Margin="235,93,0,0" HorizontalAlignment="Left" Width="17" Height="2" VerticalAlignment="Top"/>
         <Rectangle Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" Fill="#FFFF9700" Margin="235,50,0,0" Height="2" VerticalAlignment="Top" HorizontalAlignment="Left" Width="17"/>
         <Label Visibility="{Binding VM_Link.VisibilityLinesGSMCOM}" FontSize="10" Foreground="Black" Content="Порт модема, номер" HorizontalAlignment="Left" Margin="254,58,0,0" VerticalAlignment="Top"/>
-        <Button Command="{Binding OpenLink}" IsEnabled="{Binding VM_Link.ConnectIsEnable}" Content="Открыть канал связи" Margin="10,115,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
-        <Button Command="{Binding CloseLink}" IsEnabled="{Binding VM_Link.DisconnectIsEnable}" Content="Закрыть канал связи" Margin="10,140,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+        <Button Command="{Binding OpenLink}" Visibility="{Binding VM_Link.ConnectIsVisible}" Content="Открыть канал связи" Margin="10,115,0,0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
+        <Button Command="{Binding CloseLink}" Visibility="{Binding VM_Link.DisconnectIsVisible}" Content="Закрыть канал связи" Margin="10,115,0,0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Left" Width="232" Background="White" Padding="1,0,1,1"/>
     </Grid>
 </UserControl>

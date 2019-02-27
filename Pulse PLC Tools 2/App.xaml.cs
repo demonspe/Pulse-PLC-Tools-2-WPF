@@ -13,5 +13,13 @@ namespace Pulse_PLC_Tools_2
     /// </summary>
     public partial class App : Application
     {
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            if (e.Args.Count() > 0)
+            {
+                FileConfigManager.FilePath = e.Args[0];
+            }
+            else FileConfigManager.FilePath = string.Empty;
+        }
     }
 }

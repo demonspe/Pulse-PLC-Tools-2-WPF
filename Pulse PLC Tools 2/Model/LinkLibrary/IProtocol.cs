@@ -6,6 +6,20 @@ using System.Threading.Tasks;
 
 namespace LinkLibrary
 {
+    public class ProtocolDataContainer
+    {
+        public string ProtocolName { get; set; }
+        public int CommandCode { get; set; }
+        public object Data { get; set; }
+
+        public ProtocolDataContainer(string protocolName, int commandCode, object data)
+        {
+            ProtocolName = protocolName;
+            CommandCode = commandCode;
+            Data = data;
+        }
+    }
+
     public class ProtocolEventArgs : EventArgs
     {
         public object DataObject { get; set; }

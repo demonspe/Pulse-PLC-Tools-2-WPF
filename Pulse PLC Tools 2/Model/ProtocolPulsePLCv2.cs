@@ -10,54 +10,150 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using LinkLibrary;
-
+using Prism.Mvvm;
 
 namespace Pulse_PLC_Tools_2
 {
-    public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day } //Добавить начало месяца и тд
+    public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day, CurrentLoad } //Добавить начало месяца и тд
     public enum Journal_type : int { POWER = 1, CONFIG, INTERFACES, REQUESTS }
     public enum AccessType : int { No_Access, Read, Write }
 
-    public class PulsePLCv2LoginPass
+    public class PulsePLCv2Serial : BindableBase
     {
-        public byte[] Serial { get; }
-        public byte[] Pass { get; }
-        public string SerialString { get; }
-        public string PassString { get; }
+        private byte[] serial_bytes;  //Серийный номер устройства с которым идет общение
+        private string serial_string;
 
-        public PulsePLCv2LoginPass(byte[] serialNum, byte[] pass)
+        public byte[] SerialBytes {
+            get => serial_bytes;
+            set
+            {
+                if (value.Length >= 4)
+                {
+                    serial_bytes = value;
+                    serial_string = serial_bytes[0].ToString("00") + serial_bytes[1].ToString("00") + serial_bytes[2].ToString("00") + serial_bytes[3].ToString("00");
+                    serial_bytes = new byte[4] { //Подгоняем длину массива под 4
+                        Convert.ToByte(serial_string.Substring(0, 2)),
+                        Convert.ToByte(serial_string.Substring(2, 2)),
+                        Convert.ToByte(serial_string.Substring(4, 2)),
+                        Convert.ToByte(serial_string.Substring(6, 2))
+                    };
+                }
+                RaisePropertyChanged(nameof(SerialBytes));
+                RaisePropertyChanged(nameof(SerialString));
+            }
+        }
+        public string SerialString {
+            get
+            {
+                if (serial_string == "00000000") return string.Empty; else return serial_string;
+            }
+            set
+            {
+                if (value == null || value == string.Empty || value == "0")
+                {
+                    serial_string = "00000000";
+                    serial_bytes = new byte[4] { 0, 0, 0, 0 };
+                    return;
+                }
+                string tmpStr = value;
+                if (tmpStr.Length > 8) tmpStr = tmpStr.Substring(0, 8);
+                bool isDigitsOnly = true;
+                tmpStr.ToList().ForEach(ch => { if (!char.IsDigit(ch)) isDigitsOnly = false; });
+                if (isDigitsOnly)
+                {
+                    if (tmpStr.Length == 8)
+                    {
+                        serial_string = tmpStr;
+                        serial_bytes = new byte[4] {
+                        Convert.ToByte(tmpStr.Substring(0, 2)),
+                        Convert.ToByte(tmpStr.Substring(2, 2)),
+                        Convert.ToByte(tmpStr.Substring(4, 2)),
+                        Convert.ToByte(tmpStr.Substring(6, 2))
+                        };
+                    }
+                }
+                RaisePropertyChanged(nameof(SerialBytes));
+                RaisePropertyChanged(nameof(SerialString));
+            }
+        }
+
+        public PulsePLCv2Serial()
         {
-            //Подгоняем под нужный формат
-            Serial = new byte[4] { 0, 0, 0, 0 };
-            for (int i = 0; i < serialNum.Length; i++)
-            {
-                if (i < 4)
-                    Serial[i] = serialNum[i];
-                else break;
-            }
-            Pass = new byte[6] { 255, 255, 255, 255, 255, 255 };
-            for (int i = 0; i < pass.Length; i++)
-            {
-                if (i < 6)
-                    Pass[i] = pass[i];
-                else break;
-            }
-            //В виде строк
-            SerialString = Serial[0].ToString("00") + Serial[1].ToString("00") + Serial[2].ToString("00") + Serial[3].ToString("00");
-            PassString = Encoding.Default.GetString(Pass).Trim(Convert.ToChar(255));
+            SerialString = "0";
+        }
+        public PulsePLCv2Serial(string serialString)
+        {
+            SerialString = serialString;
         }
     }
+
+    public class PulsePLCv2Pass : BindableBase
+    {
+        private byte[] pass_bytes;
+
+        public byte[] PassBytes {
+            get => pass_bytes;
+            set
+            {
+                pass_bytes = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) pass_bytes[i] = value[i];
+                RaisePropertyChanged(nameof(PassBytes));
+                RaisePropertyChanged(nameof(PassString));
+            }
+        }
+        public string PassString {
+            get => Encoding.Default.GetString(pass_bytes).Trim(Encoding.Default.GetString(new byte[1] { 255 })[0]);
+            set
+            {
+                pass_bytes = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+                for (int i = 0; i < 6; i++) if (i < value.Length) pass_bytes[i] = Convert.ToByte(value[i]);
+                PassBytes = pass_bytes;
+            }
+        }
+
+        public PulsePLCv2Pass()
+        {
+            PassString = "";
+        }
+    }
+
+    public class PulsePLCv2LoginPass : BindableBase
+    {
+        private PulsePLCv2Serial serial;
+        private PulsePLCv2Pass pass;
+
+        public PulsePLCv2Serial Serial { get => serial; set { serial = value; RaisePropertyChanged(nameof(Serial)); } }
+        public PulsePLCv2Pass Pass { get => pass; set { pass = value; RaisePropertyChanged(nameof(Pass)); } }
+
+        public PulsePLCv2LoginPass(byte[] serial, byte[] pass)
+        {
+            Serial = new PulsePLCv2Serial() { SerialBytes = serial };
+            Pass = new PulsePLCv2Pass() { PassBytes = pass };
+        }
+        public PulsePLCv2LoginPass(string serial, string pass)
+        {
+            Serial = new PulsePLCv2Serial() { SerialString = serial };
+            Pass = new PulsePLCv2Pass() { PassString = pass };
+        }
+        public PulsePLCv2LoginPass()
+        {
+            Serial = new PulsePLCv2Serial();
+            Pass = new PulsePLCv2Pass();
+        }
+    }
+
     public class JournalForProtocol
     {
-        public List<DataGridRow_Log> Events { get; }
+        public List<DataGridRow_Event> Events { get; }
         public Journal_type Type { get; }
 
         public JournalForProtocol(Journal_type type)
         {
-            Events = new List<DataGridRow_Log>();
+            Events = new List<DataGridRow_Event>();
             Type = type;
         }
     }
+
     public class PLCRequestParamsForProtocol
     {
         public PLC_Request Type { get; }
@@ -69,25 +165,32 @@ namespace Pulse_PLC_Tools_2
         }
     }
 
-    public class ProtocolDataContainer
+    public class TimeoutTickEventArgs : EventArgs
     {
-        public string ProtocolName { get; set; }
-        public int CommandCode { get; set; }
-        public object Data { get; set; }
-
-        public ProtocolDataContainer(string protocolName, int commandCode, object data)
+        public int Timeout { get; set; }
+        public TimeoutTickEventArgs(int timeout)
         {
-            ProtocolName = protocolName;
-            CommandCode = commandCode;
-            Data = data;
+            Timeout = timeout;
         }
     }
 
-    
     public class PulsePLCv2Protocol : IProtocol, IMessage
     {
+        //Буффер для передачи
+        private byte[] TxBytes { get; set; }
+        private int tx_len;
+        //Буффер для обработки пакета, в котором сошлась CRC16
+        private byte[] Rx_Bytes { get; set; }
+        //Буфер для всего потока байтов приходящих из канала связи
+        private Queue<byte> InputData { get; set; }
+
+        //Контейнер для передачи данных в основную программу через событие CommandEnd
         public string ProtocolName { get => "PulsePLCv2"; }
-        ProtocolDataContainer DataContainer { get; set; }
+        private ProtocolDataContainer DataContainer { get; set; }
+
+        //Таймеры
+        private int Timeout { get; set; }       //ожидание ответа от устройства (Ms)
+        private int TimeoutTick { get => 50; }  //Ms    
 
         class CommandProperties
         {
@@ -96,6 +199,7 @@ namespace Pulse_PLC_Tools_2
             public int MinLength { get; set; }
         }
 
+        //Коды результата обработки пакета
         public enum HandleResult : int
         {
             Ok,
@@ -132,44 +236,47 @@ namespace Pulse_PLC_Tools_2
             SerialWrite,
             Bootloader
         }
-
-        //Пришел ответ на запрос
-        public event EventHandler<ProtocolEventArgs> CommandEnd = delegate { };
-        public event EventHandler<MessageDataEventArgs> Message = delegate { }; //IMessage
-        public event EventHandler AccessEnd = delegate { };
+        
+        //События
+        public event EventHandler<MessageDataEventArgs> Message = delegate { }; //IMessage - для передачи различных сообщений в логи
+        public event EventHandler<ProtocolEventArgs> CommandEnd = delegate { }; //Для передачи данных от запросов по протоколу в основную программу
+        public event EventHandler AccessEnd = delegate { }; //Для индикации, есть ли доступ к данным устройства Pulse PLC (доступ открывается на 30 секунд после успешной авторизации, после этого устройство начинает отвечать на остальные команды по протоколу)
+        public event EventHandler<TimeoutTickEventArgs> TimeoutTickEvent = delegate { }; //Для отображения таймаута
 
         //Выполняемая сейчас команда
-        Commands CurrentCommand { get; set; }
+        private Commands CurrentCommand { get; set; }
         //Текущий канал
-        ILink CurrentLink { get; set; }
+        private ILink CurrentLink { get; set; }
         //Доступ к выполнению команд на устройстве
-        AccessType access = AccessType.No_Access;
+        private AccessType Access { get; set; }
 
         //Таймеры
-        DispatcherTimer timer_Timeout;
-        DispatcherTimer timer_Access;
+        private DispatcherTimer TimerTimeout { get; set; }
+        private DispatcherTimer TimerAccess { get; set; }
         //Время отправки запроса (для подсчета времени ответа)
-        Stopwatch ping = new Stopwatch();
-
-        //Буффер для передачи
-        byte[] TxBytes = new byte[512];
-        int tx_len;
-        //Буффер для приема
-        byte[] Rx_Bytes = new byte[0];
+        private Stopwatch Ping { get; set; }
 
         //Коды команд и их символьные представления для отправки на устройство
-        private Dictionary<Commands, CommandProperties> CommandProps;
+        private Dictionary<Commands, CommandProperties> CommandProps { get; set; }
 
         public PulsePLCv2Protocol()
         {
+            TxBytes = new byte[512];
+            tx_len = 0;
+            Rx_Bytes = new byte[0];
+            InputData = new Queue<byte>();
+            Access = AccessType.No_Access;
+
+            Ping = new Stopwatch();
+
             InitCommandProperties();
 
             //Ограничивает время ожидания ответа
-            timer_Timeout = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 10) };
-            timer_Timeout.Tick += Timer_Timeout_Tick;
+            TimerTimeout = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, TimeoutTick) };
+            TimerTimeout.Tick += Timer_Timeout_Tick;
             //Показывает есть ли доступ к устройству
-            timer_Access = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 30000) };
-            timer_Access.Tick += Timer_Access_Tick;
+            TimerAccess = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 30000) };
+            TimerAccess.Tick += Timer_Access_Tick;
         }
 
         void InitCommandProperties()
@@ -178,7 +285,7 @@ namespace Pulse_PLC_Tools_2
             //---Заполним коды команд---
             //Доступ
             CommandProps.Add(Commands.Check_Pass,       new CommandProperties() { Code = "Ap", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Close_Session,    new CommandProperties() { Code = "Ac", MinLength = 0, Timeout = 100 });
+            CommandProps.Add(Commands.Close_Session,    new CommandProperties() { Code = "Ac", MinLength = 0, Timeout = 200 });
             //Системные                                                                        
             CommandProps.Add(Commands.Bootloader,       new CommandProperties() { Code = "Su", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.SerialWrite,      new CommandProperties() { Code = "Ss", MinLength = 0, Timeout = 200 });
@@ -192,13 +299,13 @@ namespace Pulse_PLC_Tools_2
             CommandProps.Add(Commands.Read_Journal,     new CommandProperties() { Code = "RJ", MinLength = 0, Timeout = 200 });
             CommandProps.Add(Commands.Read_DateTime,    new CommandProperties() { Code = "RT", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_Main_Params, new CommandProperties() { Code = "RM", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Read_IMP,         new CommandProperties() { Code = "RI", MinLength = 64, Timeout = 100 });
+            CommandProps.Add(Commands.Read_IMP,         new CommandProperties() { Code = "RI", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_IMP_extra,   new CommandProperties() { Code = "Ri", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_PLC_Table,   new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
             CommandProps.Add(Commands.Read_PLC_Table_En,new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
-            CommandProps.Add(Commands.Read_E_Current,   new CommandProperties() { Code = "REc", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Read_E_Start_Day, new CommandProperties() { Code = "REd", MinLength = 0, Timeout = 100 });
-            CommandProps.Add(Commands.Read_E_Month,     new CommandProperties() { Code = "REm", MinLength = 0, Timeout = 100 });
+            CommandProps.Add(Commands.Read_E_Current,   new CommandProperties() { Code = "REc", MinLength = 28, Timeout = 100 });
+            CommandProps.Add(Commands.Read_E_Start_Day, new CommandProperties() { Code = "REd", MinLength = 28, Timeout = 100 });
+            CommandProps.Add(Commands.Read_E_Month,     new CommandProperties() { Code = "REm", MinLength = 28, Timeout = 100 });
             //Запись
             CommandProps.Add(Commands.Write_DateTime,   new CommandProperties() { Code = "WT", MinLength = 0, Timeout = 500 });
             CommandProps.Add(Commands.Write_Main_Params, new CommandProperties() { Code = "WM", MinLength = 0, Timeout = 500 });
@@ -220,7 +327,7 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Close_Session)  return CMD_Close_Session();
             if (CurrentCommand == Commands.Search_Devices) return CMD_Search_Devices();
             //Доступ - Чтение
-            if (access != AccessType.Read && access != AccessType.Write) {
+            if (Access != AccessType.Read && Access != AccessType.Write) {
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к данным устройства. Сначала авторизуйтесь." }); return false; }
             if (CurrentCommand == Commands.Read_Journal)        return CMD_Read_Journal((Journal_type)param);
             if (CurrentCommand == Commands.Read_DateTime)       return CMD_Read_DateTime();
@@ -232,9 +339,9 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Read_E_Current)      return CMD_Read_E_Current((byte)param);
             if (CurrentCommand == Commands.Read_E_Start_Day)    return CMD_Read_E_Start_Day((byte)param);
             //Доступ - Запись
-            if (access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
+            if (Access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
             if (CurrentCommand == Commands.Bootloader)         return CMD_BOOTLOADER();
-            if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2LoginPass)param);
+            if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2Serial)param);
             if (CurrentCommand == Commands.Pass_Write)         return CMD_Pass_Write((DeviceMainParams)param);
             if (CurrentCommand == Commands.EEPROM_Burn)        return CMD_EEPROM_BURN();
             if (CurrentCommand == Commands.EEPROM_Read_Byte)   return CMD_EEPROM_Read_Byte((UInt16)param);
@@ -279,7 +386,7 @@ namespace Pulse_PLC_Tools_2
                     if (Check(CMD_Name, Commands.EEPROM_Burn))      { CMD_EEPROM_BURN(rxBytes);         return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.EEPROM_Read_Byte)) { CMD_EEPROM_Read_Byte(rxBytes);    return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Clear_Errors))     { CMD_Clear_Errors(rxBytes);        return HandleResult.Ok; }
-                    if (Check(CMD_Name, Commands.Request_PLC))      { CMD_Request_PLC(rxBytes); return HandleResult.Ok; }
+                    if (Check(CMD_Name, Commands.Request_PLC))      { CMD_Request_PLC(rxBytes);         return HandleResult.Ok; }
                 }
                 //Команды чтения
                 if (CMD_Type == 'R')
@@ -311,60 +418,94 @@ namespace Pulse_PLC_Tools_2
             return HandleResult.Error;
         }
         
+        bool CheckMinLengthCommand()
+        {
+            if(CurrentCommand == Commands.Read_PLC_Table)
+            {
+                if (Rx_Bytes.Length < 8) return false;
+                int count_adrs = Rx_Bytes[6]; //Число адресов в ответе
+                if (Rx_Bytes.Length < 8 + count_adrs) return false;
+                if (count_adrs > 0)
+                {
+                    int pntr = 6;
+                    for (int i = 1; i <= count_adrs; i++)
+                    {
+                        pntr++; //PLC adrs
+                        if(pntr >= Rx_Bytes.Length) return false; //Overflow
+                        int shift = (Rx_Bytes[pntr] == 0) ? 9 : 29; //data
+                        pntr += shift;
+                    }
+                    if (pntr >= Rx_Bytes.Length - 2) return false; //2 bytes is CRC16
+                }
+            }
+
+            return Rx_Bytes.Length >= CommandProps[CurrentCommand].MinLength;
+        }
+
         public void DateRecieved(object sender, LinkRxEventArgs e)
         {
             //Забираем данные
-            for (int i = 0; i < e.Buffer.Length; i++)
+            for (int i = 0; i < e.Buffer.Length; i++) InputData.Enqueue(e.Buffer[i]);
+
+            while(InputData.Count != 0)
             {
-                Rx_Bytes = Rx_Bytes.Add(e.Buffer[i]);
-                if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0 && 
-                    Rx_Bytes.Length >= CommandProps[CurrentCommand].MinLength) break;
+                //Добавляет по одному байту из приходящего потока байт в пакет и проверяем на корректность
+                Rx_Bytes = Rx_Bytes.Add(InputData.Dequeue());
+
+                //Проверяем CRC16
+                if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0 && Rx_Bytes.Length >= CommandProps[CurrentCommand].MinLength)
+                //if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0 && CheckMinLengthCommand())
+                {
+                    //Если сформирован корректный пакет то отправляем на обработку
+                    HandleResult handle_code = Handle(Rx_Bytes, Rx_Bytes.Length);
+
+                    //Комманда выполнена успешно
+                    if (handle_code == HandleResult.Ok)
+                    {
+                        Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
+                        RequestEnd(true);
+                        //Обновляем таймер доступа (в устройстве он обновляется при получении команды по интерфейсу)
+                        TimerAccess.Stop();
+                        TimerAccess.Start();
+                        continue;
+                    }
+
+                    //Получилось обработать и ждем следующую часть сообщения
+                    if (handle_code == HandleResult.Continue)
+                    {
+                        Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
+                        Ping.Restart();
+                        Rx_Bytes = new byte[0];
+                        continue;
+                    }
+
+                    //Не верный формат сообщения
+                    if (handle_code == HandleResult.Error)
+                    {
+                        //Отправим в Log окно 
+                        Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
+                        Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неверный формат ответа" });
+                        Message(this, new MessageDataEventArgs() { MessageType = MessageType.ToolBarInfo, MessageString = "Неверный формат ответа. Попробуйте еще раз." });
+                        RequestEnd(false);
+                    }
+                }
             }
-
-            //Проверяем CRC16
-            if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0)
-            {
-                HandleResult handle_code = Handle(Rx_Bytes, Rx_Bytes.Length);
-
-                //Комманда выполнена успешно
-                if (handle_code == HandleResult.Ok)
-                {
-                    Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
-                    Request_End(true);
-                    //Обновляем таймер доступа (в устройстве он обновляется при получении команды по интерфейсу)
-                    timer_Access.Stop();
-                    timer_Access.Start();
-                    return;
-                }
-
-                //Получилось обработать и ждем следующую часть сообщения
-                if (handle_code == HandleResult.Continue)
-                {
-                    Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
-                    ping.Restart();
-                    Rx_Bytes = new byte[0];
-                    return;
-                }
-
-                //Не верный формат сообщения
-                if(handle_code == HandleResult.Error)
-                {
-                    //Отправим в Log окно 
-                    Message(this, new MessageDataEventArgs() { Data = Rx_Bytes, Length = Rx_Bytes.Length, MessageType = MessageType.ReceiveBytes });
-                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неверный формат ответа" });
-                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.ToolBarInfo, MessageString = "Неверный формат ответа. Попробуйте еще раз." });
-                    Request_End(false);
-                }
-            }
+            
         }
         
         private void Timer_Timeout_Tick(object sender, EventArgs e)
         {
+            if (Timeout > 0)
+            {
+                Timeout -= TimeoutTick;
+                TimeoutTickEvent(this, new TimeoutTickEventArgs(Timeout));
+                return;
+            }
             //Если ожидали данных но не дождались
             if (CurrentCommand != Commands.None)
             {
-                if (CurrentCommand == Commands.Close_Session) { Request_End(true); return; }
-                if (CurrentCommand == Commands.Search_Devices) { Request_End(true); return; }
+                if (CurrentCommand == Commands.Close_Session) { RequestEnd(true); return; }
+                if (CurrentCommand == Commands.Search_Devices) { RequestEnd(true); return; }
                 if (CRC16.ComputeChecksum(Rx_Bytes, Rx_Bytes.Length) == 0 || Rx_Bytes.Length == 0)
                     Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Истекло время ожидания ответа" });
                 else
@@ -374,13 +515,13 @@ namespace Pulse_PLC_Tools_2
                     Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неверная контрольная сумма" });
                 }
                 //Комманда не выполнилась
-                Request_End(false);
+                RequestEnd(false);
             }
         }
         private void Timer_Access_Tick(object sender, EventArgs e)
         {
-            access = AccessType.No_Access;
-            timer_Access.Stop();
+            Access = AccessType.No_Access;
+            TimerAccess.Stop();
             AccessEnd(this, null);
         }
 
@@ -389,13 +530,16 @@ namespace Pulse_PLC_Tools_2
         private bool Request_Start(object prepareDataContainer)
         {
             //Запускаем таймер ожидания ответа
-            timer_Timeout.Stop();
-            timer_Timeout.Interval = new TimeSpan(0, 0, 0, 0, CurrentLink.LinkDelay + CommandProps[CurrentCommand].Timeout);
-            timer_Timeout.Start();
+            TimerTimeout.Stop();
+            Timeout = CurrentLink.LinkDelay + CommandProps[CurrentCommand].Timeout;
+            //Если команда "Закрыть сессию", то нет смысла ждать долго
+            if(CurrentCommand == Commands.Close_Session) Timeout = CommandProps[CurrentCommand].Timeout;
+            TimerTimeout.Interval = new TimeSpan(0, 0, 0, 0, TimeoutTick);
+            TimerTimeout.Start();
             //Добавим контрольную сумму
             Add_Tx(CRC16.ComputeChecksumBytes(TxBytes, tx_len));
             //Время отправки запроса
-            ping.Restart();
+            Ping.Restart();
             //Подготовим данные для передачи во View
             DataContainer = new ProtocolDataContainer(ProtocolName, (int)CurrentCommand, prepareDataContainer);
             if (CurrentLink.Send(TxBytes, tx_len))
@@ -407,27 +551,32 @@ namespace Pulse_PLC_Tools_2
         }
 
         //Сбросить флаги ожидания ответа на запрос
-        private void Request_End(bool status)
+        private void RequestEnd(bool status)
         {
             Rx_Bytes = new byte[0];
-            timer_Timeout.Stop();
+            InputData.Clear();
+
+            TimerTimeout.Stop();
+            TimeoutTickEvent(this, new TimeoutTickEventArgs(0));
+
             CurrentCommand = Commands.None;
             if(!status) DataContainer = null;
             CommandEnd(this, new ProtocolEventArgs(status) { DataObject = DataContainer });
         }
 
+        #region Ping
         //Возвращает время в милисекундах прошедшее с последнего запроса Request_Start
-        private long Ping()
+        private long GetPingMs()
         {
-            ping.Stop();
-            return ping.ElapsedMilliseconds;
+            Ping.Stop();
+            return Ping.ElapsedMilliseconds;
         }
-        private string PingStr()
+        private string GetPingStr()
         {
-            return " ("+Ping()+" ms)";
+            return " ("+GetPingMs()+" ms)";
         }
-
-        //Работа с буфером отправки
+        #endregion
+        #region Работа с буфером отправки
         private void Clear_Tx() { tx_len = 0; }
         private void Add_Tx(byte data) { TxBytes[tx_len++] = data; }
         private void Add_Tx(bool data) { Add_Tx(data ? (byte)1 : (byte)0); }
@@ -451,8 +600,9 @@ namespace Pulse_PLC_Tools_2
             Add_Tx(0);  //Добавим первый байт сообщение
             Add_Tx(Encoding.UTF8.GetBytes("Pls" + CommandProps[cmd].Code));//Добавим остальные байты начала сообщения
         }
+        #endregion
 
-        #region КАНАЛ
+        #region КАНАЛ (Поиск, пароль, закрытие сессии)
         //Запрос ПОИСК УСТРОЙСТВ в канале (и режима работы)
         private bool CMD_Search_Devices()
         {
@@ -463,6 +613,7 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private bool CMD_Search_Devices(byte[] rxBytes)
         {
+            if (rxBytes.Length < 11) return false;
             int mode = rxBytes[6];
             string mode_ = "";
             if (mode == 0) mode_ = " [Счетчик]";
@@ -471,7 +622,7 @@ namespace Pulse_PLC_Tools_2
             if (mode == 3) mode_ = " [Фаза C]";
             string serial_num = rxBytes[7].ToString("00") + rxBytes[8].ToString("00") + rxBytes[9].ToString("00") + rxBytes[10].ToString("00");
             ((List<string>)DataContainer.Data).Add(serial_num + mode_);
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Ответил " + serial_num + mode_+ PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Ответил " + serial_num + mode_+ GetPingStr() });
             if (mode == 0 || mode == 3)
                 return true;    //заканчиваем
             else
@@ -483,10 +634,10 @@ namespace Pulse_PLC_Tools_2
         {
             Start_Add_Tx(Commands.Check_Pass);
             //Серийник
-            byte[] serial = param.Serial;
+            byte[] serial = param.Serial.SerialBytes;
             Add_Tx(serial);
             //Пароль
-            byte[] pass_ = param.Pass;
+            byte[] pass_ = param.Pass.PassBytes;
             byte[] pass_buf = new byte[6] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
             for (int i = 0; i < 6; i++) if(i < pass_.Length) pass_buf[i] = pass_[i];
             Add_Tx(pass_buf);
@@ -506,13 +657,13 @@ namespace Pulse_PLC_Tools_2
         {
             string accessStr = "_";
             string service_mode = rxBytes[6] == 1 ? "[Sercvice mode]" : "";
-            if (rxBytes[7] == 's') { accessStr = "Нет доступа "; access = AccessType.Write; }
-            if (rxBytes[7] == 'r') { accessStr = "Чтение "; access = AccessType.Read; }
-            if (rxBytes[7] == 'w') { accessStr = "Запись "; access = AccessType.Write; }
-            DataContainer.Data = access;
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Доступ открыт: " + accessStr + service_mode + PingStr() });
+            if (rxBytes[7] == 's') { accessStr = "Нет доступа "; Access = AccessType.Write; }
+            if (rxBytes[7] == 'r') { accessStr = "Чтение "; Access = AccessType.Read; }
+            if (rxBytes[7] == 'w') { accessStr = "Запись "; Access = AccessType.Write; }
+            DataContainer.Data = Access;
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Доступ открыт: " + accessStr + service_mode + GetPingStr() });
             //Таймер доступа ДОДЕЛАТЬ (добавить отображение значка доступа и сообщения типа "Запись/Чтение")
-            timer_Access.Start();
+            TimerAccess.Start();
         }
 
         //Запрос ЗАКРЫТИЕ СЕССИИ (закрывает доступ к данным)
@@ -520,7 +671,7 @@ namespace Pulse_PLC_Tools_2
         {
             //Первые байты по протоколу конфигурации
             Start_Add_Tx(Commands.Close_Session);
-            access = AccessType.No_Access;
+            Access = AccessType.No_Access;
             AccessEnd(this, null);
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.NormalBold, MessageString = "Закрыть сессию" });
             return Request_Start();
@@ -540,15 +691,15 @@ namespace Pulse_PLC_Tools_2
         {
             Message(this, new MessageDataEventArgs() {
                 MessageType = MessageType.Good,
-                MessageString = "Теперь отключи питание устройства и подключи по USB к компьютеру. Устройство должно определиться как флеш накопитель." + PingStr()
+                MessageString = "Теперь отключи питание устройства и подключи по USB к компьютеру. Устройство должно определиться как флеш накопитель." + GetPingStr()
             });
         }
 
         //Запрос - Запись серийного номера
-        private bool CMD_SerialWrite(PulsePLCv2LoginPass serial)
+        private bool CMD_SerialWrite(PulsePLCv2Serial serial)
         {
             Start_Add_Tx(Commands.SerialWrite);
-            Add_Tx(serial.Serial); //Новый серийник 4 байта
+            Add_Tx(serial.SerialBytes); //Новый серийник 4 байта
             Message(this, new MessageDataEventArgs() {
                 MessageType = MessageType.Normal,
                 MessageString = "ЗАПИСЬ СЕРИЙНОГО НОМЕРА " + serial.SerialString
@@ -559,7 +710,7 @@ namespace Pulse_PLC_Tools_2
         private void CMD_SerialWrite(byte[] rxBytes)
         {
             if (rxBytes[6] == 'O' && rxBytes[7] == 'K')
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "СЕРИЙНЫЙ НОМЕР ЗАПИСАН" + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "СЕРИЙНЫЙ НОМЕР ЗАПИСАН" + GetPingStr() });
         }
 
         //Запрос EEPROM BURN (сброс к заводским настройкам)
@@ -572,7 +723,7 @@ namespace Pulse_PLC_Tools_2
         //Обработка запроса
         private void CMD_EEPROM_BURN(byte[] rxBytes)
         {
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "После перезагрузки устройство запишет в память заводские настройки." + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "После перезагрузки устройство запишет в память заводские настройки." + GetPingStr() });
         }
 
         //Запрос EEPROM READ BYTE (чтение байта из памяти)
@@ -587,7 +738,7 @@ namespace Pulse_PLC_Tools_2
         //Обработка запроса
         private void CMD_EEPROM_Read_Byte(byte[] rxBytes)
         {
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Байт прочитан int: " + rxBytes[6] + ", ASCII: '" + Convert.ToChar(rxBytes[6]) + "'" + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Байт прочитан int: " + rxBytes[6] + ", ASCII: '" + Convert.ToChar(rxBytes[6]) + "'" + GetPingStr() });
         }
 
         //Запрос ПЕРЕЗАГРУЗКА
@@ -600,7 +751,7 @@ namespace Pulse_PLC_Tools_2
         //Обработка запроса
         private void CMD_Reboot(byte[] rxBytes)
         {
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство перезагружается.." + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство перезагружается.." + GetPingStr() });
         }
         #endregion
 
@@ -628,7 +779,7 @@ namespace Pulse_PLC_Tools_2
             device.ErrorsByte = rxBytes[13];
             //Передаем данные
             DataContainer.Data = device;
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Основные параметры успешно прочитаны" + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Основные параметры успешно прочитаны" + GetPingStr() });
         }
 
         //Запрос - ЗАПИСЬ ОСНОВНЫХ ПАРАМЕТРОВ 
@@ -646,8 +797,8 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private void CMD_Write_Main_Params(byte[] rxBytes)
         {
-            if (rxBytes[6] == 'O' && rxBytes[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Основные параметры успешно записаны" + PingStr() });
-            if (rxBytes[6] == 'e' && rxBytes[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи." + PingStr() });
+            if (rxBytes[6] == 'O' && rxBytes[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Основные параметры успешно записаны" + GetPingStr() });
+            if (rxBytes[6] == 'e' && rxBytes[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи." + GetPingStr() });
         }
 
         //Запрос - ОЧИСТИТЬ ФЛАГИ ОШИБОК
@@ -660,7 +811,7 @@ namespace Pulse_PLC_Tools_2
         //Обработка запроса
         private void CMD_Clear_Errors(byte[] rxBytes)
         {
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Флаги ошибок сброшены" + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Флаги ошибок сброшены" + GetPingStr() });
         }
 
         //Запрос - Запись паролей
@@ -681,7 +832,7 @@ namespace Pulse_PLC_Tools_2
         private void CMD_Pass_Write(byte[] bytes_buff)
         {
             if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K')
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Пароли успешно записаны" + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Пароли успешно записаны" + GetPingStr() });
         }
         #endregion
 
@@ -768,7 +919,7 @@ namespace Pulse_PLC_Tools_2
                 reserv_ = rxBytes[pntr++];
             }
             DataContainer.Data = Imp;
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры IMP" + Convert.ToChar(rxBytes[6]) + " успешно прочитаны" + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры IMP" + Convert.ToChar(rxBytes[6]) + " успешно прочитаны" + GetPingStr() });
         }
 
         //Запрос ЧТЕНИЕ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
@@ -798,7 +949,7 @@ namespace Pulse_PLC_Tools_2
             ImpEx.ActualAtTime = DateTime.Now;
             //Отобразим
             DataContainer.Data = ImpEx;
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Мгновенные значения " + ImpEx.Num + " считаны" + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Мгновенные значения " + ImpEx.Num + " считаны" + GetPingStr() });
         }
 
         //Запрос ЗАПИСЬ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
@@ -856,8 +1007,8 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private void CMD_Write_Imp_Params(byte[] bytes_buff)
         {
-            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры успешно записаны" + PingStr() });
-            if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи" + PingStr() });
+            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры успешно записаны" + GetPingStr() });
+            if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи" + GetPingStr() });
         }
         #endregion
 
@@ -886,7 +1037,7 @@ namespace Pulse_PLC_Tools_2
             if (bytes_buff[6] == '4') events = new JournalForProtocol(Journal_type.REQUESTS);
             if(events == null)
             {
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неопределенный тип журнала" + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Неопределенный тип журнала" + GetPingStr() });
                 return;
             }
                 
@@ -938,7 +1089,7 @@ namespace Pulse_PLC_Tools_2
                     else
                         event_name = "[Запрос через "+ bytes_buff[i * 7 + 14] + " ступеней] " + event_name;
 
-                    if (status) date_string = adrs + " - Успешно"; else date_string = adrs + " - Нет ответа";
+                    if (status) date_string = "Успешно c " + adrs; else date_string = "Нет ответа от " + adrs;
 
                     time_string = bytes_buff[i * 7 + 11].ToString("00") + ":" +
                                         bytes_buff[i * 7 + 10].ToString("00") + ":" +
@@ -962,10 +1113,10 @@ namespace Pulse_PLC_Tools_2
                                         bytes_buff[i * 7 + 14].ToString();
                     }
                 }
-                DataGridRow_Log row = new DataGridRow_Log {Num = (i + 1).ToString(), Date = date_string, Time = time_string, Name = event_name };
+                DataGridRow_Event row = new DataGridRow_Event {Num = (i + 1).ToString(), Date = date_string, Time = time_string, Name = event_name };
                 events.Events.Add(row);
             }
-            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Журнал успешно прочитан" + PingStr() });
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Журнал успешно прочитан" + GetPingStr() });
             DataContainer.Data = events;
         }
         #endregion
@@ -985,13 +1136,13 @@ namespace Pulse_PLC_Tools_2
             try
             {
                 DataContainer.Data = new DateTime((int)(DateTime.Now.Year / 100) * 100 + rxBytes[11], rxBytes[10], rxBytes[9], rxBytes[8], rxBytes[7], rxBytes[6]);
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Время/Дата успешно прочитаны" + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Время/Дата успешно прочитаны" + GetPingStr() });
             }
             catch (Exception)
             {
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Warning, MessageString = "Неопределенный формат даты. " });
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Warning, MessageString = "Попробуйте записать время на устройство заново. " });
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Warning, MessageString = "Возможны проблемы с батареей. " + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Warning, MessageString = "Возможны проблемы с батареей. " + GetPingStr() });
             }
         }
 
@@ -1015,8 +1166,8 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private void CMD_Write_DateTime(byte[] bytes_buff)
         {
-            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Дата и время успешно записаны" + PingStr() });
-            if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи даты и времени. Возможно недопустимый формат даты." + PingStr() });
+            if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Дата и время успешно записаны" + GetPingStr() });
+            if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи даты и времени. Возможно недопустимый формат даты." + GetPingStr() });
         }
         #endregion
 
@@ -1053,7 +1204,7 @@ namespace Pulse_PLC_Tools_2
                 }
                 DataContainer.Data = rows;
                 //Сообщение
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Найдено " + rows.Count + " активных адресов" + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Найдено " + rows.Count + " активных адресов" + GetPingStr() });
             }
             else
             {
@@ -1111,7 +1262,7 @@ namespace Pulse_PLC_Tools_2
                 }
                 DataContainer.Data = list;
                 //Сообщение
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано " + count_adrs + " адресов, из них " + active_adrss + " вкл. [" + active_adrss_str + "]" + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано " + count_adrs + " адресов, из них " + active_adrss + " вкл. [" + active_adrss_str + "]" + GetPingStr() });
             }
         }
         //Запрос ЗАПИСЬ в Таблицу PLC
@@ -1161,8 +1312,8 @@ namespace Pulse_PLC_Tools_2
         //Обработка ответа
         private void CMD_Write_PLC_Table(byte[] rxBytes)
         {
-            if (rxBytes[6] == 'O' && rxBytes[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Строки успешно записаны в PLC таблицу" + PingStr() });
-            if (rxBytes[6] == 'e' && rxBytes[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи в PLC таблицу." + PingStr() });
+            if (rxBytes[6] == 'O' && rxBytes[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Строки успешно записаны в PLC таблицу" + GetPingStr() });
+            if (rxBytes[6] == 'e' && rxBytes[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи в PLC таблицу." + GetPingStr() });
         }
         #endregion
 
@@ -1221,10 +1372,10 @@ namespace Pulse_PLC_Tools_2
                     MessageString = "Прочитано - " + type_E + " " + row.Adrs_PLC + 
                     ": T1 (" + energy.E_T1.Value_kWt + 
                     "), T2 (" + energy.E_T2.Value_kWt + 
-                    "), T3 (" + energy.E_T3.Value_kWt + ")" + PingStr()
+                    "), T3 (" + energy.E_T3.Value_kWt + ")" + GetPingStr()
                 });
             else
-                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано - " + type_E + " " + row.Adrs_PLC + ": Н/Д" + PingStr() });
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано - " + type_E + " " + row.Adrs_PLC + ": Н/Д" + GetPingStr() });
             //Put data
             DataContainer.Data = row;
         }
@@ -1277,7 +1428,7 @@ namespace Pulse_PLC_Tools_2
                     ImpEnergyValue E_ = new ImpEnergyValue(new[] { rxBytes[10], rxBytes[11], rxBytes[12], rxBytes[13] }.ToUint32(true));
                     Message(this, new MessageDataEventArgs() {
                         MessageType = MessageType.Good,
-                        MessageString = "Прочитано №" + adrs_PLC + ", Тип: " + plc_v + ", Тариф 1: " + E_.Value_kWt + " кВт" + PingStr()
+                        MessageString = "Прочитано №" + adrs_PLC + ", Тип: " + plc_v + ", Тариф 1: " + E_.Value_kWt + " кВт" + GetPingStr()
                     });
                 }
                 if (plc_cmd_code == PLC_Request.Time_Synchro)
@@ -1291,12 +1442,12 @@ namespace Pulse_PLC_Tools_2
                     if ((rxBytes[10] & 32) > 0) errors_string += "ОВ ";
                     //!! добавить ошибки ДОДЕЛАТЬStringMessage
                     if (errors_string == "Ошибки: ") errors_string = "Нет ошибок";
-                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + " " + errors_string + PingStr() });
+                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + " " + errors_string + GetPingStr() });
                 }
                 if (plc_cmd_code == PLC_Request.Serial_Num)
                 {
                     string serial_string = rxBytes[10].ToString("00")+ rxBytes[11].ToString("00")+ rxBytes[12].ToString("00")+ rxBytes[13].ToString("00");
-                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + " Серийный номер: " + serial_string + PingStr() });
+                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + " Серийный номер: " + serial_string + GetPingStr() });
                 }
                 if (plc_cmd_code == PLC_Request.E_Current || plc_cmd_code == PLC_Request.E_Start_Day)
                 {
@@ -1310,11 +1461,20 @@ namespace Pulse_PLC_Tools_2
                         MessageString = "Прочитано №" + adrs_PLC +
                         ", Тариф 1: " + energy.E_T1.Value_kWt + " кВт" +
                         ", Тариф 2: " + energy.E_T2.Value_kWt + " кВт" +
-                        ", Тариф 3: " + energy.E_T3.Value_kWt + " кВт" + PingStr()
+                        ", Тариф 3: " + energy.E_T3.Value_kWt + " кВт" + GetPingStr()
                     });
                 }
+                if (plc_cmd_code == PLC_Request.CurrentLoad)
+                {
+                    string str = 
+                        " [ A: "+ new[] { rxBytes[10], rxBytes[11] }.ToUint16(false) + 
+                        ", Импульсы: "+ new[] { rxBytes[12], rxBytes[13] }.ToUint16(false) +
+                        ", Последний: " + new[] { rxBytes[14], rxBytes[15] }.ToUint16(false) + " сек. назад" + 
+                        ", Нагрузка: " + new[] { rxBytes[16], rxBytes[17], rxBytes[18], rxBytes[19] }.ToUint32(false) + " Вт ]";
+                    Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + str + GetPingStr() });
+                }
             }
-            else Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство №" + adrs_PLC + " не отвечает" + PingStr() });
+            else Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Устройство №" + adrs_PLC + " не отвечает" + GetPingStr() });
         }
         #endregion
     }

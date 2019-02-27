@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:local="clr-namespace:Pulse_PLC_Tools_2"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="1050">
@@ -10,14 +11,33 @@
         <Style TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+        <Style x:Key="IsEnabledIfTwoTariffs" TargetType="TextBox">
+            <Setter Property="IsEnabled" Value="False" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Imp2.T_qty_View}" Value="1">
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Imp2.T_qty_View}" Value="2">
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="IsEnabledIfThreeTariffs" TargetType="TextBox">
+            <Setter Property="IsEnabled" Value="False" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Imp2.T_qty_View}" Value="2">
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <Grid Margin="-4">
         <Image HorizontalAlignment="Left" Width="259" Source="Pics/входы.png" Margin="-14,0,0,0" Height="395" VerticalAlignment="Top"/>
-        <GroupBox Header="                                       " HorizontalAlignment="Left" Height="350" VerticalAlignment="Top" Width="847" Margin="201,0,0,0">
+        <GroupBox Header="                                       " HorizontalAlignment="Left" Height="323" VerticalAlignment="Top" Width="847" Margin="201,0,0,0">
             <Grid Background="#00F9F9F9" >
                 <Label Content="Aдрес PLC" HorizontalAlignment="Left" Margin="13,7,0,0" VerticalAlignment="Top" Width="87"/>
                 <TextBox Text="{Binding Imp2.Adrs_PLC}" HorizontalAlignment="Left" Height="23" Margin="107,10,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="80"/>
-                <GroupBox Header="Тарифное расписание" Height="290" Margin="558,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="274">
+                <GroupBox Header="Тарифное расписание" Height="240" Margin="558,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="274">
                     <StackPanel Margin="5">
                         <StackPanel.Resources>
                             <Style TargetType="TextBox">
@@ -37,33 +57,33 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>Начало Т1 (утро пик)</TextBlock>
-                            <TextBox Text="{Binding Imp2.T1_Time_1.Hours}" MaxLength="2"/>
+                            <TextBox Text="{Binding Imp2.T1_Time_1.Hours, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" MaxLength="2" Width="25" Style="{StaticResource IsEnabledIfTwoTariffs}"/>
                             <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
-                            <TextBox Text="{Binding Imp2.T1_Time_1.Minutes}" MaxLength="2"/>
+                            <TextBox Text="{Binding Imp2.T1_Time_1.Minutes, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" MaxLength="2" Width="25" Style="{StaticResource IsEnabledIfTwoTariffs}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>Начало Т3 (утро полупик)</TextBlock>
-                            <TextBox Text="{Binding Imp2.T3_Time_1.Hours}"/>
+                            <TextBox Text="{Binding Imp2.T3_Time_1.Hours, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfThreeTariffs}"/>
                             <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
-                            <TextBox Text="{Binding Imp2.T3_Time_1.Minutes}"/>
+                            <TextBox Text="{Binding Imp2.T3_Time_1.Minutes, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfThreeTariffs}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>Начало Т1 (день пик)</TextBlock>
-                            <TextBox Text="{Binding Imp2.T1_Time_2.Hours}"/>
+                            <TextBox Text="{Binding Imp2.T1_Time_2.Hours, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfThreeTariffs}"/>
                             <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
-                            <TextBox Text="{Binding Imp2.T1_Time_2.Minutes}"/>
+                            <TextBox Text="{Binding Imp2.T1_Time_2.Minutes, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfThreeTariffs}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>Начало Т3 (день полупик)</TextBlock>
-                            <TextBox Text="{Binding Imp2.T3_Time_2.Hours}"/>
+                            <TextBox Text="{Binding Imp2.T3_Time_2.Hours, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfThreeTariffs}"/>
                             <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
-                            <TextBox Text="{Binding Imp2.T3_Time_2.Minutes}"/>
+                            <TextBox Text="{Binding Imp2.T3_Time_2.Minutes, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfThreeTariffs}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>Начало Т2 (ночь)</TextBlock>
-                            <TextBox Text="{Binding Imp2.T2_Time.Hours}"/>
+                            <TextBox Text="{Binding Imp2.T2_Time.Hours, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfTwoTariffs}"/>
                             <TextBlock Width="4" FontWeight="Bold"> :</TextBlock>
-                            <TextBox Text="{Binding Imp2.T2_Time.Minutes}"/>
+                            <TextBox Text="{Binding Imp2.T2_Time.Minutes, UpdateSourceTrigger=PropertyChanged, StringFormat='00'}" Width="25" Style="{StaticResource IsEnabledIfTwoTariffs}"/>
                         </StackPanel>
                     </StackPanel>
                 </GroupBox>
@@ -79,15 +99,15 @@
                         </StackPanel.Resources>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 1 (кВт*ч)</TextBlock>
-                            <TextBox Text="{Binding Imp2.E_Current.E_T1.Value_kWt}"/>
+                            <TextBox Text="{Binding Imp2.E_Current.E_T1.Value_kWt, UpdateSourceTrigger=PropertyChanged, StringFormat=N1}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 2 (кВт*ч)</TextBlock>
-                            <TextBox Text="{Binding Imp2.E_Current.E_T2.Value_kWt}"/>
+                            <TextBox Text="{Binding Imp2.E_Current.E_T2.Value_kWt, UpdateSourceTrigger=PropertyChanged, StringFormat=N1}" Width="120" Style="{StaticResource IsEnabledIfTwoTariffs}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 3 (кВт*ч)</TextBlock>
-                            <TextBox Text="{Binding Imp2.E_Current.E_T3.Value_kWt}"/>
+                            <TextBox Text="{Binding Imp2.E_Current.E_T3.Value_kWt, UpdateSourceTrigger=PropertyChanged, StringFormat=N1}" Width="120" Style="{StaticResource IsEnabledIfThreeTariffs}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ сумма (кВт*ч)</TextBlock>
@@ -105,15 +125,15 @@
                         </StackPanel.Resources>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 1 (кВт*ч)</TextBlock>
-                            <TextBlock Text="{Binding Imp2.E_StartDay.E_T1.Value_kWt}"/>
+                            <TextBlock Text="{Binding Imp2.E_StartDay.E_T1.Value_kWt, UpdateSourceTrigger=PropertyChanged, StringFormat=N1}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 2 (кВт*ч)</TextBlock>
-                            <TextBlock Text="{Binding Imp2.E_StartDay.E_T2.Value_kWt}"/>
+                            <TextBlock Text="{Binding Imp2.E_StartDay.E_T2.Value_kWt, UpdateSourceTrigger=PropertyChanged, StringFormat=N1}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ тариф 3 (кВт*ч)</TextBlock>
-                            <TextBlock Text="{Binding Imp2.E_StartDay.E_T3.Value_kWt}"/>
+                            <TextBlock Text="{Binding Imp2.E_StartDay.E_T3.Value_kWt, UpdateSourceTrigger=PropertyChanged, StringFormat=N1}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <TextBlock>E+ сумма (кВт*ч)</TextBlock>
@@ -161,9 +181,6 @@
         </GroupBox>
         <CheckBox IsChecked="{Binding Imp2.IsEnable}" Content="Импульсный вход 2" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top"/>
         <Rectangle x:Name="draw_Imp2" HorizontalAlignment="Left" Height="34" Stroke="Black" VerticalAlignment="Top" Width="62" Margin="113,108,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="2.2">
-            <Rectangle.Fill>
-                <SolidColorBrush Color="#B2808080"/>
-            </Rectangle.Fill>
             <Rectangle.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -172,12 +189,71 @@
                     <TranslateTransform/>
                 </TransformGroup>
             </Rectangle.RenderTransform>
+            <Rectangle.Style>
+                <Style TargetType="Rectangle">
+                    <Setter Property="Fill" Value="#B2808089" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Imp2.IsEnable}" Value="1">
+                            <Setter Property="Fill" Value="#7F00A2FF"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Rectangle.Style>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDown">
+                    <i:InvokeCommandAction Command="{Binding ImpRectangleOffOnClick}" CommandParameter="2"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
         </Rectangle>
-        <Rectangle x:Name="draw_Imp2_line1" Fill="#B2808080" HorizontalAlignment="Left" Height="101" Margin="120,9,0,0" VerticalAlignment="Top" Width="2"/>
-        <Rectangle x:Name="draw_Imp2_line2" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="120,7,0,0" VerticalAlignment="Top" Width="89"/>
-        <Rectangle x:Name="draw_Imp2_line3" Fill="#B2808080" HorizontalAlignment="Left" Height="2" Margin="97,182,0,0" VerticalAlignment="Top" Width="110"/>
-        <Rectangle x:Name="draw_Imp2_line4" Fill="#B2808080" HorizontalAlignment="Left" Height="100" Margin="207,145,0,0" VerticalAlignment="Top" Width="2"/>
-        <Rectangle x:Name="draw_Imp1_double" Fill="#B2808080" HorizontalAlignment="Left" Height="36" Width="62" Stroke="Black" VerticalAlignment="Top" Margin="81,130,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="0">
+        <Rectangle x:Name="draw_Imp2_line1" HorizontalAlignment="Left" Height="101" Margin="120,9,0,0" VerticalAlignment="Top" Width="2">
+            <Rectangle.Style>
+                <Style TargetType="Rectangle">
+                    <Setter Property="Fill" Value="#B2808089" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Imp2.IsEnable}" Value="1">
+                            <Setter Property="Fill" Value="#7F00A2FF"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Rectangle.Style>
+        </Rectangle>
+        <Rectangle x:Name="draw_Imp2_line2" HorizontalAlignment="Left" Height="2" Margin="120,7,0,0" VerticalAlignment="Top" Width="89">
+            <Rectangle.Style>
+                <Style TargetType="Rectangle">
+                    <Setter Property="Fill" Value="#B2808089" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Imp2.IsEnable}" Value="1">
+                            <Setter Property="Fill" Value="#7F00A2FF"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Rectangle.Style>
+        </Rectangle>
+        <Rectangle x:Name="draw_Imp2_line3" HorizontalAlignment="Left" Height="2" Margin="97,182,0,0" VerticalAlignment="Top" Width="110">
+            <Rectangle.Style>
+                <Style TargetType="Rectangle">
+                    <Setter Property="Fill" Value="#B2808089" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Imp2.IsEnable}" Value="1">
+                            <Setter Property="Fill" Value="#FFFFB980"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Rectangle.Style>
+        </Rectangle>
+        <Rectangle x:Name="draw_Imp2_line4" HorizontalAlignment="Left" Height="100" Margin="207,145,0,0" VerticalAlignment="Top" Width="2">
+            <Rectangle.Style>
+                <Style TargetType="Rectangle">
+                    <Setter Property="Fill" Value="#B2808089" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Imp2.IsEnable}" Value="1">
+                            <Setter Property="Fill" Value="#FFFFB980"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Rectangle.Style>
+        </Rectangle>
+        <Rectangle x:Name="draw_Imp1_double" HorizontalAlignment="Left" Height="36" Width="62" Stroke="Black" VerticalAlignment="Top" Margin="81,130,0,0" RenderTransformOrigin="0.5,0.5" StrokeThickness="0">
             <Rectangle.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -186,8 +262,18 @@
                     <TranslateTransform/>
                 </TransformGroup>
             </Rectangle.RenderTransform>
+            <Rectangle.Style>
+                <Style TargetType="Rectangle">
+                    <Setter Property="Fill" Value="#B2808089"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Imp1.IsEnable}" Value="1">
+                            <Setter Property="Fill" Value="#7F00A2FF"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Rectangle.Style>
         </Rectangle>
-        <Button Command="{Binding Send_ReadImp2}" Content="Прочитать" HorizontalAlignment="Left" Margin="121,301,0,0" VerticalAlignment="Top" Width="75" />
-        <Button Command="{Binding Send_WriteImp2}" Content="Записать" HorizontalAlignment="Left" Margin="121,328,0,0" VerticalAlignment="Top" Width="75" />
+        <Button Command="{Binding Send_ReadImp2}" Content="Прочитать" HorizontalAlignment="Left" Margin="201,328,0,0" VerticalAlignment="Top" Width="91" />
+        <Button Command="{Binding Send_WriteImp2}" Content="Записать" HorizontalAlignment="Left" Margin="297,328,0,0" VerticalAlignment="Top" Width="59" />
     </Grid>
 </UserControl>
