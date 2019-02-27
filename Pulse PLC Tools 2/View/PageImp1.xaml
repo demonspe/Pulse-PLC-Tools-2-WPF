@@ -143,12 +143,16 @@
                 </GroupBox>
                 <GroupBox Header="Протокол (на верхний уровень) RS485" HorizontalAlignment="Left" Height="110" Margin="5,120,0,0" VerticalAlignment="Top" Width="269">
                     <Grid>
-                        <TextBox Text="{Binding Imp1.Ascue_adrs}" ToolTip="Адрес устройства для протокола обмена (от 1 до 65535)" HorizontalAlignment="Left" Height="23" Margin="95,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140"/>
-                        <Label Content="Сетевой адрес" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="90"/>
-                        <TextBox Text="{Binding Imp1.Ascue_pass_View}" MaxLength="6" ToolTip="Пароль доступа для протокола обмена (6 символов)" HorizontalAlignment="Left" Height="23" Margin="95,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140"/>
-                        <Label Content="Пароль" HorizontalAlignment="Left" Margin="0,33,0,0" VerticalAlignment="Top" Width="90"/>
-                        <Label Content="Тип" HorizontalAlignment="Left" Margin="0,59,0,0" VerticalAlignment="Top" Width="90"/>
-                        <ComboBox SelectedIndex="{Binding Imp1.Ascue_protocol}" ToolTip="Протокол, по которому будет происходить опрос с верхнего уровня через RS485" HorizontalAlignment="Left" VerticalAlignment="Top" Width="184" Background="#00E8E7E7" Margin="51,61,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36*"/>
+                            <ColumnDefinition Width="221*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Imp1.Ascue_adrs}" ToolTip="Адрес устройства для протокола обмена (от 1 до 65535)" HorizontalAlignment="Left" Height="23" Margin="59,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" Grid.Column="1"/>
+                        <Label Content="Сетевой адрес" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="90" Grid.ColumnSpan="2"/>
+                        <TextBox Text="{Binding Imp1.Ascue_pass_View}" MaxLength="6" ToolTip="Пароль доступа для протокола обмена (6 символов)" HorizontalAlignment="Left" Height="23" Margin="59,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" Grid.Column="1"/>
+                        <Label Content="Пароль" HorizontalAlignment="Left" Margin="0,33,0,0" VerticalAlignment="Top" Width="90" Grid.ColumnSpan="2"/>
+                        <Label Content="Тип" HorizontalAlignment="Left" Margin="0,59,0,0" VerticalAlignment="Top" Width="90" Grid.ColumnSpan="2"/>
+                        <ComboBox SelectedIndex="{Binding Imp1.Ascue_protocol}" ToolTip="Протокол, по которому будет происходить опрос с верхнего уровня через RS485" HorizontalAlignment="Left" VerticalAlignment="Top" Width="184" Background="#00E8E7E7" Margin="15,61,0,0" Grid.Column="1">
                             <ComboBoxItem>Pulse PLC</ComboBoxItem>
                             <ComboBoxItem>Pulse PLC + Mercury 230ART</ComboBoxItem>
                             <!-- Pulse PLC + Modbus RTU -->
