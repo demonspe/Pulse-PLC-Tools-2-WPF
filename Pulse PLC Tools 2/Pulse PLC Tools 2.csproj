@@ -167,10 +167,6 @@
     <Compile Include="Model\ImpParams.cs" />
     <Compile Include="ViewModel\LinkVM.cs" />
     <Compile Include="ViewModel\MainVM.cs" />
-    <Page Include="3DExtrude_16x.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Icons\UserControl1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
