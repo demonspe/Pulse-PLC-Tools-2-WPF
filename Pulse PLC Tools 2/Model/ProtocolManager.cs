@@ -206,6 +206,17 @@ namespace Pulse_PLC_Tools_2
             });
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
+
+        public void Send_WriteEnabledRows(List<DataGridRow_PLC> selectedRows)
+        {
+            var rowsToWrite = selectedRows.Split(5);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            rowsToWrite.ForEach(r => {
+                if (r.Count > 0)
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Write_PLC_Table, r, 0);
+            });
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
         public void Send_RequestPLC(List<DataGridRow_PLC> selectedRows, PLC_Request type)
         {
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);

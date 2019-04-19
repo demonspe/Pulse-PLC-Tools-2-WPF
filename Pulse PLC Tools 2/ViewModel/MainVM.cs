@@ -120,6 +120,7 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_ReadEnableRows { get; private set; }
         public DelegateCommand Send_ReadSelectedRows { get; private set; }
         public DelegateCommand Send_WriteSelectedRows { get; private set; }
+        public DelegateCommand Send_WriteEnabledRows { get; private set; }
 
         public DelegateCommand EnableSelected { get; private set; }
         public DelegateCommand DisableSelected { get; private set; }
@@ -155,7 +156,14 @@ namespace Pulse_PLC_Tools_2
         //View
         public DelegateCommand<string> ImpRectangleOffOnClick { get; private set; }
         public DelegateCommand<string> ImpRectangleGoToPageClick { get; private set; }
-        
+
+        //PLC Table set Merc 230
+        public DelegateCommand Merc_Set { get; set; }
+        public DelegateCommand Merc_Set1 { get; set; }
+        public DelegateCommand Merc_Set2 { get; set; }
+        public DelegateCommand Merc_Set3 { get; set; }
+
+
         //----------------------------------------------------------------------------------
 
         public MainVM()
@@ -294,6 +302,7 @@ namespace Pulse_PLC_Tools_2
             Send_ReadEnableRows = new DelegateCommand(ProtocolManager.Send_ReadEnableRowsAdrss);
             Send_ReadSelectedRows = new DelegateCommand(ProtocolManager.Send_ReadSelectedRows);
             Send_WriteSelectedRows = new DelegateCommand(() => ProtocolManager.Send_WriteSelectedRows(VM_PLCTable.SelectedRows));
+            Send_WriteEnabledRows = new DelegateCommand(() => ProtocolManager.Send_WriteEnabledRows(VM_PLCTable.TablePLC.Where(r => r.IsEnable == true).ToList()));
             EnableSelected = new DelegateCommand(VM_PLCTable.EnableSelected);
             DisableSelected = new DelegateCommand(VM_PLCTable.DisableSelected);
             ClearPLCTable = new DelegateCommand(VM_PLCTable.ResetTable);
@@ -350,7 +359,35 @@ namespace Pulse_PLC_Tools_2
                 if (impNum == "1") GoToPage(TabPages.Imp2);
                 if (impNum == "2") GoToPage(TabPages.Imp1);
             });
-        }
+
+            //Service
+            Merc_Set = new DelegateCommand(() => {
+                foreach(var rowitem in VM_PLCTable.TablePLC.Where(u=>u.IsEnable==true))
+                {
+                    rowitem.Adrs_ASCUE = rowitem.Adrs_PLC;
+                    rowitem.Protocol_ASCUE = ImpAscueProtocolType.Mercury230ART;
+                }
+            });
+            Merc_Set1 = new DelegateCommand(() => {
+                foreach (var rowitem in VM_PLCTable.TablePLC.Where(u => u.IsEnable == true))
+                {
+                    rowitem.Pass_ASCUE_View = "111111";
+                }
+            });
+            Merc_Set2 = new DelegateCommand(() => {
+                foreach (var rowitem in VM_PLCTable.TablePLC.Where(u => u.IsEnable == true))
+                {
+                    rowitem.Pass_ASCUE_View = "222222";
+                }
+            });
+            Merc_Set3 = new DelegateCommand(() => {
+                foreach (var rowitem in VM_PLCTable.TablePLC.Where(u => u.IsEnable == true))
+                {
+                    rowitem.Pass_ASCUE_View = "333333";
+                }
+            });
+
+    }
 
         void GoToPageFromXName(string xNameOfPage)
         {

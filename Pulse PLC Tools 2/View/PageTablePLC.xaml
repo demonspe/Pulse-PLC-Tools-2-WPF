@@ -78,5 +78,11 @@
         <Button Content="Прочитать опрашиваемые" Command="{Binding Send_ReadEnableRows}" HorizontalAlignment="Left" Margin="221,10,0,0" VerticalAlignment="Top" Width="156" Height="35"/> 
         <TextBlock HorizontalAlignment="Left" Margin="882,10,0,0" TextWrapping="Wrap" Text="Выбрано строк: " VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="980,10,0,0" TextWrapping="Wrap" Text="{Binding VM_PLCTable.CountSelectedRows}" VerticalAlignment="Top"/>
+        <Button Content="-> Мерк. 230" Command="{Binding Merc_Set}" HorizontalAlignment="Left" Margin="1000
+                ,10,0,0" VerticalAlignment="Top" Width="92" Height="35"/>
+        <Button Content="1" Command="{Binding Merc_Set1}" HorizontalAlignment="Left" Margin="1097,10,0,0" VerticalAlignment="Top" Width="34" Height="35" ToolTip="Задать пароль 111111"/>
+        <Button Content="2" Command="{Binding Merc_Set2}" HorizontalAlignment="Left" Margin="1131,10,0,0" VerticalAlignment="Top" Width="34" Height="35" ToolTip="Задать пароль 222222"/>
+        <Button Content="3" Command="{Binding Merc_Set3}" HorizontalAlignment="Left" Margin="1164,10,0,0" VerticalAlignment="Top" Width="34" Height="35" ToolTip="Задать пароль 333333"/>
+        <Button Content="Записать активные" Command="{Binding Send_WriteEnabledRows}" HorizontalAlignment="Left" Margin="382,10,0,0" VerticalAlignment="Top" Width="156" Height="35"/>
     </Grid>
 </UserControl>
