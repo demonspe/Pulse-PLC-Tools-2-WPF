@@ -249,6 +249,8 @@ namespace Pulse_PLC_Tools_2
         private ILink CurrentLink { get; set; }
         //Доступ к выполнению команд на устройстве
         private AccessType Access { get; set; }
+        //Сервисный режим
+        private bool ServiceMode { get; set; }
 
         //Таймеры
         private DispatcherTimer TimerTimeout { get; set; }
@@ -323,9 +325,16 @@ namespace Pulse_PLC_Tools_2
             CurrentLink = link;
             CurrentCommand = (Commands)cmdCode;
 
+            //Комманты не требующие авторизации
             if (CurrentCommand == Commands.Check_Pass)     return CMD_Check_Pass((PulsePLCv2LoginPass)param);
             if (CurrentCommand == Commands.Close_Session)  return CMD_Close_Session();
             if (CurrentCommand == Commands.Search_Devices) return CMD_Search_Devices();
+
+            //Работают с AccessType.Write или без пароля в Сервисном режиме (во всех случаях только по USB)
+            if (CurrentCommand == Commands.Bootloader) return CMD_BOOTLOADER();
+            if (CurrentCommand == Commands.EEPROM_Burn) return CMD_EEPROM_BURN();
+            if (CurrentCommand == Commands.EEPROM_Read_Byte) return CMD_EEPROM_Read_Byte((UInt16)param);
+
             //Доступ - Чтение
             if (Access != AccessType.Read && Access != AccessType.Write) {
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к данным устройства. Сначала авторизуйтесь." }); return false; }
@@ -340,11 +349,8 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Read_E_Start_Day)    return CMD_Read_E_Start_Day((byte)param);
             //Доступ - Запись
             if (Access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
-            if (CurrentCommand == Commands.Bootloader)         return CMD_BOOTLOADER();
             if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2Serial)param);
             if (CurrentCommand == Commands.Pass_Write)         return CMD_Pass_Write((DeviceMainParams)param);
-            if (CurrentCommand == Commands.EEPROM_Burn)        return CMD_EEPROM_BURN();
-            if (CurrentCommand == Commands.EEPROM_Read_Byte)   return CMD_EEPROM_Read_Byte((UInt16)param);
             if (CurrentCommand == Commands.Reboot)             return CMD_Reboot();
             if (CurrentCommand == Commands.Clear_Errors)       return CMD_Clear_Errors();
             if (CurrentCommand == Commands.Write_DateTime)     return CMD_Write_DateTime((DateTime)param);
