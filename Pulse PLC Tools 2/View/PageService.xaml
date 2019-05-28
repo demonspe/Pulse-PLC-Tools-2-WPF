@@ -9,8 +9,28 @@
     <Grid Background="White" Margin="-4">
         <TextBox Text="{Binding SerialForWrite}" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="325" Height="82" FontSize="48" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="Bold" />
         <Button Command="{Binding Send_WriteSerial}" Content="Записать серийный номер" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Width="325" Height="48" FontSize="24"/>
-        <TextBlock Margin="0,225,0,0" HorizontalAlignment="Left" Width="90" Height="22" VerticalAlignment="Top">Адрес EEPROM</TextBlock>
-        <TextBox Text="{Binding EAddres}" Height="22" Width="100" Margin="95,225,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <Button Command="{Binding Send_ReadEEPROM}"  Margin="203,225,0,0" HorizontalAlignment="Left" Width="100" Height="22" VerticalAlignment="Top">Прочитать</Button>
+        <Grid Margin="10,161,0,0" Background="LightBlue" HorizontalAlignment="Left" Width="325" Height="42" VerticalAlignment="Top">
+            <TextBlock Margin="10,10,0,0" HorizontalAlignment="Left" Width="90" Height="22" VerticalAlignment="Top"><Run Text="Адрес EEPROM"/></TextBlock>
+            <TextBox Text="{Binding EAddres}" Height="22" Width="100" Margin="105,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Button Command="{Binding Send_ReadEEPROM}"  Margin="213,10,0,0" HorizontalAlignment="Left" Width="100" Height="22" VerticalAlignment="Top" Content="Прочитать"/>
+        </Grid>
+        <Grid Margin="10,208,0,0" HorizontalAlignment="Left" Width="226" Height="240" VerticalAlignment="Top" Background="LightGray">
+            <StackPanel Margin="5">
+                <TextBlock Padding="5" TextAlignment="Center">Режим тестирования</TextBlock>
+                <ComboBox SelectedIndex="{Binding TestModePLCEnabled}" x:Name="ComboBoxTestModeEnabled">
+                    <!-- Вкл/Выкл -->
+                </ComboBox>
+                <ComboBox SelectedIndex="{Binding Frequency}" x:Name="ComboBoxFreqs">
+                    <!-- Выбор частоты генерации -->
+                </ComboBox>
+                <ComboBox SelectedIndex="{Binding FrequencyDiv}" x:Name="ComboBoxFreqDivs">
+                    <!-- Выбор делителя сигнала (чем больше делитель, тем меньше амплитуда) -->
+                </ComboBox>
+                <Button Command="{Binding Send_TestModePLC}" Margin="5">Записать</Button>
+                <TextBlock TextWrapping="Wrap" Padding="5">Включай, выбирай параметры, записывай. (пароль 111111) </TextBlock>
+                <TextBlock TextWrapping="Wrap" Padding="5">Если замкнуть IMP1 то будет генерироваться выбранная частота.</TextBlock>
+                <TextBlock TextWrapping="Wrap" Padding="5">Если замкнуть IMP1 и IMP2 то будут генерироваться все частоты поочереди.</TextBlock>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

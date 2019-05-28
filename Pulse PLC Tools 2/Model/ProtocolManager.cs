@@ -266,6 +266,12 @@ namespace Pulse_PLC_Tools_2
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Bootloader, null, 0);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
+        public void Send_TestModePLC(PulsePLCv2TestModePLCParams param)
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Test_Mode_PLC, param, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
 
         public void Send_WriteSerial(string serialString)
         {

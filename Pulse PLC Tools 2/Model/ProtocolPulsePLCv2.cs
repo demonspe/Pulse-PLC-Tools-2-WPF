@@ -164,6 +164,21 @@ namespace Pulse_PLC_Tools_2
             Type = type;
         }
     }
+    /// <summary>
+    /// Параметры для команды TestModePLC, которая включает и настраивает режим тестирования передатчика PLC. 
+    /// В этом режиме можно генерировать вручную частоты из передатчика для настройки, тестирования и т.д.
+    /// </summary>
+    public class PulsePLCv2TestModePLCParams
+    {
+        /// <summary> 0 - Выкл., 1 - Вкл. режим тестирования </summary>
+        public int TestModeEnabled { get; set; }
+        /// <summary> Индекс определяющий генерируемую частоту по формуле F=FreqIndex*3906,25 (Гц) </summary>
+        public int FreqIndex { get; set; }
+        /// <summary>
+        /// Делитель амплитуды частоты (рабочий 15), чем больше делитель - тем меньше амплитуда сигнала. Делитель меньше 13 - сигнал будет нестабильным
+        /// </summary>
+        public int FreqDiv { get; set; }
+    }
 
     public class TimeoutTickEventArgs : EventArgs
     {
@@ -234,7 +249,8 @@ namespace Pulse_PLC_Tools_2
             EEPROM_Read_Byte,
             Pass_Write,
             SerialWrite,
-            Bootloader
+            Bootloader,
+            Test_Mode_PLC
         }
         
         //События
@@ -296,6 +312,7 @@ namespace Pulse_PLC_Tools_2
             CommandProps.Add(Commands.Clear_Errors,     new CommandProperties() { Code = "Sc", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Reboot,           new CommandProperties() { Code = "Sr", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Request_PLC,      new CommandProperties() { Code = "SR", MinLength = 0, Timeout = 60000 });
+            CommandProps.Add(Commands.Test_Mode_PLC,      new CommandProperties() { Code = "St", MinLength = 0, Timeout = 100 });
             //Чтение                                                                           
             CommandProps.Add(Commands.Search_Devices,   new CommandProperties() { Code = "RL", MinLength = 0, Timeout = 500 });
             CommandProps.Add(Commands.Read_Journal,     new CommandProperties() { Code = "RJ", MinLength = 0, Timeout = 200 });
@@ -350,6 +367,7 @@ namespace Pulse_PLC_Tools_2
             //Доступ - Запись
             if (Access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
             if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2Serial)param);
+            if (CurrentCommand == Commands.Test_Mode_PLC)      return CMD_Test_Mode_PLC((PulsePLCv2TestModePLCParams)param);
             if (CurrentCommand == Commands.Pass_Write)         return CMD_Pass_Write((DeviceMainParams)param);
             if (CurrentCommand == Commands.Reboot)             return CMD_Reboot();
             if (CurrentCommand == Commands.Clear_Errors)       return CMD_Clear_Errors();
@@ -393,6 +411,7 @@ namespace Pulse_PLC_Tools_2
                     if (Check(CMD_Name, Commands.EEPROM_Read_Byte)) { CMD_EEPROM_Read_Byte(rxBytes);    return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Clear_Errors))     { CMD_Clear_Errors(rxBytes);        return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Request_PLC))      { CMD_Request_PLC(rxBytes);         return HandleResult.Ok; }
+                    if (Check(CMD_Name, Commands.Test_Mode_PLC))    { CMD_Test_Mode_PLC(rxBytes);       return HandleResult.Ok; }
                 }
                 //Команды чтения
                 if (CMD_Type == 'R')
@@ -717,6 +736,25 @@ namespace Pulse_PLC_Tools_2
         {
             if (rxBytes[6] == 'O' && rxBytes[7] == 'K')
                 Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "СЕРИЙНЫЙ НОМЕР ЗАПИСАН" + GetPingStr() });
+        }
+        //Запрос - Запись настроек тестового режима PLC
+        private bool CMD_Test_Mode_PLC(PulsePLCv2TestModePLCParams param)
+        {
+            Start_Add_Tx(Commands.Test_Mode_PLC);
+            Add_Tx((byte)param.TestModeEnabled); //Выкл/Вкл
+            Add_Tx((byte)param.FreqIndex); //Индекс частоты
+            Add_Tx((byte)param.FreqDiv); //Делитель частоты
+            Message(this, new MessageDataEventArgs() {
+                MessageType = MessageType.Normal,
+                MessageString = "Запись параметров тестового режима PLC"
+            });
+            return Request_Start();
+        }
+        //Обработка запроса
+        private void CMD_Test_Mode_PLC(byte[] rxBytes)
+        {
+            if (rxBytes[6] == 'O' && rxBytes[7] == 'K')
+                Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры режима тестирования PLC записаны" + GetPingStr() });
         }
 
         //Запрос EEPROM BURN (сброс к заводским настройкам)

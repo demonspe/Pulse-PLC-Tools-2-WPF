@@ -153,7 +153,7 @@
                 <TreeViewItem x:Name="pageData_10" Header="Показания" Foreground="White"/>
                 <TreeViewItem x:Name="pageMonitor_11" Header="Монитор" Foreground="White"/>
                 <TreeViewItem x:Name="pageAbout_12" Header="О программе" Foreground="White"/>
-                <TreeViewItem x:Name="pageService_13" Header="Сервис/Настройка" Foreground="White" FontWeight="Bold" Visibility="Hidden"/> <!-- Вкладка для записи серийного номера -->
+                <TreeViewItem x:Name="pageService_13" Header="Сервис/Настройка" Foreground="White" FontWeight="Bold" Visibility="Visible"/> <!-- Вкладка для записи серийного номера -->
             </TreeView>
         </Grid>
 

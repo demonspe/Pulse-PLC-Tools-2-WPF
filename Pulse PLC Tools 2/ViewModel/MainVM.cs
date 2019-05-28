@@ -38,6 +38,13 @@ namespace Pulse_PLC_Tools_2
         public string SerialForWrite { get => serialForWrite; set { serialForWrite = value; RaisePropertyChanged(nameof(SerialForWrite)); } }
         private ushort eAddres;
         public ushort EAddres { get => eAddres; set { eAddres = value; } }
+
+        //Выкл/Вкл тестовый режим PLC передатчиа
+        public ushort TestModePLCEnabled { get; set; }
+        //Индекс генерируемой частоты передатчика
+        public ushort Frequency { get; set; }
+        //Делитель выходной амплитуды сигнала
+        public ushort FrequencyDiv { get; set; }
         #endregion----------------------------------------------------------------
 
         //Found serials
@@ -151,6 +158,8 @@ namespace Pulse_PLC_Tools_2
         //Service
         public DelegateCommand Send_WriteSerial { get; private set; }
         public DelegateCommand Send_ReadEEPROM { get; set; }
+        public DelegateCommand Send_TestModePLC { get; set; }
+
 
         //View
         public DelegateCommand<string> ImpRectangleOffOnClick { get; private set; }
@@ -340,6 +349,12 @@ namespace Pulse_PLC_Tools_2
             //Service
             Send_WriteSerial = new DelegateCommand(() => { ProtocolManager.Send_WriteSerial(SerialForWrite); SerialForWrite = ""; });
             Send_ReadEEPROM = new DelegateCommand(() => { ProtocolManager.Send_ReadEEPROM(EAddres); });
+            Send_TestModePLC = new DelegateCommand(() => ProtocolManager.Send_TestModePLC(new PulsePLCv2TestModePLCParams()
+            {
+                TestModeEnabled = TestModePLCEnabled,
+                FreqIndex = Frequency + 8,
+                FreqDiv = FrequencyDiv + 13
+            }));
 
             //View
             ImpRectangleOffOnClick = new DelegateCommand<string>(impNum => {
