@@ -279,13 +279,13 @@ namespace Pulse_PLC_Tools_2
             MessageBox.Show(serial.SerialString);
             if (MessageBox.Show("Записать серийный номер?\n\nНомер: " + serial.SerialString, "Запись серийного номера", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                int serialInt = Convert.ToInt32(serial.SerialBytes[0].ToString("00") + serial.SerialBytes[1].ToString("00") + serial.SerialBytes[2].ToString("00") + serial.SerialBytes[3].ToString("00"));
-                if (serialInt > 1809000 && serialInt < 1814001)
-                {
+                //int serialInt = Convert.ToInt32(serial.SerialBytes[0].ToString("00") + serial.SerialBytes[1].ToString("00") + serial.SerialBytes[2].ToString("00") + serial.SerialBytes[3].ToString("00"));
+                //if (serialInt > 1809000 && serialInt < 1814001)
+                //{
                     CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
                     CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.SerialWrite, serial, 0);
                     CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
-                }
+                //}
             }
         }
 
