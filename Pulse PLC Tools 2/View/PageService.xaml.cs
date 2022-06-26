@@ -42,6 +42,18 @@ namespace Pulse_PLC_Tools_2
             ComboBoxFreqs.SelectedIndex = 18 - 8;
 
             //Выбор делителя частоты
+            ComboBoxFreqDivs.Items.Add(1);
+            ComboBoxFreqDivs.Items.Add(2);
+            ComboBoxFreqDivs.Items.Add(3);
+            ComboBoxFreqDivs.Items.Add(4);
+            ComboBoxFreqDivs.Items.Add(5);
+            ComboBoxFreqDivs.Items.Add(6);
+            ComboBoxFreqDivs.Items.Add(7);
+            ComboBoxFreqDivs.Items.Add(8);
+            ComboBoxFreqDivs.Items.Add(9);
+            ComboBoxFreqDivs.Items.Add(10);
+            ComboBoxFreqDivs.Items.Add(11);
+            ComboBoxFreqDivs.Items.Add(12);
             ComboBoxFreqDivs.Items.Add(13 + " - Максимальная амплитуда (не стабильная)");
             ComboBoxFreqDivs.Items.Add(14);
             ComboBoxFreqDivs.Items.Add(15 + " - Рабочая амплитуда (стабильная)");
@@ -52,7 +64,7 @@ namespace Pulse_PLC_Tools_2
             ComboBoxFreqDivs.Items.Add(20);
             ComboBoxFreqDivs.Items.Add(21);
             ComboBoxFreqDivs.Items.Add(22);
-            ComboBoxFreqDivs.SelectedIndex = 2;
+            ComboBoxFreqDivs.SelectedIndex = 14;
         }
     }
 }

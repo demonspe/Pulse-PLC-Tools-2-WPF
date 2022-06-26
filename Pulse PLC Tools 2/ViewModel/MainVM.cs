@@ -353,7 +353,7 @@ namespace Pulse_PLC_Tools_2
             {
                 TestModeEnabled = TestModePLCEnabled,
                 FreqIndex = Frequency + 8,
-                FreqDiv = FrequencyDiv + 13
+                FreqDiv = FrequencyDiv + 1
             }));
 
             //View
