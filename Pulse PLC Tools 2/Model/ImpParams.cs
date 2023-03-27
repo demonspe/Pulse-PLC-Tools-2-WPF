@@ -11,7 +11,7 @@ namespace Pulse_PLC_Tools_2
     public enum ImpNum : int { IMP1 = 1, IMP2 }
     public enum ImpOverflowType: byte { Disable = 0, Overflow_5_Digits = 5, Overflow_6_Digits = 6 }
     public enum ImpNumOfTarifs: byte { One = 1, Two = 2, Three = 3 }
-    public enum ImpAscueProtocolType : byte { PulsePLC = 0, Mercury230ART = 1 }
+    public enum ImpAscueProtocolType : byte { PulsePLC = 0, Mercury230ART = 1, MercuryM206 = 2 }
 
     public class ImpTime : BindableBase
     {

@@ -151,6 +151,7 @@
                         <ComboBox SelectedIndex="{Binding Imp2.Ascue_protocol}" ToolTip="Протокол, по которому будет происходить опрос с верхнего уровня через RS485" HorizontalAlignment="Left" VerticalAlignment="Top" Width="184" Background="#00E8E7E7" Margin="51,61,0,0">
                             <ComboBoxItem>Pulse PLC</ComboBoxItem>
                             <ComboBoxItem>Pulse PLC + Mercury 230ART</ComboBoxItem>
+                            <ComboBoxItem>Pulse PLC + Mercury M206</ComboBoxItem>
                             <!-- Pulse PLC + Modbus RTU -->
                             <!-- Pulse PLC + Energomera -->
                         </ComboBox>
