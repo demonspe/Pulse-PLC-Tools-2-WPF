@@ -1,9 +1,5 @@
-﻿using Prism.Mvvm;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using Prism.Mvvm;
 
 
 namespace Pulse_PLC_Tools_2
@@ -94,7 +90,36 @@ namespace Pulse_PLC_Tools_2
         public byte S3 { get { return steps[2]; } set { if (value >= 0 && value <= 250) steps[2] = value; RaisePropertyChanged(nameof(S3)); RaisePropertyChanged(nameof(Steps)); } }
         public byte S4 { get { return steps[3]; } set { if (value >= 0 && value <= 250) steps[3] = value; RaisePropertyChanged(nameof(S4)); RaisePropertyChanged(nameof(Steps)); } }
         public byte S5 { get { return steps[4]; } set { if (value >= 0 && value <= 250) steps[4] = value; RaisePropertyChanged(nameof(S5)); RaisePropertyChanged(nameof(Steps)); } }
-        public ImpAscueProtocolType Protocol_ASCUE { get { return protocol_type; } set { protocol_type = value; RaisePropertyChanged(nameof(Protocol_ASCUE)); } }
+        
+        /// <summary>
+        /// Тип протокола для ответа в системе ASCUE.
+        /// </summary>
+        public ImpAscueProtocolType Protocol_ASCUE {
+            get 
+            { 
+                return protocol_type;
+            } 
+            set 
+            { 
+                protocol_type = value;
+                int val = (int)value;
+                // Могут быть только такие значения:
+                // 0 - только PulsePLC,
+                // 1 - протокол однофазного счетчика (206),
+                // 3 - трехфазного (230)
+                //
+                // Но в устройстве, значения совпадают с номерами в перечислении.
+                // Это визуальный "трюк" для "удобства" выбора протокола.
+                if (val == 0)
+                    protocol_type = ImpAscueProtocolType.PulsePLC;
+                else if (val == 1)
+                    protocol_type = ImpAscueProtocolType.MercuryM206;
+                else if (val == 3)
+                    protocol_type = ImpAscueProtocolType.Mercury230ART;
+
+                RaisePropertyChanged(nameof(Protocol_ASCUE));
+            } 
+        }
         public ushort Adrs_ASCUE { get { return adrs_ASCUE; } set { adrs_ASCUE = value; RaisePropertyChanged(nameof(Adrs_ASCUE)); } }
         public byte[] Pass_ASCUE
         {
