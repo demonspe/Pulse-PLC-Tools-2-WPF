@@ -250,7 +250,8 @@ namespace Pulse_PLC_Tools_2
             Pass_Write,
             SerialWrite,
             Bootloader,
-            Test_Mode_PLC
+            Test_Mode_PLC,
+            Read_IMP_Prev_Day_E
         }
         
         //События
@@ -319,6 +320,7 @@ namespace Pulse_PLC_Tools_2
             CommandProps.Add(Commands.Read_DateTime,    new CommandProperties() { Code = "RT", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_Main_Params, new CommandProperties() { Code = "RM", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_IMP,         new CommandProperties() { Code = "RI", MinLength = 0, Timeout = 100 });
+            CommandProps.Add(Commands.Read_IMP_Prev_Day_E,  new CommandProperties() { Code = "Rp", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_IMP_extra,   new CommandProperties() { Code = "Ri", MinLength = 0, Timeout = 100 });
             CommandProps.Add(Commands.Read_PLC_Table,   new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
             CommandProps.Add(Commands.Read_PLC_Table_En,new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
@@ -364,6 +366,7 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Read_PLC_Table)      return CMD_Read_PLC_Table((List<DataGridRow_PLC>)param);
             if (CurrentCommand == Commands.Read_E_Current)      return CMD_Read_E_Current((byte)param);
             if (CurrentCommand == Commands.Read_E_Start_Day)    return CMD_Read_E_Start_Day((byte)param);
+            if (CurrentCommand == Commands.Read_IMP_Prev_Day_E) return CMD_Read_Imp_Prev_Day_E((ImpNum)param);
             //Доступ - Запись
             if (Access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
             if (CurrentCommand == Commands.SerialWrite)        return CMD_SerialWrite((PulsePLCv2Serial)param);
@@ -422,6 +425,7 @@ namespace Pulse_PLC_Tools_2
                     if (Check(CMD_Name, Commands.Read_Main_Params)) { CMD_Read_Main_Params(rxBytes);    return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Read_IMP))         { CMD_Read_Imp_Params(rxBytes);     return HandleResult.Ok; }
                     if (Check(CMD_Name, Commands.Read_IMP_extra))   { CMD_Read_Imp_Extra_Params(rxBytes); return HandleResult.Ok; }
+                    if (Check(CMD_Name, Commands.Read_IMP_Prev_Day_E)) { CMD_Read_Imp_Prev_Day_E(rxBytes); return HandleResult.Ok; }
                     if (CMD_Name == 'P' && (CurrentCommand == Commands.Read_PLC_Table ||
                                             CurrentCommand == Commands.Read_PLC_Table_En)) { CMD_Read_PLC_Table(rxBytes); return HandleResult.Ok; }
                     if (CMD_Name == 'E')
@@ -1054,6 +1058,61 @@ namespace Pulse_PLC_Tools_2
             if (bytes_buff[6] == 'O' && bytes_buff[7] == 'K') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Параметры успешно записаны" + GetPingStr() });
             if (bytes_buff[6] == 'e' && bytes_buff[7] == 'r') Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Ошибка при записи" + GetPingStr() });
         }
+        #endregion
+
+        #region ЧТЕНИЕ ПОКАЗАНИЙ НА НАЧАЛО ПРЕДЫДУЩИХ СУТОК ИМПУЛЬСНЫХ ВХОДОВ
+
+        //Запрос ЧТЕНИЕ ПАРАМЕТРОВ ИМПУЛЬСНЫХ ВХОДОВ
+        private bool CMD_Read_Imp_Prev_Day_E(ImpNum imp_num)
+        {
+            Start_Add_Tx(Commands.Read_IMP_Prev_Day_E);
+            byte imp_ = Convert.ToByte(((byte)imp_num).ToString()[0]);
+            //Параметры
+            Add_Tx((byte)imp_);
+            //Отправляем запрос
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Чтение показаний 'начало предыдущих суток'. Вход: " + imp_num });
+            return Request_Start();
+        }
+        //Обработка ответа
+        private void CMD_Read_Imp_Prev_Day_E(byte[] rxBytes)
+        {
+            var ImpEParams = new ImpPrevDayEParams(ImpNum.IMP1);
+            if (rxBytes[6] != '1' && rxBytes[6] != '2') return;
+            if (rxBytes[6] == '2') ImpEParams.Num = ImpNum.IMP2;
+            int pntr = 7;
+
+            //Показания (12)
+            ImpEParams.Energy = new ImpEnergyGroup(true);
+            uint E = rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            ImpEParams.Energy.E_T1.Value_Wt = E;
+            E = rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            ImpEParams.Energy.E_T2.Value_Wt = E;
+            E = rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            E = (E << 8) + rxBytes[pntr++];
+            ImpEParams.Energy.E_T3.Value_Wt = E;
+
+            ImpEParams.Day = rxBytes[pntr++];
+            ImpEParams.Month = rxBytes[pntr++];
+            ImpEParams.Energy.IsCorrect = (0 != rxBytes[pntr++]);
+            //Резервные параметры (на будущее)
+            //4 байта
+            byte reserv_ = rxBytes[pntr++];
+            reserv_ = rxBytes[pntr++];
+            reserv_ = rxBytes[pntr++];
+            reserv_ = rxBytes[pntr++];
+            // Отобразим
+            DataContainer.Data = ImpEParams;
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Энергия на начало предыдущих суток для " + ImpEParams.Num + " считана" + GetPingStr() });
+        }
+
         #endregion
 
         #region ЧТЕНИЕ ЖУРНАЛА СОБЫТИЙ

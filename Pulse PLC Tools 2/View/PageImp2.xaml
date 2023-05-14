@@ -33,11 +33,11 @@
     </UserControl.Resources>
     <Grid Margin="-4">
         <Image HorizontalAlignment="Left" Width="259" Source="Pics/входы.png" Margin="-14,0,0,0" Height="395" VerticalAlignment="Top"/>
-        <GroupBox Header="                                       " HorizontalAlignment="Left" Height="323" VerticalAlignment="Top" Width="847" Margin="201,0,0,0">
+        <GroupBox Header="                                       " HorizontalAlignment="Left" Height="415" VerticalAlignment="Top" Width="847" Margin="201,0,0,0">
             <Grid Background="#00F9F9F9" >
                 <Label Content="Aдрес PLC" HorizontalAlignment="Left" Margin="13,7,0,0" VerticalAlignment="Top" Width="87"/>
                 <TextBox Text="{Binding Imp2.Adrs_PLC}" HorizontalAlignment="Left" Height="23" Margin="107,10,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="80"/>
-                <GroupBox Header="Тарифное расписание" Height="240" Margin="558,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="274">
+                <GroupBox Header="Тарифное расписание" Height="175" Margin="558,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="274">
                     <StackPanel Margin="5">
                         <StackPanel.Resources>
                             <Style TargetType="TextBox">
@@ -178,6 +178,42 @@
                     </Grid>
                 </GroupBox>
                 <Label Content="от 1 до 250" HorizontalAlignment="Left" Margin="192,7,0,0" VerticalAlignment="Top" Width="82" />
+                <GroupBox Header="Показания на начало прошлых суток" HorizontalAlignment="Left" Height="171" Margin="558,180,0,0" VerticalAlignment="Top" Width="274">
+                    <StackPanel Margin="5,0,5,0">
+                        <StackPanel.Resources>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Width" Value="120"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock><Run Text="E+ тариф 1 (кВт*ч)"/></TextBlock>
+                            <TextBlock Text="{Binding Imp2PrevDayE.Energy.E_T1_View, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock><Run Text="E+ тариф 2 (кВт*ч)"/></TextBlock>
+                            <TextBlock Text="{Binding Imp2PrevDayE.Energy.E_T2_View, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock><Run Text="E+ тариф 3 (кВт*ч)"/></TextBlock>
+                            <TextBlock Text="{Binding Imp2PrevDayE.Energy.E_T3_View, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock><Run Text="E+ сумма (кВт*ч)"/></TextBlock>
+                            <TextBlock Text="{Binding Imp2PrevDayE.Energy.E_Summ_View}" FontWeight="Black"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock><Run Text="День"/></TextBlock>
+                            <TextBlock Text="{Binding Imp2PrevDayE.Day}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="2">
+                            <TextBlock><Run Text="Месяц"/></TextBlock>
+                            <TextBlock Text="{Binding Imp2PrevDayE.Month}"/>
+                        </StackPanel>
+                        <Button Command="{Binding Send_ReadImp2PrevDayE}" Content="Прочитать" Width="248" Height="24"/>
+                    </StackPanel>
+                </GroupBox>
+                <Button Command="{Binding Send_WriteImp2}" Content="Записать" HorizontalAlignment="Left" Margin="131,309,0,0" VerticalAlignment="Top" Width="93" Height="33" />
+                <Button Command="{Binding Send_ReadImp2}" Content="Прочитать" HorizontalAlignment="Left" Margin="13,309,0,0" VerticalAlignment="Top" Width="113" Height="33" />
             </Grid>
         </GroupBox>
         <CheckBox IsChecked="{Binding Imp2.IsEnable}" Content="Импульсный вход 2" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top"/>
@@ -274,7 +310,5 @@
                 </Style>
             </Rectangle.Style>
         </Rectangle>
-        <Button Command="{Binding Send_ReadImp2}" Content="Прочитать" HorizontalAlignment="Left" Margin="201,328,0,0" VerticalAlignment="Top" Width="91" />
-        <Button Command="{Binding Send_WriteImp2}" Content="Записать" HorizontalAlignment="Left" Margin="297,328,0,0" VerticalAlignment="Top" Width="59" />
     </Grid>
 </UserControl>

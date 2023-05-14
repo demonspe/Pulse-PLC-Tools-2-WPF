@@ -167,6 +167,12 @@ namespace Pulse_PLC_Tools_2
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_IMP, num, 0);
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
+        public void Send_ReadImpPrevDayE(ImpNum num)
+        {
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_IMP_Prev_Day_E, num, 0);
+            CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
+        }
         public void Send_WriteImp(ImpParams imp)
         {
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Check_Pass, GetLoginPass(), 0);
@@ -351,6 +357,13 @@ namespace Pulse_PLC_Tools_2
                     Main_VM.Imp1 = (ImpParams)data;
                 else
                     Main_VM.Imp2 = (ImpParams)data;
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_IMP_Prev_Day_E)
+            {
+                if (((ImpPrevDayEParams)data).Num == ImpNum.IMP1)
+                    Main_VM.Imp1PrevDayE = (ImpPrevDayEParams)data;
+                else
+                    Main_VM.Imp2PrevDayE = (ImpPrevDayEParams)data;
             }
             if (cmd == PulsePLCv2Protocol.Commands.Read_IMP_extra)
             {

@@ -21,6 +21,7 @@ namespace Pulse_PLC_Tools_2
         //Data (Device configs)
         ImpParams imp1, imp2;
         ImpExParams imp1Ex, imp2Ex;
+        ImpPrevDayEParams imp1PrevDayE, imp2PrevDayE;
         DeviceMainParams device;
         //Messages and Log
         private FlowDocument logContent;
@@ -54,6 +55,8 @@ namespace Pulse_PLC_Tools_2
         public ImpParams Imp2 { get => imp2; set { imp2 = value; RaisePropertyChanged(nameof(Imp2)); } }
         public ImpExParams Imp1Ex { get => imp1Ex; set { imp1Ex = value; RaisePropertyChanged(nameof(Imp1Ex)); } }
         public ImpExParams Imp2Ex { get => imp2Ex; set { imp2Ex = value; RaisePropertyChanged(nameof(Imp2Ex)); } }
+        public ImpPrevDayEParams Imp1PrevDayE { get => imp1PrevDayE; set { imp1PrevDayE = value; RaisePropertyChanged(nameof(Imp1PrevDayE)); } }
+        public ImpPrevDayEParams Imp2PrevDayE { get => imp2PrevDayE; set { imp2PrevDayE = value; RaisePropertyChanged(nameof(Imp2PrevDayE)); } }
         public DeviceMainParams Device { get => device; set { device = value; RaisePropertyChanged(nameof(Device)); } }
         //Device events journals
         public ObservableCollection<DataGridRow_Event> JournalPower { get; }
@@ -118,8 +121,10 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_ClearErrors { get; private set; }
         public DelegateCommand Send_WritePass { get; private set; }
         public DelegateCommand Send_ReadImp1 { get; private set; }   //Imp1
+        public DelegateCommand Send_ReadImp1PrevDayE { get; private set; }
         public DelegateCommand Send_WriteImp1 { get; private set; }
         public DelegateCommand Send_ReadImp2 { get; private set; }   //Imp2
+        public DelegateCommand Send_ReadImp2PrevDayE { get; private set; }
         public DelegateCommand Send_WriteImp2 { get; private set; }
         public DelegateCommand Send_ReadImp1Ex { get; private set; }
         public DelegateCommand Send_ReadImp2Ex { get; private set; }
@@ -294,8 +299,10 @@ namespace Pulse_PLC_Tools_2
             Send_WritePass = new DelegateCommand(() => ProtocolManager.Send_WritePass(Device));
             //Imps params
             Send_ReadImp1 = new DelegateCommand(() => ProtocolManager.Send_ReadImp(ImpNum.IMP1));
+            Send_ReadImp1PrevDayE = new DelegateCommand(() => ProtocolManager.Send_ReadImpPrevDayE(ImpNum.IMP1));
             Send_WriteImp1 = new DelegateCommand(() => ProtocolManager.Send_WriteImp(Imp1));
             Send_ReadImp2 = new DelegateCommand(() => ProtocolManager.Send_ReadImp(ImpNum.IMP2));
+            Send_ReadImp2PrevDayE = new DelegateCommand(() => ProtocolManager.Send_ReadImpPrevDayE(ImpNum.IMP2));
             Send_WriteImp2 = new DelegateCommand(() => ProtocolManager.Send_WriteImp(Imp2));
             Send_ReadImp1Ex = new DelegateCommand(() => ProtocolManager.Send_ReadImpEx(ImpNum.IMP1));
             Send_ReadImp2Ex = new DelegateCommand(() => ProtocolManager.Send_ReadImpEx(ImpNum.IMP2));

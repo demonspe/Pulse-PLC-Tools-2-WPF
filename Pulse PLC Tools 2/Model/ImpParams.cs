@@ -70,7 +70,7 @@ namespace Pulse_PLC_Tools_2
             get => e;
             set
             {
-                if (value > 3999999999)
+                if (value > 3999999999 && value != 0xFFFFFFFF)
                     e = 3999999999;
                 else
                     e = value;
@@ -84,11 +84,12 @@ namespace Pulse_PLC_Tools_2
             get => e_kWt;
             set
             {
-                if (value > (double)0xFFFFFFFF / 1000)
+                if (value > (double)0xFFFFFFFF / 1000 && value != 0xFFFFFFFF)
                     e_kWt = 3999999.999;
                 else
                     e_kWt = value;
-                e = Convert.ToUInt32(e_kWt * 1000);
+
+                e = (value != 0xFFFFFFFF) ? Convert.ToUInt32(e_kWt * 1000) : 0xFFFFFFFF;
                 RaisePropertyChanged(nameof(Value_Wt));
                 RaisePropertyChanged(nameof(Value_kWt));
             }
@@ -186,6 +187,26 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(E_Summ_View));
                 RaisePropertyChanged(nameof(E_T3_View));
             };
+        }
+    }
+
+    public class ImpPrevDayEParams : BindableBase
+    {
+        private ImpNum num;
+        private ImpEnergyGroup energy;
+        private byte day;
+        private byte month;
+
+        public ImpNum Num { get => num; set { num = value; RaisePropertyChanged(nameof(Num)); } }
+        public ImpEnergyGroup Energy { get => this.energy; set { this.energy = value; RaisePropertyChanged(nameof(Energy)); } }
+        public byte Day { get => this.day; set { this.day = value; RaisePropertyChanged(nameof(Day)); } }
+        public byte Month { get => this.month; set { this.month = value; RaisePropertyChanged(nameof(Month)); } }
+
+        public ImpPrevDayEParams(): this(ImpNum.IMP1) { }
+        public ImpPrevDayEParams(ImpNum num)
+        {
+            Num = num;
+            Energy = new ImpEnergyGroup(false);
         }
     }
 
