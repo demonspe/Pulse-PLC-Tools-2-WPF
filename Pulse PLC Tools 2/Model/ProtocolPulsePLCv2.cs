@@ -1360,6 +1360,11 @@ namespace Pulse_PLC_Tools_2
                         row.Pass_ASCUE = new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] };
                         //Байт ошибок
                         row.ErrorsByte = rxBytes[pntr++];
+                        //Кастомный серийный номер
+                        bool customSerialEnable = rxBytes[pntr++] == 1;
+                        row.CustomSerial = customSerialEnable
+                            ? new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] }
+                            : Enumerable.Repeat((byte)0, 4).ToArray();
                     }
                     list.Add(row);
                 }
@@ -1405,6 +1410,9 @@ namespace Pulse_PLC_Tools_2
                     Add_Tx((byte)listRows[i].TypePLC);
                     //Errors byte (only for read)
                     //Last link state (only for read)
+                    // Кастомный серийный номер (4 байта)
+                    Add_Tx(listRows[i].CustomSerial_View == string.Empty ? (byte)0 : (byte)1); // Нужно ли записать кастомный серийник
+                    Add_Tx(listRows[i].CustomSerial, 4);
                 }
             }
 

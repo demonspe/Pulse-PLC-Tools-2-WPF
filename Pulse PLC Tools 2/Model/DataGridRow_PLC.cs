@@ -21,6 +21,8 @@ namespace Pulse_PLC_Tools_2
 
         private bool isEnable = false;
         private byte adrs_PLC;
+        private byte[] custom_serial_bytes;
+        private string custom_serial_string;
         private byte[] serial_bytes;
         private string serial_string;
         private byte n_steps;
@@ -83,6 +85,57 @@ namespace Pulse_PLC_Tools_2
                 RaisePropertyChanged(nameof(Serial_View));
             }
         }
+        public byte[] CustomSerial
+        {
+            get => custom_serial_bytes;
+            set
+            {
+                if (custom_serial_bytes.Length < 4) return;
+                custom_serial_bytes = value;
+                custom_serial_string = custom_serial_bytes[0].ToString("00") + custom_serial_bytes[1].ToString("00") + custom_serial_bytes[2].ToString("00") + custom_serial_bytes[3].ToString("00");
+                custom_serial_bytes = new byte[4] { //Подгоняем длину массива под 4 
+                        Convert.ToByte(custom_serial_string.Substring(0, 2)),
+                        Convert.ToByte(custom_serial_string.Substring(2, 2)),
+                        Convert.ToByte(custom_serial_string.Substring(4, 2)),
+                        Convert.ToByte(custom_serial_string.Substring(6, 2))
+                    };
+                RaisePropertyChanged(nameof(CustomSerial));
+                RaisePropertyChanged(nameof(CustomSerial_View));
+            }
+        }
+        public string CustomSerial_View
+        {
+            get
+            {
+                if (custom_serial_string == "00000000")
+                    return "-";
+
+                return custom_serial_bytes[0].ToString("00") + custom_serial_bytes[1].ToString("00") + custom_serial_bytes[2].ToString("00") + custom_serial_bytes[3].ToString("00"); 
+            }
+            set
+            {
+                if (IsDigitsOnly(value))
+                {
+                    if (value == "0" || value == "-" || value == string.Empty)
+                    {
+                        custom_serial_string = "00000000";
+                        custom_serial_bytes = new byte[4] { 0, 0, 0, 0 };
+                    }
+                    if (value.Length == 8)
+                    {
+                        custom_serial_string = value;
+                        custom_serial_bytes = new byte[4] {
+                        Convert.ToByte(value.Substring(0, 2)),
+                        Convert.ToByte(value.Substring(2, 2)),
+                        Convert.ToByte(value.Substring(4, 2)),
+                        Convert.ToByte(value.Substring(6, 2))
+                        };
+                    }
+                }
+                RaisePropertyChanged(nameof(CustomSerial));
+                RaisePropertyChanged(nameof(CustomSerial_View));
+            }
+        }
         public byte N { get { return n_steps; } set { if (value >= 0 && value <= 5) n_steps = value; RaisePropertyChanged(nameof(N)); } }
         public byte[] Steps { get => steps; }
         public byte S1 { get { return steps[0]; } set { if (value >= 0 && value <= 250) steps[0] = value; RaisePropertyChanged(nameof(S1)); RaisePropertyChanged(nameof(Steps)); } }
@@ -96,12 +149,26 @@ namespace Pulse_PLC_Tools_2
         /// </summary>
         public ImpAscueProtocolType Protocol_ASCUE {
             get 
-            { 
+            {
                 return protocol_type;
-            } 
+            }
             set 
             { 
                 protocol_type = value;
+                RaisePropertyChanged(nameof(Protocol_ASCUE));
+            }
+        }
+        /// <summary>
+        /// Тип протокола для ответа в системе ASCUE.
+        /// </summary>
+        public ImpAscueProtocolType Protocol_ASCUE_View
+        {
+            get
+            {
+                return protocol_type;
+            }
+            set
+            {
                 int val = (int)value;
                 // Могут быть только такие значения:
                 // 0 - только PulsePLC,
@@ -118,7 +185,7 @@ namespace Pulse_PLC_Tools_2
                     protocol_type = ImpAscueProtocolType.Mercury230ART;
 
                 RaisePropertyChanged(nameof(Protocol_ASCUE));
-            } 
+            }
         }
         public ushort Adrs_ASCUE { get { return adrs_ASCUE; } set { adrs_ASCUE = value; RaisePropertyChanged(nameof(Adrs_ASCUE)); } }
         public byte[] Pass_ASCUE
@@ -238,6 +305,7 @@ namespace Pulse_PLC_Tools_2
             IsEnable = false;
             Adrs_PLC = 1;
             Serial_View = "0"; //to fill 0
+            CustomSerial_View = "0"; //to fill 0
             steps = new byte[5] { 0, 0, 0, 0, 0 };
             N = 0;
             S1 = 0;
