@@ -1411,7 +1411,7 @@ namespace Pulse_PLC_Tools_2
                     //Errors byte (only for read)
                     //Last link state (only for read)
                     // Кастомный серийный номер (4 байта)
-                    Add_Tx(listRows[i].CustomSerial_View == string.Empty ? (byte)0 : (byte)1); // Нужно ли записать кастомный серийник
+                    Add_Tx(listRows[i].CustomSerial_View == "-" ? (byte)0 : (byte)1); // Нужно ли записать кастомный серийник
                     Add_Tx(listRows[i].CustomSerial, 4);
                 }
             }
