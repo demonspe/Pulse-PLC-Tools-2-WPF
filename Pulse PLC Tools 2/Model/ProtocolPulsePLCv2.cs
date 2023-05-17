@@ -3,11 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Threading;
 using LinkLibrary;
 using Prism.Mvvm;
@@ -164,6 +159,7 @@ namespace Pulse_PLC_Tools_2
             Type = type;
         }
     }
+
     /// <summary>
     /// Параметры для команды TestModePLC, которая включает и настраивает режим тестирования передатчика PLC. 
     /// В этом режиме можно генерировать вручную частоты из передатчика для настройки, тестирования и т.д.
@@ -191,6 +187,7 @@ namespace Pulse_PLC_Tools_2
 
     public class PulsePLCv2Protocol : IProtocol, IMessage
     {
+        private const byte ENABLE_WITH_CUSTOM_SERIAL = 2;  // Код, говорящий о расширенном ответе при чтении/записи таблицы PLC
         //Буффер для передачи
         private byte[] TxBytes { get; set; }
         private int tx_len;
@@ -1319,7 +1316,8 @@ namespace Pulse_PLC_Tools_2
                 for (int i = 1; i <= count_adrs; i++)
                 {
                     DataGridRow_PLC row = new DataGridRow_PLC(rxBytes[pntr++]);
-                    row.IsEnable = (rxBytes[pntr++] == 0) ? false : true;
+                    byte isEnableCode = rxBytes[pntr++];
+                    row.IsEnable = (isEnableCode != 0) ? true : false;
                     //Статус связи
                     row.LastPLCRequestStatus = (rxBytes[pntr++] == 0) ? false : true;
                     //Дата последней успешной связи
@@ -1360,9 +1358,8 @@ namespace Pulse_PLC_Tools_2
                         row.Pass_ASCUE = new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] };
                         //Байт ошибок
                         row.ErrorsByte = rxBytes[pntr++];
-                        //Кастомный серийный номер
-                        bool customSerialEnable = rxBytes[pntr++] == 1;
-                        row.CustomSerial = customSerialEnable
+                            //Кастомный серийный номер
+                        row.CustomSerial = (isEnableCode == ENABLE_WITH_CUSTOM_SERIAL)
                             ? new[] { rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++], rxBytes[pntr++] }
                             : Enumerable.Repeat((byte)0, 4).ToArray();
                     }
@@ -1387,8 +1384,16 @@ namespace Pulse_PLC_Tools_2
             Add_Tx((byte)listRows.Count);
             for (byte i = 0; i < listRows.Count; i++)
             {
+                bool isNeedWriteCustomSerial = listRows[i].CustomSerial_View != "-";
                 Add_Tx(listRows[i].Adrs_PLC);
-                Add_Tx(listRows[i].IsEnable ? (byte)1 : (byte)0);
+                byte isEnableCode = 0;
+                if (listRows[i].IsEnable)
+                {
+                    isEnableCode = 1;
+                    if (isNeedWriteCustomSerial)
+                        isEnableCode = ENABLE_WITH_CUSTOM_SERIAL;
+                }
+                Add_Tx(isEnableCode);
                 if(listRows[i].IsEnable)
                 {
                     //Серийный номер (4 байта)
@@ -1410,9 +1415,11 @@ namespace Pulse_PLC_Tools_2
                     Add_Tx((byte)listRows[i].TypePLC);
                     //Errors byte (only for read)
                     //Last link state (only for read)
-                    // Кастомный серийный номер (4 байта)
-                    Add_Tx(listRows[i].CustomSerial_View == "-" ? (byte)0 : (byte)1); // Нужно ли записать кастомный серийник
-                    Add_Tx(listRows[i].CustomSerial, 4);
+                    if (isEnableCode == ENABLE_WITH_CUSTOM_SERIAL)
+                    {
+                        // Кастомный серийный номер (4 байта)
+                        Add_Tx(listRows[i].CustomSerial, 4);
+                    }
                 }
             }
 
