@@ -142,6 +142,7 @@ namespace Pulse_PLC_Tools_2
         public DelegateCommand Send_Request_Serial { get; private set; }
         public DelegateCommand Send_Request_E_Current { get; private set; }
         public DelegateCommand Send_Request_E_StartDay { get; private set; }
+        public DelegateCommand Send_Request_E_StartPrevDay { get; private set; }
         public DelegateCommand Send_Request_CurrentLoad { get; private set; }
         //Data E Table
         public DelegateCommand Send_Read_E_Enabled { get; private set; }
@@ -320,6 +321,7 @@ namespace Pulse_PLC_Tools_2
             Send_Request_E_Current = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Current); });
             Send_Request_E_StartDay = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Start_Day); });
             Send_Request_CurrentLoad = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.CurrentLoad); });
+            Send_Request_E_StartPrevDay = new DelegateCommand(() => { ProtocolManager.Send_RequestPLC(VM_PLCTable.SelectedRows, PLC_Request.E_Start_Prev_Day); });
             //Data E Table
             Send_Read_E_Enabled = new DelegateCommand(() => ProtocolManager.Send_Read_E_Enabled(VM_PLCTable.TablePLC.ToList()));
             Send_Read_E_Selected = new DelegateCommand(()=>ProtocolManager.Send_Read_E_Selected(VM_PLCTable.SelectedRows));

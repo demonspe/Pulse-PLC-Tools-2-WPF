@@ -36,7 +36,7 @@ namespace Pulse_PLC_Tools_2
         private byte quality = 100;
         private PLCProtocolType typePLC;
         private byte errors_byte;
-        private ImpEnergyGroup e_Current, e_StartDay;
+        private ImpEnergyGroup e_Current, e_StartDay, e_StartPrevDay;
 
         public bool IsEnable { get { return isEnable; } set { isEnable = value; RaisePropertyChanged(nameof(IsEnable)); } }
         public byte Adrs_PLC { get { return adrs_PLC; } set { if (value >= 1 && value <= 250) adrs_PLC = value; RaisePropertyChanged(nameof(Adrs_PLC)); } }
@@ -279,6 +279,8 @@ namespace Pulse_PLC_Tools_2
         public ImpEnergyGroup E_Current { get => e_Current; set { e_Current = value; RaisePropertyChanged(nameof(E_Current)); } }
         //Начало суток
         public ImpEnergyGroup E_StartDay { get => e_StartDay; set { e_StartDay = value; RaisePropertyChanged(nameof(E_StartDay)); } }
+        //Начало прошлых суток
+        public ImpEnergyGroup E_StartPrevDay { get => e_StartPrevDay; set { e_StartPrevDay = value; RaisePropertyChanged(nameof(E_StartPrevDay)); } }
         //Начало месяца
         //-----
         //Начало года
@@ -323,8 +325,10 @@ namespace Pulse_PLC_Tools_2
             ErrorsByte = 0;
             E_Current = new ImpEnergyGroup(false);
             E_StartDay = new ImpEnergyGroup(false);
+            E_StartPrevDay = new ImpEnergyGroup(false);
             E_Current.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_Current)); };
             E_StartDay.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_StartDay)); };
+            E_StartPrevDay.PropertyChanged += (s, a) => { RaisePropertyChanged(nameof(E_StartPrevDay)); };
         }
     }
 }

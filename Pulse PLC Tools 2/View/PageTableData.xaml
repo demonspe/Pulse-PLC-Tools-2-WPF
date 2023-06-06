@@ -43,6 +43,10 @@
                 <DataGridTextColumn Binding="{Binding E_StartDay.E_T2_View}" Header="Нач. суток (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
                 <DataGridTextColumn Binding="{Binding E_StartDay.E_T3_View}" Header="Нач. суток (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
                 <DataGridTextColumn Binding="{Binding E_StartDay.E_Summ_View}" Header="Нач. суток (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartPrevDay.E_T1_View}" Header="Нач. пред. суток (Т1)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartPrevDay.E_T2_View}" Header="Нач. пред. суток (Т2)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartPrevDay.E_T3_View}" Header="Нач. пред. суток (Т3)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
+                <DataGridTextColumn Binding="{Binding E_StartPrevDay.E_Summ_View}" Header="Нач. пред. суток (Сум)" Width="10*" IsReadOnly="True" CanUserSort="False"/>
             </DataGrid.Columns>
         </DataGrid>
         <Button Content="Прочитать" Command="{Binding Send_Read_E_Enabled}" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="96" Height="30"/>

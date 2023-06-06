@@ -229,6 +229,7 @@ namespace Pulse_PLC_Tools_2
             selectedRows.ForEach(r => {
                 CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Current, r.Adrs_PLC, 0);
                 CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Start_Day, r.Adrs_PLC, 0);
+                CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Start_Prev_Day, r.Adrs_PLC, 0);
             });
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
         }
@@ -240,6 +241,7 @@ namespace Pulse_PLC_Tools_2
                 {
                     CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Current, r.Adrs_PLC, 0);
                     CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Start_Day, r.Adrs_PLC, 0);
+                    CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Read_E_Start_Prev_Day, r.Adrs_PLC, 0);
                 }
             });
             CommandManager.Add_CMD(LinkManager.Link, Protocol, PulsePLCv2Protocol.Commands.Close_Session, null, 0);
@@ -403,6 +405,11 @@ namespace Pulse_PLC_Tools_2
             {
                 var row = (DataGridRow_PLC)data;
                 PLCTable_VM.TablePLC[row.Adrs_PLC - 1].E_StartDay = row.E_StartDay;
+            }
+            if (cmd == PulsePLCv2Protocol.Commands.Read_E_Start_Prev_Day)
+            {
+                var row = (DataGridRow_PLC)data;
+                PLCTable_VM.TablePLC[row.Adrs_PLC - 1].E_StartPrevDay = row.E_StartPrevDay;
             }
             if (cmd == PulsePLCv2Protocol.Commands.Read_Journal)
             {

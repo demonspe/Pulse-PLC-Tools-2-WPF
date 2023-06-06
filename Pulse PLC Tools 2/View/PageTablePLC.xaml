@@ -40,6 +40,7 @@
                         <MenuItem Header="Серийный номер" Command="{Binding Send_Request_Serial}"/>
                         <MenuItem Header="Показания - Текущие" Command="{Binding Send_Request_E_Current}"/>
                         <MenuItem Header="Показания - На начало суток" Command="{Binding Send_Request_E_StartDay}"/>
+                        <MenuItem Header="Показания - На начало прошлых суток" Command="{Binding Send_Request_E_StartPrevDay}"/>
                         <MenuItem Header="Текущая нагрузка" Command="{Binding Send_Request_CurrentLoad}"/>
                     </MenuItem>
                     <Separator/>

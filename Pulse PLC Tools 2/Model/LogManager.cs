@@ -1,13 +1,8 @@
-﻿using LinkLibrary;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using LinkLibrary;
 
 namespace Pulse_PLC_Tools_2
 {

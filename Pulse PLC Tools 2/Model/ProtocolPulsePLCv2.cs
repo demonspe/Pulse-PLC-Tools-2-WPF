@@ -9,7 +9,7 @@ using Prism.Mvvm;
 
 namespace Pulse_PLC_Tools_2
 {
-    public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day, CurrentLoad } //Добавить начало месяца и тд
+    public enum PLC_Request : int { PLCv1, Time_Synchro, Serial_Num, E_Current, E_Start_Day, CurrentLoad, E_Start_Prev_Day } //Добавить начало месяца и тд
     public enum Journal_type : int { POWER = 1, CONFIG, INTERFACES, REQUESTS }
     public enum AccessType : int { No_Access, Read, Write }
 
@@ -241,7 +241,7 @@ namespace Pulse_PLC_Tools_2
             Write_PLC_Table,
             Read_E_Current,
             Read_E_Start_Day,
-            Read_E_Month,
+            Read_E_Start_Prev_Day,
             Request_PLC,
             EEPROM_Read_Byte,
             Pass_Write,
@@ -323,7 +323,7 @@ namespace Pulse_PLC_Tools_2
             CommandProps.Add(Commands.Read_PLC_Table_En,new CommandProperties() { Code = "RP", MinLength = 0, Timeout = 200 });
             CommandProps.Add(Commands.Read_E_Current,   new CommandProperties() { Code = "REc", MinLength = 28, Timeout = 100 });
             CommandProps.Add(Commands.Read_E_Start_Day, new CommandProperties() { Code = "REd", MinLength = 28, Timeout = 100 });
-            CommandProps.Add(Commands.Read_E_Month,     new CommandProperties() { Code = "REm", MinLength = 28, Timeout = 100 });
+            CommandProps.Add(Commands.Read_E_Start_Prev_Day, new CommandProperties() { Code = "REp", MinLength = 28, Timeout = 100 });
             //Запись
             CommandProps.Add(Commands.Write_DateTime,   new CommandProperties() { Code = "WT", MinLength = 0, Timeout = 500 });
             CommandProps.Add(Commands.Write_Main_Params, new CommandProperties() { Code = "WM", MinLength = 0, Timeout = 500 });
@@ -363,6 +363,7 @@ namespace Pulse_PLC_Tools_2
             if (CurrentCommand == Commands.Read_PLC_Table)      return CMD_Read_PLC_Table((List<DataGridRow_PLC>)param);
             if (CurrentCommand == Commands.Read_E_Current)      return CMD_Read_E_Current((byte)param);
             if (CurrentCommand == Commands.Read_E_Start_Day)    return CMD_Read_E_Start_Day((byte)param);
+            if (CurrentCommand == Commands.Read_E_Start_Prev_Day) return CMD_Read_E_Start_Prev_Day((byte)param);
             if (CurrentCommand == Commands.Read_IMP_Prev_Day_E) return CMD_Read_Imp_Prev_Day_E((ImpNum)param);
             //Доступ - Запись
             if (Access != AccessType.Write) { Message(this, new MessageDataEventArgs() { MessageType = MessageType.Error, MessageString = "Нет доступа к записи параметров на устройство." }); return false; }
@@ -429,6 +430,7 @@ namespace Pulse_PLC_Tools_2
                     {
                         if (Check(rxBytes[6], Commands.Read_E_Current)) { CMD_Read_E_Handle(rxBytes);      return HandleResult.Ok; }
                         if (Check(rxBytes[6], Commands.Read_E_Start_Day)) { CMD_Read_E_Handle(rxBytes);    return HandleResult.Ok; }
+                        if (Check(rxBytes[6], Commands.Read_E_Start_Prev_Day)) { CMD_Read_E_Handle(rxBytes); return HandleResult.Ok; }
                     }
                 }
                 //Команды записи
@@ -1177,6 +1179,7 @@ namespace Pulse_PLC_Tools_2
                 if (bytes_buff[i * 7 + 8] == event_code++) event_name = "Чтение серийного номера";
                 if (bytes_buff[i * 7 + 8] == event_code++) event_name = "Чтение показаний - Начало суток";
                 if (bytes_buff[i * 7 + 8] == event_code++) event_name = "Чтение показаний - Текущие";
+                if (bytes_buff[i * 7 + 8] == event_code++) event_name = "Чтение показаний - Начало прошлых суток";
 
                 if (bytes_buff[6] == '4')
                 {
@@ -1457,6 +1460,17 @@ namespace Pulse_PLC_Tools_2
             Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Показания на начало суток" });
             return Request_Start();
         }
+        //Запрос Чтение показаний на Начало прошлых суток
+        private bool CMD_Read_E_Start_Prev_Day(byte adrs_dev)
+        {
+            Start_Add_Tx(Commands.Read_E_Start_Prev_Day);
+            //Адрес устройства
+            Add_Tx(adrs_dev);
+
+            //Отправляем запрос
+            Message(this, new MessageDataEventArgs() { MessageType = MessageType.Normal, MessageString = "Показания на начало прошлых суток" });
+            return Request_Start();
+        }
         //Обработка ответа
         private void CMD_Read_E_Handle(byte[] bytes_buff)
         {
@@ -1482,6 +1496,11 @@ namespace Pulse_PLC_Tools_2
             {
                 type_E = "Начало суток";
                 row.E_StartDay = energy;
+            }
+            if (CurrentCommand == Commands.Read_E_Start_Prev_Day)
+            {
+                type_E = "Начало прошлых суток";
+                row.E_StartPrevDay = energy;
             }
             //Сообщение
             if (energy.IsCorrect)
@@ -1567,7 +1586,7 @@ namespace Pulse_PLC_Tools_2
                     string serial_string = rxBytes[10].ToString("00")+ rxBytes[11].ToString("00")+ rxBytes[12].ToString("00")+ rxBytes[13].ToString("00");
                     Message(this, new MessageDataEventArgs() { MessageType = MessageType.Good, MessageString = "Прочитано №" + adrs_PLC + " Серийный номер: " + serial_string + GetPingStr() });
                 }
-                if (plc_cmd_code == PLC_Request.E_Current || plc_cmd_code == PLC_Request.E_Start_Day)
+                if (plc_cmd_code == PLC_Request.E_Current || plc_cmd_code == PLC_Request.E_Start_Day || plc_cmd_code == PLC_Request.E_Start_Prev_Day)
                 {
                     ImpEnergyGroup energy = new ImpEnergyGroup(true);
                     energy.E_T1.Value_Wt = new[] { rxBytes[10], rxBytes[11], rxBytes[12], rxBytes[13] }.ToUint32(true);
