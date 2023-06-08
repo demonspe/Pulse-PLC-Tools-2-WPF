@@ -1596,9 +1596,9 @@ namespace Pulse_PLC_Tools_2
                     Message(this, new MessageDataEventArgs() {
                         MessageType = MessageType.Good,
                         MessageString = "Прочитано №" + adrs_PLC +
-                        ", Тариф 1: " + energy.E_T1.Value_kWt + " кВт" +
-                        ", Тариф 2: " + energy.E_T2.Value_kWt + " кВт" +
-                        ", Тариф 3: " + energy.E_T3.Value_kWt + " кВт" + GetPingStr()
+                        ", Тариф 1: " + energy.E_T1_View + " кВт" +
+                        ", Тариф 2: " + energy.E_T2_View + " кВт" +
+                        ", Тариф 3: " + energy.E_T3_View + " кВт" + GetPingStr()
                     });
                 }
                 if (plc_cmd_code == PLC_Request.CurrentLoad)
